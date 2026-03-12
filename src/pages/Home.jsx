@@ -1,43 +1,97 @@
-import { useState } from "react";
+import { lazy, Suspense } from "react";
 import PostGallery from "../components/post/PostGallery";
-import { TokenInfo } from "../components/features/trading";
-import { FirebaseChat } from "../components/features/chat";
-import { MoodTracker } from "../components/features/utilities";
-import { CommunityStats } from "../components/features/stats";
-import { MusicPlayer } from "../components/features/music";
-import { LiveFeed } from "../components/features/feeds";
-import { CompactWeather } from "../components/features/weather";
-
 import "./Home.css";
-
 import logger from "../utils/logger";
+
+// Lazy-load heavy sidebar widgets — they are below-the-fold on first paint
+// and have their own API calls / Firebase subscriptions
+const TokenInfo = lazy(() =>
+  import("../components/features/trading").then((m) => ({
+    default: m.TokenInfo,
+  })),
+);
+const FirebaseChat = lazy(() =>
+  import("../components/features/chat").then((m) => ({
+    default: m.FirebaseChat,
+  })),
+);
+const MoodTracker = lazy(() =>
+  import("../components/features/utilities").then((m) => ({
+    default: m.MoodTracker,
+  })),
+);
+const CommunityStats = lazy(() =>
+  import("../components/features/stats").then((m) => ({
+    default: m.CommunityStats,
+  })),
+);
+const MusicPlayer = lazy(() =>
+  import("../components/features/music").then((m) => ({
+    default: m.MusicPlayer,
+  })),
+);
+const LiveFeed = lazy(() =>
+  import("../components/features/feeds").then((m) => ({
+    default: m.LiveFeed,
+  })),
+);
+const CompactWeather = lazy(() =>
+  import("../components/features/weather").then((m) => ({
+    default: m.CompactWeather,
+  })),
+);
+
+// Minimal fallback — avoids layout shift
+const WidgetFallback = () => (
+  <div
+    style={{ minHeight: 60, background: "rgba(255,255,255,0.03)", borderRadius: 12 }}
+    aria-hidden="true"
+  />
+);
+
+// Static token data — replace with live fetch when available
+const TOKEN_DATA = {
+  price: 0.01569,
+  change: 15.43,
+  volume: 2567891,
+  marketCap: 15689234,
+  holders: 8234,
+};
+
 export default function Home() {
   logger.log("Home rendered");
-  const [tokenData] = useState({
-    price: 0.01569,
-    change: 15.43,
-    volume: 2567891,
-    marketCap: 15689234,
-    holders: 8234,
-  });
 
   return (
     <div className="home">
-      <MusicPlayer />
+      <Suspense fallback={<WidgetFallback />}>
+        <MusicPlayer />
+      </Suspense>
       <div className="home-layout">
         <div className="left-column">
-          <MoodTracker />
-          <CompactWeather />
-          <TokenInfo data={tokenData} />
+          <Suspense fallback={<WidgetFallback />}>
+            <MoodTracker />
+          </Suspense>
+          <Suspense fallback={<WidgetFallback />}>
+            <CompactWeather />
+          </Suspense>
+          <Suspense fallback={<WidgetFallback />}>
+            <TokenInfo data={TOKEN_DATA} />
+          </Suspense>
         </div>
         <div className="center-column">
           <PostGallery />
         </div>
         <div className="right-column">
           <div className="chat-wrapper">
-            <CommunityStats />
-            <LiveFeed />
-            <FirebaseChat />
+            <Suspense fallback={<WidgetFallback />}>
+              <CommunityStats />
+            </Suspense>
+            <Suspense fallback={<WidgetFallback />}>
+              <LiveFeed />
+            </Suspense>
+            <Suspense fallback={<WidgetFallback />}>
+              <FirebaseChat />
+            </Suspense>
           </div>
         </div>
       </div>

@@ -19,6 +19,7 @@ import { useAuth } from "../context/AuthContext";
 import { EmojiPicker } from "../components/features/utilities";
 import toast from "react-hot-toast";
 import { Link } from "react-router-dom";
+import { formatTime } from "../utils/formatters";
 import "./Messages.css";
 
 function getConversationId(uid1, uid2) {
@@ -91,21 +92,6 @@ export default function MessagesPage() {
       });
     }
   }, [currentUser, conversations]);
-  useEffect(() => {
-    if (!currentUser) return;
-    const q = query(
-      collection(db, "conversations"),
-      where("participants", "array-contains", currentUser.uid),
-      orderBy("lastMessageAt", "desc"),
-      limit(50),
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      const convos = [];
-      snap.forEach((d) => convos.push({ id: d.id, ...d.data() }));
-      setConversations(convos);
-    });
-    return () => unsub();
-  }, [currentUser]);
 
   // Subscribe to messages
   useEffect(() => {
@@ -383,20 +369,6 @@ export default function MessagesPage() {
     },
     [activeConvo, currentUser],
   );
-  const formatTime = useCallback((ts) => {
-    if (!ts?.toDate) return "";
-    const d = ts.toDate();
-    const now = new Date();
-    const diffMs = now - d;
-    const diffDays = Math.floor(diffMs / 86400000);
-    if (diffDays > 0) return `${diffDays}d ago`;
-    return d.toLocaleTimeString("en-US", {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }, []);
-
   // Not logged in
   if (!currentUser) {
     return (

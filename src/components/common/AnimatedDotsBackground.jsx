@@ -1,4 +1,4 @@
-import { useMemo, memo } from "react";
+import { useMemo, useEffect, useRef, memo } from "react";
 import "./AnimatedDotsBackground.css";
 
 // Project palette - subtle monochromatic approach
@@ -18,6 +18,20 @@ function randomBetween(a, b) {
 }
 
 function AnimatedDotsBackground() {
+  const containerRef = useRef(null);
+
+  // Pause CSS animations when the tab is hidden — avoids wasting GPU/CPU
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (containerRef.current) {
+        containerRef.current.classList.toggle("paused", document.hidden);
+      }
+    };
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () =>
+      document.removeEventListener("visibilitychange", handleVisibility);
+  }, []);
+
   // Only generate dots once per mount - reduced from 8 to 5 for better performance
   const dots = useMemo(() => {
     return Array.from({ length: 5 }).map((_, i) => {
@@ -48,7 +62,11 @@ function AnimatedDotsBackground() {
     });
   }, []);
 
-  return <div className="animated-dots-bg">{dots}</div>;
+  return (
+    <div ref={containerRef} className="animated-dots-bg">
+      {dots}
+    </div>
+  );
 }
 
 export default memo(AnimatedDotsBackground);

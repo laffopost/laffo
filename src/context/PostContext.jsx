@@ -8,6 +8,14 @@ import {
   useRef,
 } from "react";
 import {
+  POST_COOLDOWN_MS,
+  COMMENT_COOLDOWN_MS,
+  INITIAL_LOAD_LIMIT,
+  PAGINATION_INCREMENT,
+  MAX_TOTAL_LOAD,
+  DEFAULT_REACTIONS,
+} from "../constants/posts";
+import {
   getFirestore,
   collection,
   doc,
@@ -40,7 +48,11 @@ function dataURLtoBlob(dataURL) {
   return new Blob([array], { type: mime });
 }
 
-const PostContext = createContext();
+// Two separate contexts:
+// - PostDataContext  → reactive data (images, loading, etc.) — changes on every update
+// - PostActionsContext → stable mutation functions — only change on auth/db change
+const PostDataContext = createContext();
+const PostActionsContext = createContext();
 
 // Disable console logs in production
 const isDev =
@@ -48,12 +60,32 @@ const isDev =
 const log = isDev ? console.log : () => {};
 const logError = console.error; // Keep errors always
 
+/** Combined hook – same API as before, works for all consumers */
 export const usePosts = () => {
-  const context = useContext(PostContext);
-  if (!context) {
+  const data = useContext(PostDataContext);
+  const actions = useContext(PostActionsContext);
+  if (!data || !actions) {
     throw new Error("usePosts must be used within an ImageProvider");
   }
-  return context;
+  return { ...data, ...actions };
+};
+
+/** Action-only hook – won't re-render when post data changes */
+export const usePostActions = () => {
+  const actions = useContext(PostActionsContext);
+  if (!actions) {
+    throw new Error("usePostActions must be used within an ImageProvider");
+  }
+  return actions;
+};
+
+/** Data-only hook – for components that only read post state */
+export const usePostData = () => {
+  const data = useContext(PostDataContext);
+  if (!data) {
+    throw new Error("usePostData must be used within an ImageProvider");
+  }
+  return data;
 };
 
 export const ImageProvider = ({ children }) => {
@@ -64,6 +96,7 @@ export const ImageProvider = ({ children }) => {
   const [userReactions, setUserReactions] = useState({});
   const [userName, setUserName] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const db = getFirestore();
   const { firebaseUser, userProfile } = useAuth();
@@ -76,13 +109,16 @@ export const ImageProvider = ({ children }) => {
   const lastCommentTimeRef = useRef(0);
   const expiryServiceRef = useRef(null);
 
-  // Pagination settings
-  const INITIAL_LOAD_LIMIT = 15; // Load only 15 posts initially
-  const PAGINATION_INCREMENT = 10; // Load 10 more on each "load more"
-  const MAX_TOTAL_LOAD = 100; // Never load more than 100 total
-
-  const POST_COOLDOWN_MS = 15000; // 15 seconds between posts
-  const COMMENT_COOLDOWN_MS = 5000; // 5 seconds between comments
+  // Ref snapshots — keep current values accessible in stable callbacks
+  // without adding them as useCallback deps (avoids function recreation on every data change)
+  const imagesRef = useRef(images);
+  imagesRef.current = images;
+  const userReactionsRef = useRef(userReactions);
+  userReactionsRef.current = userReactions;
+  const userProfileRef = useRef(userProfile);
+  userProfileRef.current = userProfile;
+  const userNameRef = useRef(userName);
+  userNameRef.current = userName;
 
   // Initialize expiry service
   useEffect(() => {
@@ -294,8 +330,9 @@ export const ImageProvider = ({ children }) => {
 
         setLoading(false);
       },
-      (error) => {
-        logError("❌ Firestore error:", error);
+      (err) => {
+        logError("❌ Firestore error:", err);
+        setError(err);
         setLoading(false);
       },
     );
@@ -336,138 +373,132 @@ export const ImageProvider = ({ children }) => {
     [db],
   );
 
-  const addPost = async (postData) => {
-    // Auth check: block anonymous users
-    if (!firebaseUser || firebaseUser.isAnonymous) {
-      throw new Error("You must be logged in to create a post");
-    }
+  const addPost = useCallback(
+    async (postData) => {
+      // Auth check: block anonymous users
+      if (!firebaseUser || firebaseUser.isAnonymous) {
+        throw new Error("You must be logged in to create a post");
+      }
 
-    // Rate limiting: prevent spam posting
-    const now = Date.now();
-    const elapsed = now - lastPostTimeRef.current;
-    if (elapsed < POST_COOLDOWN_MS) {
-      const waitSec = Math.ceil((POST_COOLDOWN_MS - elapsed) / 1000);
-      throw new Error(`Please wait ${waitSec}s before posting again`);
-    }
+      // Rate limiting: prevent spam posting
+      const now = Date.now();
+      const elapsed = now - lastPostTimeRef.current;
+      if (elapsed < POST_COOLDOWN_MS) {
+        const waitSec = Math.ceil((POST_COOLDOWN_MS - elapsed) / 1000);
+        throw new Error(`Please wait ${waitSec}s before posting again`);
+      }
 
-    try {
-      log("🔥 PostContext - addPost called with:", postData);
-      log("🔥 PostContext - Post type:", postData.type);
+      try {
+        log("🔥 PostContext - addPost called with:", postData);
+        log("🔥 PostContext - Post type:", postData.type);
 
-      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
-      const username = userDoc.exists()
-        ? userDoc.data().username
-        : firebaseUser.displayName || "Anonymous";
+        const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+        const username = userDoc.exists()
+          ? userDoc.data().username
+          : firebaseUser.displayName || "Anonymous";
 
-      // --- Upload image to Firebase Storage ---
-      let imageUrl = null;
-      if (postData.type !== "status" && postData.type !== "poll") {
-        if (postData.imageFile instanceof File) {
-          // Upload the actual File object (preferred path)
-          const ext = postData.imageFile.name.split(".").pop() || "jpg";
-          const storageRef = ref(
-            storage,
-            `posts/${firebaseUser.uid}/${Date.now()}.${ext}`,
-          );
-          const snapshot = await uploadBytes(storageRef, postData.imageFile);
-          imageUrl = await getDownloadURL(snapshot.ref);
-          log("✅ Image uploaded to Storage:", imageUrl);
-        } else if (
-          postData.image &&
-          typeof postData.image === "string" &&
-          postData.image.startsWith("data:")
-        ) {
-          // Canvas drawing: convert base64 → blob → upload
-          const blob = dataURLtoBlob(postData.image);
-          const storageRef = ref(
-            storage,
-            `posts/${firebaseUser.uid}/${Date.now()}_canvas.jpg`,
-          );
-          const snapshot = await uploadBytes(storageRef, blob);
-          imageUrl = await getDownloadURL(snapshot.ref);
-          log("✅ Canvas image uploaded to Storage:", imageUrl);
-        } else {
-          imageUrl = postData.image || null;
+        // --- Upload image to Firebase Storage ---
+        let imageUrl = null;
+        if (postData.type !== "status" && postData.type !== "poll") {
+          if (postData.imageFile instanceof File) {
+            const ext = postData.imageFile.name.split(".").pop() || "jpg";
+            const storageRef = ref(
+              storage,
+              `posts/${firebaseUser.uid}/${Date.now()}.${ext}`,
+            );
+            const snapshot = await uploadBytes(storageRef, postData.imageFile);
+            imageUrl = await getDownloadURL(snapshot.ref);
+            log("✅ Image uploaded to Storage:", imageUrl);
+          } else if (
+            postData.image &&
+            typeof postData.image === "string" &&
+            postData.image.startsWith("data:")
+          ) {
+            const blob = dataURLtoBlob(postData.image);
+            const storageRef = ref(
+              storage,
+              `posts/${firebaseUser.uid}/${Date.now()}_canvas.jpg`,
+            );
+            const snapshot = await uploadBytes(storageRef, blob);
+            imageUrl = await getDownloadURL(snapshot.ref);
+            log("✅ Canvas image uploaded to Storage:", imageUrl);
+          } else {
+            imageUrl = postData.image || null;
+          }
         }
+
+        const newPost = {
+          title: postData.title || "",
+          description: postData.description || "",
+          author: postData.author || username,
+          authorAvatar: postData.authorAvatar || null,
+          image: imageUrl,
+          type: postData.type || "user",
+          uploadedBy: firebaseUser.uid,
+          createdAt: serverTimestamp(),
+          reactions: postData.reactions || DEFAULT_REACTIONS,
+          comments: [],
+          commentCount: 0,
+          endsAt: postData.endsAt || null,
+        };
+
+        if (postData.type === "user-profile" || postData.type === "user") {
+          newPost.socials = postData.socials || "";
+          newPost.webpage = postData.webpage || "";
+          newPost.extraLinks = postData.extraLinks || [];
+        }
+
+        if (postData.type === "media") {
+          log("🎥 PostContext - Adding media fields");
+          newPost.mediaType = postData.mediaType;
+          newPost.embedUrl = postData.embedUrl;
+        }
+
+        if (postData.type === "status") {
+          log("👀 PostContext - Adding status fields");
+          newPost.status = postData.status;
+          newPost.bgColor = postData.bgColor;
+          newPost.textColor = postData.textColor;
+        }
+
+        if (postData.type === "poll") {
+          log("🎮 PostContext - Adding poll fields");
+          newPost.question = postData.question;
+          newPost.options = postData.options;
+          newPost.bgColor = postData.bgColor || "#1a1a2e";
+          newPost.description = postData.description || null;
+          newPost.endsAt = postData.endsAt || null;
+          newPost.voteCounts =
+            postData.voteCounts || postData.options.map(() => 0);
+          newPost.votes = postData.votes || {};
+        }
+
+        log("🔥 PostContext - Final post object being saved:", newPost);
+
+        const docRef = await addDoc(collection(db, "images"), newPost);
+        const newPostWithId = { id: docRef.id, ...newPost };
+
+        log("✅ PostContext - Post saved successfully with ID:", docRef.id);
+
+        if (newPost.endsAt && expiryServiceRef.current) {
+          expiryServiceRef.current.schedulePostDeletion(
+            docRef.id,
+            newPost.endsAt,
+          );
+        }
+
+        lastPostTimeRef.current = Date.now();
+        setImages((prev) => [newPostWithId, ...prev]);
+        setUserImages((prev) => [newPostWithId, ...prev]);
+
+        return docRef.id;
+      } catch (err) {
+        logError("❌ PostContext - Error adding post:", err);
+        throw err;
       }
-
-      const newPost = {
-        title: postData.title || "",
-        description: postData.description || "",
-        author: postData.author || username,
-        authorAvatar: postData.authorAvatar || null,
-        image: imageUrl,
-        type: postData.type || "user",
-        uploadedBy: firebaseUser.uid,
-        createdAt: serverTimestamp(),
-        reactions: postData.reactions || {
-          "🔥": 0,
-          "😂": 0,
-          "🙌": 0,
-          "🚀": 0,
-          "👍": 0,
-        },
-        comments: [],
-        commentCount: 0,
-        endsAt: postData.endsAt || null,
-      };
-
-      if (postData.type === "user-profile" || postData.type === "user") {
-        newPost.socials = postData.socials || "";
-        newPost.webpage = postData.webpage || "";
-        newPost.extraLinks = postData.extraLinks || [];
-      }
-
-      if (postData.type === "media") {
-        log("🎥 PostContext - Adding media fields");
-        newPost.mediaType = postData.mediaType;
-        newPost.embedUrl = postData.embedUrl;
-      }
-
-      if (postData.type === "status") {
-        log("👀 PostContext - Adding status fields");
-        newPost.status = postData.status;
-        newPost.bgColor = postData.bgColor;
-        newPost.textColor = postData.textColor;
-      }
-
-      if (postData.type === "poll") {
-        log("🎮 PostContext - Adding poll fields");
-        newPost.question = postData.question;
-        newPost.options = postData.options;
-        newPost.bgColor = postData.bgColor || "#1a1a2e";
-        newPost.description = postData.description || null;
-        newPost.endsAt = postData.endsAt || null;
-        newPost.voteCounts =
-          postData.voteCounts || postData.options.map(() => 0);
-        newPost.votes = postData.votes || {};
-      }
-
-      log("🔥 PostContext - Final post object being saved:", newPost);
-
-      const docRef = await addDoc(collection(db, "images"), newPost);
-      const newPostWithId = { id: docRef.id, ...newPost };
-
-      log("✅ PostContext - Post saved successfully with ID:", docRef.id);
-
-      // Schedule automatic deletion if post has expiry
-      if (newPost.endsAt && expiryServiceRef.current) {
-        expiryServiceRef.current.schedulePostDeletion(
-          docRef.id,
-          newPost.endsAt,
-        );
-      }
-
-      lastPostTimeRef.current = Date.now();
-      setImages((prev) => [newPostWithId, ...prev]);
-      setUserImages((prev) => [newPostWithId, ...prev]);
-
-      return docRef.id;
-    } catch (error) {
-      logError("❌ PostContext - Error adding post:", error);
-      throw error;
-    }
-  };
+    },
+    [db, firebaseUser, userProfile],
+  );
 
   const deletePost = useCallback(
     async (postId) => {
@@ -552,8 +583,9 @@ export const ImageProvider = ({ children }) => {
       if (firebaseUser?.isAnonymous) return;
       log(`👍 Toggling reaction ${emoji} on ${imageId}`);
 
-      const currentReaction = userReactions[imageId];
-      const newReactions = { ...userReactions };
+      // Use ref snapshot so this callback doesn't need userReactions in deps
+      const currentReaction = userReactionsRef.current[imageId];
+      const newReactions = { ...userReactionsRef.current };
 
       if (currentReaction === emoji) {
         delete newReactions[imageId];
@@ -577,8 +609,8 @@ export const ImageProvider = ({ children }) => {
           let shouldCreateNotification = false;
           let postData = null;
 
-          // Get post data for notification
-          if (!currentReaction && emoji && userProfile?.username) {
+          // Get post data for notification (use ref to avoid stale closure)
+          if (!currentReaction && emoji && userProfileRef.current?.username) {
             const postDoc = await getDoc(imageRef);
             if (postDoc.exists()) {
               postData = postDoc.data();
@@ -600,12 +632,14 @@ export const ImageProvider = ({ children }) => {
 
             // Create notification for new like (not when changing reaction)
             if (shouldCreateNotification && postData && !currentReaction) {
-              const username = userProfile?.username || userName || "Anonymous";
+              const username =
+                userProfileRef.current?.username ||
+                userNameRef.current ||
+                "Anonymous";
               log("🔔 About to create like notification:", {
-                postData: postData,
-                userId: userId,
-                userProfile: userProfile,
-                username: username,
+                postData,
+                userId,
+                username,
               });
               await createNotificationForPost({
                 type: "like",
@@ -619,20 +653,22 @@ export const ImageProvider = ({ children }) => {
           }
 
           delete reactionTimeoutRef.current[imageId];
-        } catch (error) {
-          logError("❌ Reaction error:", error);
+        } catch (err) {
+          logError("❌ Reaction error:", err);
           setUserReactions((prev) => ({ ...prev, [imageId]: currentReaction }));
         }
       }, 2000);
     },
-    [db, userId, userReactions],
+    // userReactions removed from deps — accessed via userReactionsRef.current
+    [db, userId, firebaseUser],
   );
 
   const votePoll = useCallback(
     async (postId, optionIndex) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) return;
-      const post = images.find((img) => img.id === postId);
+      // Use ref snapshot so this doesn't need `images` in deps
+      const post = imagesRef.current.find((img) => img.id === postId);
       if (!post || post.type !== "poll") return;
 
       // Prevent double voting
@@ -662,15 +698,16 @@ export const ImageProvider = ({ children }) => {
           [`votes.${userId}`]: optionIndex,
         });
         log(`✅ Poll vote recorded: option ${optionIndex} on post ${postId}`);
-      } catch (error) {
-        logError("❌ Poll vote error:", error);
+      } catch (err) {
+        logError("❌ Poll vote error:", err);
         // Rollback
         setImages((prev) =>
           prev.map((img) => (img.id === postId ? post : img)),
         );
       }
     },
-    [db, userId, images],
+    // images removed from deps — accessed via imagesRef.current
+    [db, userId, firebaseUser],
   );
 
   const getUserPollVote = useCallback(
@@ -699,10 +736,11 @@ export const ImageProvider = ({ children }) => {
 
       log(`💬 Adding comment to ${imageId}`);
 
+      // Use ref snapshots so userName/userProfile aren't deps
       const author =
-        userProfile?.username?.trim() ||
+        userProfileRef.current?.username?.trim() ||
         firebaseUser?.displayName?.trim() ||
-        userName ||
+        userNameRef.current ||
         "Anonymous";
 
       const newComment = {
@@ -751,12 +789,14 @@ export const ImageProvider = ({ children }) => {
 
         // Create notification for comment
         if (postData) {
-          const username = userProfile?.username || userName || "Anonymous";
+          const username =
+            userProfileRef.current?.username ||
+            userNameRef.current ||
+            "Anonymous";
           log("🔔 About to create comment notification:", {
-            postData: postData,
-            userId: userId,
-            userProfile: userProfile,
-            username: username,
+            postData,
+            userId,
+            username,
           });
           await createNotificationForPost({
             type: "comment",
@@ -770,8 +810,8 @@ export const ImageProvider = ({ children }) => {
         }
 
         log("✅ Comment added");
-      } catch (error) {
-        logError("❌ Comment error:", error);
+      } catch (err) {
+        logError("❌ Comment error:", err);
 
         // Rollback optimistic update on error
         setImages((prevImages) =>
@@ -789,7 +829,8 @@ export const ImageProvider = ({ children }) => {
         );
       }
     },
-    [db, userId, userName, userProfile, firebaseUser],
+    // userName/userProfile removed — accessed via refs
+    [db, userId, firebaseUser],
   );
 
   const toggleCommentReaction = useCallback(
@@ -953,25 +994,22 @@ export const ImageProvider = ({ children }) => {
     }
   }, [db, images.length, filterExpiredPosts]);
 
-  const contextValue = useMemo(() => {
-    log("🎯 Creating context value");
+  // PostDataContext value — updates whenever reactive data changes
+  // Consumers re-render only when images/reactions/loading change
+  const dataValue = useMemo(() => {
+    log("🎯 Creating data context value");
     return {
       images,
       userImages,
       userReactions,
       loading,
+      error,
       userId,
       userName,
+      getAllImages: images,
       ...stats,
-      addPost,
-      deletePost,
-      editPost,
-      toggleReaction,
-      votePoll,
+      // Selector functions that depend on reactive data
       getUserPollVote,
-      addComment,
-      toggleCommentReaction,
-      fetchImageById,
       getComments,
       getReactions,
       getUserReaction,
@@ -979,25 +1017,58 @@ export const ImageProvider = ({ children }) => {
       getUserCommentReaction,
       getImageById,
       getImagesByType,
-      getAllImages: images,
-      loadMorePosts,
     };
   }, [
     images,
     userImages,
     userReactions,
     loading,
+    error,
     userId,
     userName,
     stats,
-    loadMorePosts,
+    getUserPollVote,
     getComments,
     getReactions,
     getUserReaction,
+    getCommentReactions,
+    getUserCommentReaction,
+    getImageById,
+    getImagesByType,
+  ]);
+
+  // PostActionsContext value — stable mutation functions.
+  // Only recreated when auth/db changes (login/logout), not on every post update.
+  const actionsValue = useMemo(() => {
+    log("🎯 Creating actions context value");
+    return {
+      addPost,
+      deletePost,
+      editPost,
+      toggleReaction,
+      votePoll,
+      addComment,
+      toggleCommentReaction,
+      fetchImageById,
+      loadMorePosts,
+    };
+  }, [
+    addPost,
+    deletePost,
     editPost,
+    toggleReaction,
+    votePoll,
+    addComment,
+    toggleCommentReaction,
+    fetchImageById,
+    loadMorePosts,
   ]);
 
   return (
-    <PostContext.Provider value={contextValue}>{children}</PostContext.Provider>
+    <PostActionsContext.Provider value={actionsValue}>
+      <PostDataContext.Provider value={dataValue}>
+        {children}
+      </PostDataContext.Provider>
+    </PostActionsContext.Provider>
   );
 };

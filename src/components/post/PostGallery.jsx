@@ -74,22 +74,26 @@ const PostGallery = memo(function PostGallery({
   const scrollRef = useRef(null);
   const trendingScrollRef = useRef(null);
   const galleryRef = useRef(null);
+  const sentinelRef = useRef(null);
 
-  // Infinite scroll handler - listen to window scroll
+  // Infinite scroll — IntersectionObserver on a sentinel div at the bottom
+  // Much cheaper than a window scroll listener (fires ~60/sec)
   useEffect(() => {
-    const handleScroll = () => {
-      if (!galleryRef.current || isLoadingMore) return;
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
 
-      const { bottom } = galleryRef.current.getBoundingClientRect();
-      // Trigger load when gallery is within 500px of bottom of viewport
-      if (bottom < window.innerHeight + 500) {
-        setIsLoadingMore(true);
-        loadMorePosts().finally(() => setIsLoadingMore(false));
-      }
-    };
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !isLoadingMore) {
+          setIsLoadingMore(true);
+          loadMorePosts().finally(() => setIsLoadingMore(false));
+        }
+      },
+      { rootMargin: "500px" }, // start loading 500px before sentinel is visible
+    );
 
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    observer.observe(sentinel);
+    return () => observer.disconnect();
   }, [isLoadingMore, loadMorePosts]);
 
   // Guarded version of toggleReaction for cards
@@ -512,6 +516,9 @@ const PostGallery = memo(function PostGallery({
             <p>Loading more posts...</p>
           </div>
         )}
+
+        {/* Sentinel element — IntersectionObserver watches this to trigger pagination */}
+        <div ref={sentinelRef} style={{ height: 1 }} aria-hidden="true" />
       </div>
 
       {isLoading && params.id && (

@@ -24,3 +24,8 @@
     transform: scale(1.3) translateY(-50vh) rotate(180deg); /* Reduced transform intensity */
   }
 }
+
+/* Pause CSS animations when the tab is hidden — saves CPU while user is away */
+.animated-dots-bg.paused .animated-dot {
+  animation-play-state: paused;
+}
