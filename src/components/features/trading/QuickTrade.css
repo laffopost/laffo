@@ -1,0 +1,231 @@
+.quick-trade-section {
+  background: linear-gradient(145deg, #2e2e42, #1e1e2e);
+  border: 2px solid rgba(139, 92, 246, 0.4);
+  border-radius: 16px;
+  padding: 2rem;
+}
+
+.quick-trade-title {
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.contract-section {
+  margin-bottom: 0.5rem;
+}
+
+.contract-section h3 {
+  color: white;
+  font-size: 1.1rem;
+  margin: 0 0 0.75rem 0;
+  font-weight: 600;
+}
+
+.contract-box {
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.contract-address {
+  color: #8b5cf6;
+  font-family: monospace;
+  font-size: 0.85rem;
+  word-break: break-all;
+  flex: 1;
+  min-width: 200px;
+}
+
+.copy-btn {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.copy-btn:hover {
+  background: rgba(139, 92, 246, 0.4);
+  transform: translateY(-2px);
+}
+
+.platforms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 2rem;
+}
+
+.platform-card {
+  background: linear-gradient(145deg, #3e3e52, #2e2e42);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 12px;
+  padding: 1.25rem;
+  text-align: center;
+  text-decoration: none;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.platform-card:hover {
+  border-color: rgba(139, 92, 246, 0.8);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+}
+
+.platform-logo {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 6px;
+}
+
+.platform-name {
+  color: #fff;
+  font-size: 1.1rem;
+  margin: 0;
+  font-weight: 700;
+}
+
+.platform-description {
+  color: #a5b4fc;
+  font-size: 0.8rem;
+  margin: 0;
+  opacity: 0.8;
+}
+
+.platform-cta {
+  color: #8b5cf6;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-top: auto;
+}
+
+.platform-card:hover .platform-cta {
+  color: #a78bfa;
+}
+
+/* How to Buy Steps */
+.buy-steps-section h3 {
+  color: #8b5cf6;
+  font-size: 1.5rem;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.buy-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  counter-reset: step-counter;
+}
+
+.buy-steps li {
+  counter-increment: step-counter;
+  position: relative;
+  padding: 1rem 1rem 1rem 4rem;
+  margin-bottom: 1rem;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  line-height: 1.6;
+  transition: all 0.2s;
+}
+
+.buy-steps li:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.4);
+  transform: translateX(4px);
+}
+
+.buy-steps li::before {
+  content: counter(step-counter);
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.buy-steps li:last-child {
+  margin-bottom: 0;
+  background: rgba(16, 185, 129, 0.1);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.buy-steps li:last-child::before {
+  background: linear-gradient(135deg, #10b981, #059669);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+.buy-steps li:last-child:hover {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.5);
+}
+
+@media (max-width: 768px) {
+  .platforms-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contract-box {
+    flex-direction: column;
+  }
+
+  .contract-address {
+    font-size: 0.75rem;
+  }
+
+  .buy-steps li {
+    padding: 1rem 1rem 1rem 3.5rem;
+    font-size: 0.9rem;
+  }
+
+  .buy-steps li::before {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .platforms-grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,136 @@
+.click-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.click-game h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.click-game p {
+  color: #a5b4fc;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.click-stats {
+  display: flex;
+  gap: 1.5rem;
+}
+
+.click-stat {
+  text-align: center;
+}
+
+.click-stat-label {
+  font-size: 0.75rem;
+  color: #a5b4fc;
+  margin-bottom: 0.25rem;
+}
+
+.click-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #10b981;
+}
+
+.click-target {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ec4899, #8b5cf6);
+  border: 4px solid #10b981;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.1s;
+  box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.click-target-icon {
+  border-radius: 50%;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+  transition: transform 0.1s;
+}
+
+.click-target.active .click-target-icon {
+  animation: pulse 0.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.click-target:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+.click-target.active:hover {
+  transform: scale(1.05);
+  box-shadow: 0 10px 40px rgba(139, 92, 246, 0.6);
+}
+
+.click-target.shake {
+  animation: shake 0.1s;
+}
+
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+.game-title-icon {
+  width: 28px;
+  height: 28px;
+  vertical-align: middle;
+  margin-right: 0.5rem;
+}
+
+.click-start-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.click-start-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.click-result {
+  font-size: 1rem;
+  color: #10b981;
+  font-weight: 700;
+}

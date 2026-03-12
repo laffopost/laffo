@@ -1,0 +1,115 @@
+.profile-image-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.profile-image-modal-content {
+  position: relative;
+  max-width: 90vh;
+  max-height: 90vh;
+  border-radius: 16px;
+  overflow: hidden;
+  background: rgba(20, 20, 35, 0.95);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6);
+  animation: scaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.profile-image-modal-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  max-width: 100%;
+  max-height: 85vh;
+}
+
+.profile-image-modal-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.profile-image-modal-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  border-radius: 50%;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  z-index: 10;
+}
+
+.profile-image-modal-close:hover {
+  background: rgba(0, 0, 0, 0.8);
+  transform: rotate(90deg);
+}
+
+.profile-image-modal-close:active {
+  transform: rotate(90deg) scale(0.9);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .profile-image-modal-content {
+    max-width: 95vw;
+    max-height: 80vh;
+    border-radius: 12px;
+  }
+
+  .profile-image-modal-img {
+    max-height: 80vh;
+  }
+
+  .profile-image-modal-close {
+    width: 36px;
+    height: 36px;
+    font-size: 20px;
+  }
+}

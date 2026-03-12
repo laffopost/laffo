@@ -1,0 +1,17 @@
+.profile-modal-back-btn {
+  margin-bottom: 12px;
+  background: #23234a;
+  color: #a5b4fc;
+  border: 1.5px solid #8b5cf6;
+  border-radius: 10px;
+  padding: 0.5rem 1.2rem;
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.18s, color 0.18s, border 0.18s;
+}
+.profile-modal-back-btn:hover {
+  background: #18182f;
+  color: #fff;
+  border-color: #a5b4fc;
+}

@@ -1,0 +1,339 @@
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import { usePosts } from "../../../context/PostContext";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../../firebase/config";
+import sendIcon from "../../../assets/send.png";
+import { useAuth } from "../../../context/AuthContext";
+import useRequireAuth from "../../../hooks/useRequireAuth";
+
+const PostModalCommentsSection = memo(function PostModalCommentsSection({
+  image,
+}) {
+  const {
+    addComment,
+    getComments,
+    toggleCommentReaction,
+    getCommentReactions,
+    getUserCommentReaction,
+  } = usePosts();
+  const { userProfile, firebaseUser } = useAuth();
+  const { requireAuth, isLoggedIn } = useRequireAuth();
+
+  const [newComment, setNewComment] = useState("");
+  const [showCommentReactionPicker, setShowCommentReactionPicker] =
+    useState(null);
+  const [avatars, setAvatars] = useState({});
+  const commentReactionPickerRef = useRef(null);
+
+  const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
+
+  // Memoize comments so we don't recompute on every render
+  const comments = useMemo(
+    () => getComments(image.id),
+    [image.id, getComments],
+  );
+
+  // Fetch avatars for unique authors, but only when comments change
+  useEffect(() => {
+    const uniqueAuthors = [
+      ...new Set(comments.map((c) => c.author).filter(Boolean)),
+    ];
+
+    const loadAvatars = async () => {
+      for (const author of uniqueAuthors) {
+        if (avatars[author] !== undefined) continue;
+        try {
+          const userDocRef = doc(db, "users", author);
+          const userDoc = await getDoc(userDocRef);
+          const userData = userDoc.exists() ? userDoc.data() : null;
+          setAvatars((prev) => ({
+            ...prev,
+            [author]: userData?.avatar || null,
+          }));
+        } catch {
+          setAvatars((prev) => ({
+            ...prev,
+            [author]: null,
+          }));
+        }
+      }
+    };
+
+    if (uniqueAuthors.length > 0) {
+      loadAvatars();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [comments]);
+
+  const handleAddComment = useCallback(
+    async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!newComment.trim()) return;
+      if (!requireAuth("comment on a post")) return;
+
+      const commentText = newComment.trim();
+
+      const avatar = userProfile?.avatar || firebaseUser?.photoURL || "😂";
+
+      // Optimistic local update for UX (optional – you can remove if you don't keep local comments state)
+      // addComment will update Firestore and snapshot will refresh comments
+
+      setNewComment("");
+      addComment(image.id, commentText, avatar);
+    },
+    [newComment, image.id, userProfile, firebaseUser, addComment, requireAuth],
+  );
+
+  const handleInputClick = (e) => e.stopPropagation();
+
+  const handleInputKeyDown = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleAddComment(e);
+    }
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        commentReactionPickerRef.current &&
+        !commentReactionPickerRef.current.contains(event.target)
+      ) {
+        setShowCommentReactionPicker(null);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const formatTimeLeft = (endsAt) => {
+    if (!endsAt) return null;
+    const ms = endsAt - Date.now();
+    if (ms <= 0) return { label: "Expired", expired: true };
+
+    const days = Math.floor(ms / 86400000);
+    const hours = Math.floor((ms % 86400000) / 3600000);
+    const minutes = Math.floor((ms % 3600000) / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+
+    if (days > 0) return { label: `${days}d left`, expired: false };
+    if (hours > 0) return { label: `${hours}h left`, expired: false };
+    if (minutes > 0) return { label: `${minutes}m left`, expired: false };
+    return { label: `${seconds}s left`, expired: false };
+  };
+
+  const timeLeft = formatTimeLeft(image.endsAt);
+
+  return (
+    <div className="comments-section">
+      {/* Post title + description */}
+      {(image.title || image.description) && (
+        <div className="comments-post-info">
+          {image.title && (
+            <h2 className="comments-post-title">{image.title}</h2>
+          )}
+          {image.description && (
+            <p className="comments-post-desc">{image.description}</p>
+          )}
+          {timeLeft && (
+            <span
+              className={`comments-post-expiry${timeLeft.expired ? " expired" : ""}`}
+            >
+              ⏱ {timeLeft.label}
+            </span>
+          )}
+        </div>
+      )}
+
+      <h3 className="comments-header">Comments ({comments.length})</h3>
+      <form
+        className="add-comment-form"
+        onSubmit={handleAddComment}
+        onClick={handleInputClick}
+      >
+        <div className="comment-input-wrapper" onClick={handleInputClick}>
+          <input
+            type="text"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            onKeyDown={handleInputKeyDown}
+            placeholder={
+              isLoggedIn ? "Add a comment..." : "Log in to comment..."
+            }
+            className="comment-input"
+            maxLength={200}
+            onClick={handleInputClick}
+            onFocus={(e) => {
+              handleInputClick(e);
+              if (!isLoggedIn) requireAuth("comment on a post");
+            }}
+          />
+          <button
+            type="submit"
+            className="comment-submit"
+            disabled={!newComment.trim()}
+            onClick={handleInputClick}
+          >
+            <img src={sendIcon} alt="Send" className="modal-btn-icon" />
+          </button>
+        </div>
+      </form>
+      <div className="comments-list">
+        {comments.length === 0 ? (
+          <div className="no-comments">
+            <p>No comments yet. Be the first to comment! 💬</p>
+          </div>
+        ) : (
+          comments.map((comment) => {
+            const reactions = getCommentReactions(image.id, comment.id);
+            const userReaction = getUserCommentReaction(image.id, comment.id);
+            const reactionEntries = Object.entries(reactions);
+            const isAnonymous =
+              !comment.author ||
+              comment.author.trim().toLowerCase() === "anonymous";
+
+            const avatarUrl = comment.avatar ?? avatars[comment.author] ?? null;
+
+            const avatarNode = avatarUrl ? (
+              <img
+                src={avatarUrl}
+                alt="avatar"
+                className="comment-avatar"
+                style={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: "50%",
+                  objectFit: "cover",
+                  border: "1.5px solid #8b5cf6",
+                  background: "#23234a",
+                }}
+              />
+            ) : null;
+
+            return (
+              <div key={comment.id} className="comment-item">
+                <div className="comment-content">
+                  <div
+                    className="comment-header"
+                    style={{ display: "flex", alignItems: "center", gap: 4 }}
+                  >
+                    {avatarNode}
+                    {isAnonymous ? (
+                      <span className="comment-user">{comment.author}</span>
+                    ) : (
+                      <a
+                        className="comment-user clickable-author-modal"
+                        href={`/profile/${encodeURIComponent(comment.author)}`}
+                        title={`View ${comment.author}'s profile`}
+                      >
+                        {comment.author}
+                      </a>
+                    )}
+                    {!isAnonymous &&
+                      comment.userId &&
+                      firebaseUser &&
+                      !firebaseUser.isAnonymous &&
+                      comment.userId !== firebaseUser.uid && (
+                        <button
+                          className="comment-dm-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.dispatchEvent(
+                              new CustomEvent("openDM", {
+                                detail: {
+                                  uid: comment.userId,
+                                  username: comment.author,
+                                  avatar: avatarUrl || null,
+                                },
+                              }),
+                            );
+                          }}
+                          title={`DM ${comment.author}`}
+                        >
+                          ✉️
+                        </button>
+                      )}
+                    <span className="comment-time" style={{ marginLeft: 8 }}>
+                      {comment.timestamp || comment.time}
+                    </span>
+                  </div>
+                  <p className="comment-text">{comment.text}</p>
+                  <div className="comment-reactions-row">
+                    {reactionEntries.length > 0 && (
+                      <div className="comment-reactions-display">
+                        {reactionEntries.map(([emoji, count]) => (
+                          <button
+                            key={emoji}
+                            className={`comment-reaction-bubble ${
+                              userReaction === emoji ? "active" : ""
+                            }`}
+                            onClick={() => {
+                              if (!requireAuth("react to a comment")) return;
+                              toggleCommentReaction(
+                                image.id,
+                                comment.id,
+                                emoji,
+                              );
+                            }}
+                            title={`${count} reaction${count !== 1 ? "s" : ""}`}
+                          >
+                            {emoji} {count}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="comment-reaction-picker-container">
+                      <button
+                        className="comment-react-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!requireAuth("react to a comment")) return;
+                          setShowCommentReactionPicker(
+                            showCommentReactionPicker === comment.id
+                              ? null
+                              : comment.id,
+                          );
+                        }}
+                      >
+                        {userReaction ? "Change" : "React"}
+                      </button>
+                      {showCommentReactionPicker === comment.id && (
+                        <div
+                          className="comment-reaction-picker"
+                          ref={commentReactionPickerRef}
+                        >
+                          {availableReactions.map((emoji) => (
+                            <button
+                              key={emoji}
+                              className={`comment-reaction-option ${
+                                userReaction === emoji ? "selected" : ""
+                              }`}
+                              onClick={() => {
+                                if (!requireAuth("react to a comment")) return;
+                                toggleCommentReaction(
+                                  image.id,
+                                  comment.id,
+                                  emoji,
+                                );
+                              }}
+                            >
+                              {emoji}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        )}
+      </div>
+    </div>
+  );
+});
+
+export default PostModalCommentsSection;

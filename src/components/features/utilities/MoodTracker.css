@@ -1,0 +1,247 @@
+.mood-tracker-card {
+  background: rgba(35, 35, 74, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s;
+  margin-bottom: 0.5rem;
+}
+
+.mood-tracker-card:hover {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.mood-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.mood-icon {
+  font-size: 1.5rem;
+}
+
+.mood-title {
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mood-subtitle {
+  color: #a5b4fc;
+  font-size: 0.75rem;
+  margin: 0 0 0.75rem 0;
+  opacity: 0.8;
+}
+
+.carousel-arrow {
+  background: rgba(139, 92, 246, 0.3);
+  border: 1px solid rgba(139, 92, 246, 0.4);
+  color: white;
+  font-size: 1.5rem;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  flex-shrink: 0;
+}
+
+.carousel-arrow:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+  transform: scale(1.15);
+}
+
+.carousel-arrow:active {
+  transform: scale(0.9);
+  transition: transform 0.1s;
+}
+
+.mood-question {
+  color: white;
+  font-size: 0.95rem;
+  margin: 0;
+  font-weight: 600;
+  text-align: center;
+  flex: 1;
+  bottom: 4px;
+  position: relative;
+  animation: fadeSlideIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeSlideIn {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.mood-indicator {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mood-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: rgba(139, 92, 246, 0.3);
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mood-dot.active {
+  background: #8b5cf6;
+  width: 24px;
+  border-radius: 4px;
+  box-shadow: 0 0 8px rgba(139, 92, 246, 0.5);
+}
+
+.mood-options {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0.5rem;
+  animation: fadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes fadeIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.mood-btn {
+  background: rgba(139, 92, 246, 0.1);
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  padding: 0.25rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  height: 32px;
+  width: 100%;
+}
+
+.mood-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  transform: scale(1.1);
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.mood-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.mood-btn:disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mood-btn.selected {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border-color: #8b5cf6;
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.mood-btn.voted {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border-color: #8b5cf6;
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.mood-btn.disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.mood-btn.disabled:hover {
+  transform: none;
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mood-btn.disabled.voted:hover {
+  transform: scale(1.08);
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border-color: #8b5cf6;
+}
+
+.mood-btn:active {
+  transform: scale(0.95);
+  transition: transform 0.1s;
+}
+
+.mood-emoji {
+  font-size: 20px;
+  line-height: 1;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mood-btn:hover .mood-emoji {
+  transform: scale(1.2) rotate(5deg);
+}
+
+.mood-count {
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.mood-btn:hover .mood-count {
+  color: #8b5cf6;
+  transform: scale(1.1);
+}
+
+.mood-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.mood-stat {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 0.4rem 0.6rem;
+  text-align: center;
+}
+
+.mood-stat-label {
+  color: #a5b4fc;
+  font-size: 0.7rem;
+  margin-bottom: 0.15rem;
+  font-weight: 600;
+}
+
+.mood-stat-value {
+  color: #10b981;
+  font-size: 1.1rem;
+  font-weight: 700;
+}

@@ -1,0 +1,41 @@
+.community-stats-card {
+  background: rgba(35, 35, 74, 0.85);
+  border-radius: 14px;
+  padding: 4px 10px;
+  margin-bottom: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35);
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.stat-text-inline {
+  display: flex;
+  align-items: center;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.stat-value-inline {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 16px;
+  margin-left: 4px;
+}
+
+.stat-separator {
+  color: rgba(255, 255, 255, 0.6);
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .community-stats-card {
+    padding: 3px 8px;
+    font-size: 10px;
+    gap: 6px;
+  }
+}

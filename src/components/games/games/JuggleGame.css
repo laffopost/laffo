@@ -1,0 +1,177 @@
+.juggle-game {
+  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  color: white;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  min-height: 500px;
+}
+
+.juggle-game h2 {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #a5b4fc;
+  font-size: 1.5rem;
+}
+
+.juggle-game p {
+  margin: 0;
+  color: #9ca3af;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
+.juggle-stats {
+  display: flex;
+  gap: 2rem;
+  margin: 0.5rem 0;
+}
+
+.juggle-stat {
+  text-align: center;
+}
+
+.juggle-stat-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin-bottom: 0.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.juggle-stat-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #a5b4fc;
+}
+
+.juggle-game-area {
+  position: relative;
+  width: 400px;
+  height: 300px;
+  background: linear-gradient(135deg, #1f2937 0%, #111827 70%, #0f172a 100%);
+  border: 2px solid rgba(139, 92, 246, 0.2);
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.juggle-game-area.active {
+  border-color: rgba(139, 92, 246, 0.5);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+}
+
+.juggle-ball {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.1s ease;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.juggle-ball:hover {
+  transform: scale(1.1);
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4)) brightness(1.2);
+}
+
+.juggle-ball:active {
+  transform: scale(0.9);
+}
+
+.juggle-game-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+}
+
+.juggle-game-message {
+  text-align: center;
+  color: white;
+  font-size: 1.1rem;
+  padding: 1rem;
+  line-height: 1.5;
+}
+
+.juggle-final-score {
+  font-size: 1.3rem;
+  font-weight: bold;
+  color: #a5b4fc;
+}
+
+.juggle-start-btn {
+  background: linear-gradient(145deg, #8b5cf6, #7c3aed);
+  border: none;
+  border-radius: 12px;
+  color: white;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 2rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.juggle-start-btn:hover {
+  background: linear-gradient(145deg, #7c3aed, #6d28d9);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.juggle-start-btn:active {
+  transform: translateY(0);
+}
+
+.game-title-icon {
+  width: 24px;
+  height: 24px;
+}
+
+/* Add ground line effect */
+.juggle-game-area::after {
+  content: "";
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #ef4444, transparent);
+  opacity: 0.6;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .juggle-game-area {
+    width: 320px;
+    height: 240px;
+  }
+
+  .juggle-ball {
+    width: 35px;
+    height: 35px;
+    font-size: 1.5rem;
+  }
+
+  .juggle-stats {
+    gap: 1.5rem;
+  }
+}

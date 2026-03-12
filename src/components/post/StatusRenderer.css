@@ -1,0 +1,22 @@
+.status-renderer {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.status-renderer-text {
+  font-size: clamp(0.9rem, 4cqw, 2rem);
+  font-weight: bold;
+  text-align: center;
+  word-break: break-word;
+  line-height: 1.5;
+  margin: 0;
+  font-family: "Inter", Arial, sans-serif;
+  white-space: pre-wrap;
+}

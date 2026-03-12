@@ -1,0 +1,54 @@
+.gallery-share-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(30, 30, 46, 0.7);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.gallery-share-menu {
+  background: #23233a;
+  border: 1.5px solid #10b981;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.15);
+  min-width: 180px;
+  padding: 1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.gallery-share-menu .share-option {
+  background: none;
+  border: none;
+  color: #10b981;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.15s;
+}
+
+.gallery-share-menu .share-option:hover {
+  background: rgba(16, 185, 129, 0.12);
+  color: #fff;
+}
+
+.gallery-share-menu .share-option.close {
+  color: #f87171;
+  border-top: 1px solid #333;
+  margin-top: 8px;
+  font-weight: 700;
+}
+
+.gallery-share-menu .share-option.close:hover {
+  background: rgba(239, 68, 68, 0.12);
+  color: #fff;
+}

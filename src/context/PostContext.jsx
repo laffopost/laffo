@@ -1,0 +1,1003 @@
+import {
+  createContext,
+  useContext,
+  useState,
+  useMemo,
+  useCallback,
+  useEffect,
+  useRef,
+} from "react";
+import {
+  getFirestore,
+  collection,
+  doc,
+  addDoc,
+  updateDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  limit,
+  serverTimestamp,
+  increment,
+  arrayUnion,
+  getDoc,
+  deleteDoc,
+  getDocs,
+} from "firebase/firestore";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "../firebase/config";
+import { useAuth } from "./AuthContext";
+import { createNotificationForPost } from "../utils/notificationUtils";
+import { getPostExpiryService } from "../utils/postExpiry";
+
+// Helper: convert base64 data URL to Blob (for canvas drawings)
+function dataURLtoBlob(dataURL) {
+  const [header, data] = dataURL.split(",");
+  const mime = header.match(/:(.*?);/)[1];
+  const binary = atob(data);
+  const array = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
+  return new Blob([array], { type: mime });
+}
+
+const PostContext = createContext();
+
+// Disable console logs in production
+const isDev =
+  typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+const log = isDev ? console.log : () => {};
+const logError = console.error; // Keep errors always
+
+export const usePosts = () => {
+  const context = useContext(PostContext);
+  if (!context) {
+    throw new Error("usePosts must be used within an ImageProvider");
+  }
+  return context;
+};
+
+export const ImageProvider = ({ children }) => {
+  log("🟢 ImageProvider rendered");
+
+  const [images, setImages] = useState([]);
+  const [userImages, setUserImages] = useState([]);
+  const [userReactions, setUserReactions] = useState({});
+  const [userName, setUserName] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const db = getFirestore();
+  const { firebaseUser, userProfile } = useAuth();
+  const userId = firebaseUser?.uid || null;
+
+  const reactionTimeoutRef = useRef({});
+  const unsubscribeRef = useRef(null);
+  const mountedRef = useRef(true);
+  const lastPostTimeRef = useRef(0);
+  const lastCommentTimeRef = useRef(0);
+  const expiryServiceRef = useRef(null);
+
+  // Pagination settings
+  const INITIAL_LOAD_LIMIT = 15; // Load only 15 posts initially
+  const PAGINATION_INCREMENT = 10; // Load 10 more on each "load more"
+  const MAX_TOTAL_LOAD = 100; // Never load more than 100 total
+
+  const POST_COOLDOWN_MS = 15000; // 15 seconds between posts
+  const COMMENT_COOLDOWN_MS = 5000; // 5 seconds between comments
+
+  // Initialize expiry service
+  useEffect(() => {
+    if (db && !expiryServiceRef.current) {
+      expiryServiceRef.current = getPostExpiryService(db);
+      // Start automatic cleanup with 5-minute intervals
+      expiryServiceRef.current.startCleanup(300000);
+    }
+
+    return () => {
+      if (expiryServiceRef.current) {
+        expiryServiceRef.current.stopCleanup();
+      }
+    };
+  }, [db]);
+
+  // Helper function to filter out expired posts
+  const filterExpiredPosts = useCallback((posts) => {
+    const now = Date.now();
+    return posts.filter((post) => {
+      if (!post.endsAt) return true; // No expiry, keep post
+      return post.endsAt > now; // Keep only non-expired posts
+    });
+  }, []);
+
+  // Periodic client-side cleanup of expired posts from UI state
+  useEffect(() => {
+    const cleanupInterval = setInterval(() => {
+      const now = Date.now();
+
+      setImages((prev) => {
+        const filtered = prev.filter(
+          (post) => !post.endsAt || post.endsAt > now,
+        );
+        return filtered.length !== prev.length ? filtered : prev;
+      });
+
+      setUserImages((prev) => {
+        const filtered = prev.filter(
+          (post) => !post.endsAt || post.endsAt > now,
+        );
+        return filtered.length !== prev.length ? filtered : prev;
+      });
+    }, 60000); // Check every minute
+
+    return () => clearInterval(cleanupInterval);
+  }, []);
+
+  useEffect(() => {
+    if (!userId) return;
+    log("🔧 Initializing user data for", userId);
+
+    const storedName = localStorage.getItem(`user_name_${userId}`);
+    if (storedName) {
+      setUserName(storedName);
+    } else {
+      const randomName = `User${Math.floor(Math.random() * 10000)}`;
+      localStorage.setItem(`user_name_${userId}`, randomName);
+      setUserName(randomName);
+    }
+
+    const savedReactions = localStorage.getItem(`user_reactions_${userId}`);
+    if (savedReactions) {
+      setUserReactions(JSON.parse(savedReactions));
+    }
+  }, [userId]);
+
+  // Keep userName in sync with the real profile username
+  useEffect(() => {
+    if (!userId) return;
+    const profileName =
+      userProfile?.username?.trim() || firebaseUser?.displayName?.trim();
+    if (profileName) {
+      setUserName(profileName);
+      localStorage.setItem(`user_name_${userId}`, profileName);
+    }
+  }, [userProfile, firebaseUser, userId]);
+
+  useEffect(() => {
+    if (!userId) {
+      log("⚠️ No userId, skipping Firestore subscription");
+      return;
+    }
+
+    log("📡 Setting up Firestore listener with lazy loading");
+    setLoading(true);
+    mountedRef.current = true;
+
+    // Initial query loads only 15 posts for faster page load
+    const imagesRef = collection(db, "images");
+    const q = query(
+      imagesRef,
+      orderBy("createdAt", "desc"),
+      limit(INITIAL_LOAD_LIMIT),
+    );
+
+    unsubscribeRef.current = onSnapshot(
+      q,
+      { includeMetadataChanges: false },
+      (snapshot) => {
+        if (!mountedRef.current) return;
+
+        log(
+          `📦 Firestore snapshot received: ${snapshot.size} docs, ${
+            snapshot.docChanges().length
+          } changes`,
+        );
+
+        const isInitialLoad =
+          snapshot.docChanges().length === snapshot.docs.length;
+
+        if (isInitialLoad) {
+          log("📥 Initial load");
+          const allDocs = [];
+          const userDocs = [];
+
+          snapshot.forEach((doc) => {
+            const data = { id: doc.id, ...doc.data() };
+            allDocs.push(data);
+            if (data.uploadedBy === userId) {
+              userDocs.push(data);
+            }
+          });
+
+          // Filter out expired posts
+          const filteredAllDocs = filterExpiredPosts(allDocs);
+          const filteredUserDocs = filterExpiredPosts(userDocs);
+
+          setImages(filteredAllDocs);
+          setUserImages(filteredUserDocs);
+        } else {
+          log("🔄 Incremental update");
+
+          setImages((prev) => {
+            const updated = [...prev];
+            let changed = false;
+
+            snapshot.docChanges().forEach((change) => {
+              const data = { id: change.doc.id, ...change.doc.data() };
+              const isExpired = data.endsAt && data.endsAt <= Date.now();
+
+              if (change.type === "added") {
+                if (!isExpired && !updated.find((img) => img.id === data.id)) {
+                  updated.unshift(data);
+                  changed = true;
+                }
+              } else if (change.type === "modified") {
+                const index = updated.findIndex((i) => i.id === data.id);
+                if (index >= 0) {
+                  if (!isExpired) {
+                    updated[index] = data;
+                  } else {
+                    // Post expired, remove it
+                    updated.splice(index, 1);
+                  }
+                  changed = true;
+                }
+              } else if (change.type === "removed") {
+                const index = updated.findIndex((i) => i.id === data.id);
+                if (index >= 0) {
+                  updated.splice(index, 1);
+                  changed = true;
+                }
+              }
+            });
+
+            return changed ? updated : prev;
+          });
+
+          setUserImages((prev) => {
+            const updated = [...prev];
+            let changed = false;
+
+            snapshot.docChanges().forEach((change) => {
+              const data = { id: change.doc.id, ...change.doc.data() };
+
+              if (data.uploadedBy !== userId) return;
+
+              const isExpired = data.endsAt && data.endsAt <= Date.now();
+
+              if (change.type === "added") {
+                if (!isExpired && !updated.find((img) => img.id === data.id)) {
+                  updated.unshift(data);
+                  changed = true;
+                }
+              } else if (change.type === "modified") {
+                const index = updated.findIndex((i) => i.id === data.id);
+                if (index >= 0) {
+                  if (!isExpired) {
+                    updated[index] = data;
+                  } else {
+                    // Post expired, remove it
+                    updated.splice(index, 1);
+                  }
+                  changed = true;
+                }
+              } else if (change.type === "removed") {
+                const index = updated.findIndex((i) => i.id === data.id);
+                if (index >= 0) {
+                  updated.splice(index, 1);
+                  changed = true;
+                }
+              }
+            });
+
+            return changed ? updated : prev;
+          });
+        }
+
+        setLoading(false);
+      },
+      (error) => {
+        logError("❌ Firestore error:", error);
+        setLoading(false);
+      },
+    );
+
+    return () => {
+      log("🔌 Unsubscribing from Firestore");
+      mountedRef.current = false;
+      if (unsubscribeRef.current) {
+        unsubscribeRef.current();
+      }
+      Object.values(reactionTimeoutRef.current).forEach(clearTimeout);
+    };
+  }, [db, userId]);
+
+  const fetchImageById = useCallback(
+    async (imageId) => {
+      log(`🔍 Fetching post ${imageId}`);
+      try {
+        const imageRef = doc(db, "images", imageId);
+        const docSnap = await getDoc(imageRef);
+
+        if (docSnap.exists()) {
+          const imageData = { id: docSnap.id, ...docSnap.data() };
+          setImages((prev) => {
+            if (prev.find((img) => img.id === imageId)) {
+              return prev;
+            }
+            return [imageData, ...prev];
+          });
+          return imageData;
+        }
+        return null;
+      } catch (error) {
+        logError("❌ Error fetching post:", error);
+        return null;
+      }
+    },
+    [db],
+  );
+
+  const addPost = async (postData) => {
+    // Auth check: block anonymous users
+    if (!firebaseUser || firebaseUser.isAnonymous) {
+      throw new Error("You must be logged in to create a post");
+    }
+
+    // Rate limiting: prevent spam posting
+    const now = Date.now();
+    const elapsed = now - lastPostTimeRef.current;
+    if (elapsed < POST_COOLDOWN_MS) {
+      const waitSec = Math.ceil((POST_COOLDOWN_MS - elapsed) / 1000);
+      throw new Error(`Please wait ${waitSec}s before posting again`);
+    }
+
+    try {
+      log("🔥 PostContext - addPost called with:", postData);
+      log("🔥 PostContext - Post type:", postData.type);
+
+      const userDoc = await getDoc(doc(db, "users", firebaseUser.uid));
+      const username = userDoc.exists()
+        ? userDoc.data().username
+        : firebaseUser.displayName || "Anonymous";
+
+      // --- Upload image to Firebase Storage ---
+      let imageUrl = null;
+      if (postData.type !== "status" && postData.type !== "poll") {
+        if (postData.imageFile instanceof File) {
+          // Upload the actual File object (preferred path)
+          const ext = postData.imageFile.name.split(".").pop() || "jpg";
+          const storageRef = ref(
+            storage,
+            `posts/${firebaseUser.uid}/${Date.now()}.${ext}`,
+          );
+          const snapshot = await uploadBytes(storageRef, postData.imageFile);
+          imageUrl = await getDownloadURL(snapshot.ref);
+          log("✅ Image uploaded to Storage:", imageUrl);
+        } else if (
+          postData.image &&
+          typeof postData.image === "string" &&
+          postData.image.startsWith("data:")
+        ) {
+          // Canvas drawing: convert base64 → blob → upload
+          const blob = dataURLtoBlob(postData.image);
+          const storageRef = ref(
+            storage,
+            `posts/${firebaseUser.uid}/${Date.now()}_canvas.jpg`,
+          );
+          const snapshot = await uploadBytes(storageRef, blob);
+          imageUrl = await getDownloadURL(snapshot.ref);
+          log("✅ Canvas image uploaded to Storage:", imageUrl);
+        } else {
+          imageUrl = postData.image || null;
+        }
+      }
+
+      const newPost = {
+        title: postData.title || "",
+        description: postData.description || "",
+        author: postData.author || username,
+        authorAvatar: postData.authorAvatar || null,
+        image: imageUrl,
+        type: postData.type || "user",
+        uploadedBy: firebaseUser.uid,
+        createdAt: serverTimestamp(),
+        reactions: postData.reactions || {
+          "🔥": 0,
+          "😂": 0,
+          "🙌": 0,
+          "🚀": 0,
+          "👍": 0,
+        },
+        comments: [],
+        commentCount: 0,
+        endsAt: postData.endsAt || null,
+      };
+
+      if (postData.type === "user-profile" || postData.type === "user") {
+        newPost.socials = postData.socials || "";
+        newPost.webpage = postData.webpage || "";
+        newPost.extraLinks = postData.extraLinks || [];
+      }
+
+      if (postData.type === "media") {
+        log("🎥 PostContext - Adding media fields");
+        newPost.mediaType = postData.mediaType;
+        newPost.embedUrl = postData.embedUrl;
+      }
+
+      if (postData.type === "status") {
+        log("👀 PostContext - Adding status fields");
+        newPost.status = postData.status;
+        newPost.bgColor = postData.bgColor;
+        newPost.textColor = postData.textColor;
+      }
+
+      if (postData.type === "poll") {
+        log("🎮 PostContext - Adding poll fields");
+        newPost.question = postData.question;
+        newPost.options = postData.options;
+        newPost.bgColor = postData.bgColor || "#1a1a2e";
+        newPost.description = postData.description || null;
+        newPost.endsAt = postData.endsAt || null;
+        newPost.voteCounts =
+          postData.voteCounts || postData.options.map(() => 0);
+        newPost.votes = postData.votes || {};
+      }
+
+      log("🔥 PostContext - Final post object being saved:", newPost);
+
+      const docRef = await addDoc(collection(db, "images"), newPost);
+      const newPostWithId = { id: docRef.id, ...newPost };
+
+      log("✅ PostContext - Post saved successfully with ID:", docRef.id);
+
+      // Schedule automatic deletion if post has expiry
+      if (newPost.endsAt && expiryServiceRef.current) {
+        expiryServiceRef.current.schedulePostDeletion(
+          docRef.id,
+          newPost.endsAt,
+        );
+      }
+
+      lastPostTimeRef.current = Date.now();
+      setImages((prev) => [newPostWithId, ...prev]);
+      setUserImages((prev) => [newPostWithId, ...prev]);
+
+      return docRef.id;
+    } catch (error) {
+      logError("❌ PostContext - Error adding post:", error);
+      throw error;
+    }
+  };
+
+  const deletePost = useCallback(
+    async (postId) => {
+      log(`🗑️ Deleting post ${postId}`);
+      try {
+        // Ownership check: only the post author can delete
+        const postRef = doc(db, "images", postId);
+        const postDoc = await getDoc(postRef);
+        if (!postDoc.exists()) {
+          throw new Error("Post not found");
+        }
+        if (postDoc.data().uploadedBy !== userId) {
+          throw new Error("You can only delete your own posts");
+        }
+        await deleteDoc(postRef);
+        setImages((prev) => prev.filter((img) => img.id !== postId));
+        setUserImages((prev) => prev.filter((img) => img.id !== postId));
+        return true;
+      } catch (error) {
+        logError("❌ Error deleting:", error);
+        throw error;
+      }
+    },
+    [db, userId],
+  );
+
+  const editPost = useCallback(
+    async (postId, updateData) => {
+      log(`✏️ Editing post ${postId}`, updateData);
+      try {
+        // Ownership check: only the post author can edit
+        const postRef = doc(db, "images", postId);
+        const postDoc = await getDoc(postRef);
+        if (!postDoc.exists()) {
+          throw new Error("Post not found");
+        }
+        if (postDoc.data().uploadedBy !== userId) {
+          throw new Error("You can only edit your own posts");
+        }
+
+        // Prepare update data
+        const editData = {
+          ...updateData,
+          updatedAt: serverTimestamp(),
+          edited: true,
+        };
+
+        // Handle image upload if new image is provided
+        if (updateData.newImage) {
+          const imageRef = ref(storage, `images/${postId}-${Date.now()}`);
+          await uploadBytes(imageRef, updateData.newImage);
+          const newImageUrl = await getDownloadURL(imageRef);
+          editData.image = newImageUrl;
+          editData.imageUrl = newImageUrl;
+          delete editData.newImage; // Remove the file object from Firestore data
+        }
+
+        await updateDoc(postRef, editData);
+
+        // Update local state
+        const updatedPost = { ...postDoc.data(), ...editData, id: postId };
+        setImages((prev) =>
+          prev.map((img) => (img.id === postId ? updatedPost : img)),
+        );
+        setUserImages((prev) =>
+          prev.map((img) => (img.id === postId ? updatedPost : img)),
+        );
+
+        log(`✅ Post ${postId} edited successfully`);
+        return updatedPost;
+      } catch (error) {
+        logError("❌ Error editing post:", error);
+        throw error;
+      }
+    },
+    [db, userId],
+  );
+
+  const toggleReaction = useCallback(
+    (imageId, emoji) => {
+      if (!userId) return;
+      if (firebaseUser?.isAnonymous) return;
+      log(`👍 Toggling reaction ${emoji} on ${imageId}`);
+
+      const currentReaction = userReactions[imageId];
+      const newReactions = { ...userReactions };
+
+      if (currentReaction === emoji) {
+        delete newReactions[imageId];
+      } else {
+        newReactions[imageId] = emoji;
+      }
+
+      setUserReactions(newReactions);
+      localStorage.setItem(
+        `user_reactions_${userId}`,
+        JSON.stringify(newReactions),
+      );
+
+      if (reactionTimeoutRef.current[imageId]) {
+        clearTimeout(reactionTimeoutRef.current[imageId]);
+      }
+
+      reactionTimeoutRef.current[imageId] = setTimeout(async () => {
+        try {
+          const imageRef = doc(db, "images", imageId);
+          let shouldCreateNotification = false;
+          let postData = null;
+
+          // Get post data for notification
+          if (!currentReaction && emoji && userProfile?.username) {
+            const postDoc = await getDoc(imageRef);
+            if (postDoc.exists()) {
+              postData = postDoc.data();
+              shouldCreateNotification = true;
+            }
+          }
+
+          if (currentReaction === emoji) {
+            await updateDoc(imageRef, {
+              [`reactions.${emoji}`]: increment(-1),
+            });
+          } else {
+            if (currentReaction) {
+              await updateDoc(imageRef, {
+                [`reactions.${currentReaction}`]: increment(-1),
+              });
+            }
+            await updateDoc(imageRef, { [`reactions.${emoji}`]: increment(1) });
+
+            // Create notification for new like (not when changing reaction)
+            if (shouldCreateNotification && postData && !currentReaction) {
+              const username = userProfile?.username || userName || "Anonymous";
+              log("🔔 About to create like notification:", {
+                postData: postData,
+                userId: userId,
+                userProfile: userProfile,
+                username: username,
+              });
+              await createNotificationForPost({
+                type: "like",
+                postId: imageId,
+                postAuthorId: postData.uploadedBy || postData.userId,
+                postTitle: postData.title || postData.text,
+                currentUserId: userId,
+                currentUsername: username,
+              });
+            }
+          }
+
+          delete reactionTimeoutRef.current[imageId];
+        } catch (error) {
+          logError("❌ Reaction error:", error);
+          setUserReactions((prev) => ({ ...prev, [imageId]: currentReaction }));
+        }
+      }, 2000);
+    },
+    [db, userId, userReactions],
+  );
+
+  const votePoll = useCallback(
+    async (postId, optionIndex) => {
+      if (!userId) return;
+      if (firebaseUser?.isAnonymous) return;
+      const post = images.find((img) => img.id === postId);
+      if (!post || post.type !== "poll") return;
+
+      // Prevent double voting
+      if (post.votes && post.votes[userId] !== undefined) return;
+
+      const currentCounts = post.voteCounts || post.options.map(() => 0);
+      const newCounts = [...currentCounts];
+      newCounts[optionIndex] = (newCounts[optionIndex] || 0) + 1;
+
+      // Optimistic update
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === postId
+            ? {
+                ...img,
+                voteCounts: newCounts,
+                votes: { ...img.votes, [userId]: optionIndex },
+              }
+            : img,
+        ),
+      );
+
+      try {
+        const postRef = doc(db, "images", postId);
+        await updateDoc(postRef, {
+          voteCounts: newCounts,
+          [`votes.${userId}`]: optionIndex,
+        });
+        log(`✅ Poll vote recorded: option ${optionIndex} on post ${postId}`);
+      } catch (error) {
+        logError("❌ Poll vote error:", error);
+        // Rollback
+        setImages((prev) =>
+          prev.map((img) => (img.id === postId ? post : img)),
+        );
+      }
+    },
+    [db, userId, images],
+  );
+
+  const getUserPollVote = useCallback(
+    (postId) => {
+      if (!userId) return null;
+      const post = images.find((img) => img.id === postId);
+      return post?.votes?.[userId] ?? null;
+    },
+    [images, userId],
+  );
+
+  const addComment = useCallback(
+    async (imageId, commentText, avatar) => {
+      if (!userId) return;
+      if (firebaseUser?.isAnonymous) {
+        throw new Error("You must be logged in to comment");
+      }
+
+      // Rate limiting: prevent comment spam
+      const now = Date.now();
+      const elapsed = now - lastCommentTimeRef.current;
+      if (elapsed < COMMENT_COOLDOWN_MS) {
+        const waitSec = Math.ceil((COMMENT_COOLDOWN_MS - elapsed) / 1000);
+        throw new Error(`Please wait ${waitSec}s before commenting again`);
+      }
+
+      log(`💬 Adding comment to ${imageId}`);
+
+      const author =
+        userProfile?.username?.trim() ||
+        firebaseUser?.displayName?.trim() ||
+        userName ||
+        "Anonymous";
+
+      const newComment = {
+        id: Date.now().toString(),
+        author,
+        avatar: avatar || "",
+        text: commentText,
+        timestamp: new Date().toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+          hour12: true,
+        }),
+        userId: userId,
+        reactions: {},
+      };
+
+      try {
+        const imageRef = doc(db, "images", imageId);
+
+        // Get post data for notification before updating
+        const postDoc = await getDoc(imageRef);
+        const postData = postDoc.exists() ? postDoc.data() : null;
+
+        // Optimistic update: Update local state immediately for better UX
+        setImages((prevImages) =>
+          prevImages.map((img) =>
+            img.id === imageId
+              ? {
+                  ...img,
+                  comments: [...(img.comments || []), newComment],
+                  commentCount: (img.commentCount || 0) + 1,
+                }
+              : img,
+          ),
+        );
+
+        // Update Firestore
+        await updateDoc(imageRef, {
+          comments: arrayUnion(newComment),
+          commentCount: increment(1),
+        });
+
+        lastCommentTimeRef.current = Date.now();
+
+        // Create notification for comment
+        if (postData) {
+          const username = userProfile?.username || userName || "Anonymous";
+          log("🔔 About to create comment notification:", {
+            postData: postData,
+            userId: userId,
+            userProfile: userProfile,
+            username: username,
+          });
+          await createNotificationForPost({
+            type: "comment",
+            postId: imageId,
+            postAuthorId: postData.uploadedBy || postData.userId,
+            postTitle: postData.title || postData.text,
+            currentUserId: userId,
+            currentUsername: username,
+            commentText: commentText,
+          });
+        }
+
+        log("✅ Comment added");
+      } catch (error) {
+        logError("❌ Comment error:", error);
+
+        // Rollback optimistic update on error
+        setImages((prevImages) =>
+          prevImages.map((img) =>
+            img.id === imageId
+              ? {
+                  ...img,
+                  comments: (img.comments || []).filter(
+                    (c) => c.id !== newComment.id,
+                  ),
+                  commentCount: Math.max(0, (img.commentCount || 0) - 1),
+                }
+              : img,
+          ),
+        );
+      }
+    },
+    [db, userId, userName, userProfile, firebaseUser],
+  );
+
+  const toggleCommentReaction = useCallback(
+    async (imageId, commentId, emoji) => {
+      if (!userId) return;
+      if (firebaseUser?.isAnonymous) return;
+      log(`❤️ Toggling comment reaction`);
+
+      try {
+        const imageRef = doc(db, "images", imageId);
+        const docSnap = await getDoc(imageRef);
+
+        if (docSnap.exists()) {
+          const imageData = docSnap.data();
+          const comments = imageData.comments || [];
+
+          const updatedComments = comments.map((comment) => {
+            if (comment.id === commentId) {
+              const reactions = comment.reactions || {};
+              const currentUserReaction = reactions[userId];
+
+              if (currentUserReaction) {
+                delete reactions[userId];
+              }
+
+              if (currentUserReaction !== emoji) {
+                reactions[userId] = emoji;
+              }
+
+              return { ...comment, reactions };
+            }
+            return comment;
+          });
+
+          await updateDoc(imageRef, { comments: updatedComments });
+        }
+      } catch (error) {
+        logError("❌ Comment reaction error:", error);
+      }
+    },
+    [db, userId],
+  );
+
+  const getComments = useCallback(
+    (imageId) => {
+      const image = images.find((img) => img.id === imageId);
+      return image?.comments || [];
+    },
+    [images],
+  );
+
+  const getReactions = useCallback(
+    (imageId) => {
+      const image = images.find((img) => img.id === imageId);
+      return image?.reactions || {};
+    },
+    [images],
+  );
+
+  const getUserReaction = useCallback(
+    (imageId) => userReactions[imageId] || null,
+    [userReactions],
+  );
+
+  const getCommentReactions = useCallback(
+    (imageId, commentId) => {
+      const image = images.find((img) => img.id === imageId);
+      if (!image) return {};
+
+      const comment = (image.comments || []).find((c) => c.id === commentId);
+      if (!comment || !comment.reactions) return {};
+
+      const reactionCounts = {};
+      Object.values(comment.reactions).forEach((emoji) => {
+        reactionCounts[emoji] = (reactionCounts[emoji] || 0) + 1;
+      });
+
+      return reactionCounts;
+    },
+    [images],
+  );
+
+  const getUserCommentReaction = useCallback(
+    (imageId, commentId) => {
+      if (!userId) return null;
+
+      const image = images.find((img) => img.id === imageId);
+      if (!image) return null;
+
+      const comment = (image.comments || []).find((c) => c.id === commentId);
+      if (!comment || !comment.reactions) return null;
+
+      return comment.reactions[userId] || null;
+    },
+    [images, userId],
+  );
+
+  const getImageById = useCallback(
+    (id) => {
+      return images.find((img) => img.id === id) || null;
+    },
+    [images],
+  );
+
+  const getImagesByType = useCallback(
+    (type) => {
+      if (type === "all") return images;
+      return images.filter((img) => img.type === type);
+    },
+    [images],
+  );
+
+  const stats = useMemo(() => {
+    log("📊 Calculating stats");
+    const totalPosts = images.length;
+    const totalUsers = new Set(
+      images.map((img) => (img.author || "Anonymous").trim()).filter(Boolean),
+    ).size;
+    const totalReacts = images.reduce((sum, img) => {
+      if (!img.reactions) return sum;
+      return sum + Object.values(img.reactions).reduce((a, b) => a + b, 0);
+    }, 0);
+
+    return { totalPosts, totalUsers, totalReacts };
+  }, [images.length, images]);
+
+  // Load more posts (for infinite scroll)
+  const loadMorePosts = useCallback(async () => {
+    if (!db) return;
+
+    const currentCount = images.length;
+    if (currentCount >= MAX_TOTAL_LOAD) {
+      log("⚠️ Reached maximum post limit");
+      return;
+    }
+
+    const newLimit = Math.min(
+      currentCount + PAGINATION_INCREMENT,
+      MAX_TOTAL_LOAD,
+    );
+
+    log(`📥 Loading more posts: ${currentCount} → ${newLimit}`);
+
+    const imagesRef = collection(db, "images");
+    const q = query(imagesRef, orderBy("createdAt", "desc"), limit(newLimit));
+
+    try {
+      const snapshot = await getDocs(q);
+      const allDocs = [];
+
+      snapshot.forEach((doc) => {
+        const data = { id: doc.id, ...doc.data() };
+        allDocs.push(data);
+      });
+
+      const filteredDocs = filterExpiredPosts(allDocs);
+      setImages(filteredDocs);
+      log(`✅ Loaded ${filteredDocs.length} posts total`);
+    } catch (err) {
+      logError("❌ Error loading more posts:", err);
+    }
+  }, [db, images.length, filterExpiredPosts]);
+
+  const contextValue = useMemo(() => {
+    log("🎯 Creating context value");
+    return {
+      images,
+      userImages,
+      userReactions,
+      loading,
+      userId,
+      userName,
+      ...stats,
+      addPost,
+      deletePost,
+      editPost,
+      toggleReaction,
+      votePoll,
+      getUserPollVote,
+      addComment,
+      toggleCommentReaction,
+      fetchImageById,
+      getComments,
+      getReactions,
+      getUserReaction,
+      getCommentReactions,
+      getUserCommentReaction,
+      getImageById,
+      getImagesByType,
+      getAllImages: images,
+      loadMorePosts,
+    };
+  }, [
+    images,
+    userImages,
+    userReactions,
+    loading,
+    userId,
+    userName,
+    stats,
+    loadMorePosts,
+    getComments,
+    getReactions,
+    getUserReaction,
+    editPost,
+  ]);
+
+  return (
+    <PostContext.Provider value={contextValue}>{children}</PostContext.Provider>
+  );
+};

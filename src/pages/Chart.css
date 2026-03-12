@@ -1,0 +1,130 @@
+.chart-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.chart-page-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.chart-page-title {
+  color: white;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.chart-emoji {
+  font-size: 3rem;
+}
+
+.chart-page-subtitle {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.chart-info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.chart-info-card {
+  background: linear-gradient(145deg, #2e2e42, #1e1e2e);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  text-align: center;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart-info-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+}
+
+.info-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+}
+
+.chart-info-card h3 {
+  color: white;
+  font-size: 1.2rem;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+}
+
+.chart-info-card p {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.5;
+}
+
+.chart-external-link {
+  display: inline-block;
+  color: #8b5cf6;
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  transition: background 0.2s;
+  margin-top: 0.5rem;
+}
+
+.chart-external-link:hover {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+.chart-title {
+  color: white;
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.chart-container {
+  background: linear-gradient(145deg, #2e2e42, #1e1e2e);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .chart-page-title {
+    font-size: 2rem;
+  }
+
+  .chart-emoji {
+    font-size: 2rem;
+  }
+
+  .chart-page-subtitle {
+    font-size: 1rem;
+  }
+
+  .chart-info-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .chart-title {
+    font-size: 1.75rem;
+  }
+}

@@ -1,0 +1,679 @@
+.token-info {
+  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.token-header h2 {
+  color: #a5b4fc;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.token-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stat-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.85rem;
+}
+
+.stat-value {
+  color: white;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.stat-value.price {
+  color: #8b5cf6;
+  font-size: 1rem;
+}
+
+.stat-value.positive {
+  color: #10b981;
+}
+
+.stat-value.negative {
+  color: #ef4444;
+}
+
+.token-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  padding: 0.75rem;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.9rem;
+}
+
+.buy-btn {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+}
+
+.buy-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+}
+
+.chart-btn {
+  background: rgba(139, 92, 246, 0.2);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.chart-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+.token-links {
+  display: flex;
+  justify-content: space-around;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.token-link {
+  color: rgba(255, 255, 255, 0.6);
+  text-decoration: none;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.token-link:hover {
+  color: #8b5cf6;
+  transform: translateY(-2px);
+}
+
+@media (max-width: 1200px) {
+  .token-info {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .token-stats {
+    flex: 1;
+    min-width: 250px;
+  }
+
+  .token-actions {
+    flex: 1;
+    min-width: 200px;
+  }
+
+  .token-links {
+    flex-basis: 100%;
+  }
+}
+
+.token-info-card {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  padding: 0.625rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* Tabs */
+.token-tabs {
+  display: flex;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 3px;
+  border-radius: 10px;
+}
+
+.tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 0.65rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.tab.active {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+}
+
+.tab:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Chart content area */
+.chart-content-area {
+  width: 100%;
+  min-height: 400px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Token Header */
+.token-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.25rem 0;
+}
+
+.token-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.token-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+  background: linear-gradient(145deg, #8b5cf6, #6d28d9);
+}
+
+.token-name h3 {
+  color: white;
+  font-size: 1rem;
+  font-weight: 700;
+  -webkit-text-fill-color: white;
+}
+
+.token-chain {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.65rem;
+  background: rgba(139, 92, 246, 0.2);
+  padding: 2px 6px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.live-badge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(16, 185, 129, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.4);
+  padding: 4px 8px;
+  border-radius: 8px;
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.65rem;
+}
+
+.pulse-dot {
+  width: 6px;
+  height: 6px;
+  background: #10b981;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+.live-badge.offline {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.live-badge.offline .pulse-dot {
+  background: rgba(255, 255, 255, 0.3);
+  animation: none;
+}
+
+.token-updated-info {
+  text-align: center;
+  font-size: 0.6rem;
+  color: rgba(255, 255, 255, 0.35);
+  padding-top: 0.25rem;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Live Chart Section */
+.live-chart-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.625rem;
+  margin-bottom: 0.25rem;
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.chart-title {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.chart-timeframes {
+  display: flex;
+  gap: 4px;
+}
+
+.timeframe-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+
+.timeframe-btn.active {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #8b5cf6;
+}
+
+.timeframe-btn:hover:not(.active) {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Price Display */
+.token-price-display {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.price-main {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.price-value {
+  color: white;
+  font-size: 1.25rem;
+  margin: 0;
+  font-weight: 700;
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.volume-text {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.7rem;
+}
+
+.volume-value {
+  color: white;
+  font-weight: 600;
+}
+
+.price-change {
+  padding: 5px 10px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+.price-change.positive {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+}
+
+.price-change.negative {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
+/* Chart */
+.token-chart {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  height: 60px;
+}
+
+.chart-svg {
+  width: 100%;
+  height: 100%;
+}
+
+/* Stats Grid */
+.token-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.stat-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background 0.2s;
+}
+
+.stat-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.stat-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.stat-value {
+  color: white;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+/* Contract Address */
+.contract-section {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding-left: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.contract-text {
+  color: white;
+  font-family: monospace;
+  font-size: 0.65rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  margin-right: 0.5rem;
+}
+
+.copy-btn {
+  background: rgba(139, 92, 246, 0.2);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  transition: background 0.2s;
+  font-size: 0.85rem;
+}
+
+.copy-btn:hover {
+  background: rgba(139, 92, 246, 0.3);
+}
+
+/* Action Buttons */
+.token-actions-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  border: none;
+  padding: 0.5rem;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    transform 0.2s;
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  color: white;
+}
+
+.action-btn.primary:hover {
+  transform: translateY(-2px);
+}
+
+.action-btn.secondary {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(139, 92, 246, 0.25);
+}
+
+/* Token Content Area */
+.token-content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* Holders */
+.holders-content-area {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.holders-title {
+  color: white;
+  font-size: 0.85rem;
+  margin: 0;
+  font-weight: 700;
+  text-align: center;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.top-holders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.top-holders-list::-webkit-scrollbar {
+  width: 3px;
+}
+
+.top-holders-list::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.5);
+  border-radius: 2px;
+}
+
+.holder-item {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: background 0.2s;
+}
+
+.holder-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.holder-rank {
+  color: #8b5cf6;
+  font-weight: 700;
+  font-size: 0.7rem;
+  min-width: 22px;
+  text-align: center;
+}
+
+.holder-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.holder-address {
+  color: white;
+  font-family: monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.holder-amount {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.6rem;
+}
+
+.holder-percentage {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 0.75rem;
+}
+
+.holders-summary {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.summary-stat {
+  text-align: center;
+}
+
+.summary-stat .stat-label {
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  display: block;
+  margin-bottom: 3px;
+}
+
+.summary-stat .stat-value {
+  color: #10b981;
+  font-weight: 700;
+  font-size: 0.8rem;
+}
+
+@media (max-width: 1200px) {
+  .token-stats-grid,
+  .token-actions-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.solana-logo {
+  width: 18px;
+  height: 18px;
+  vertical-align: middle;
+  margin-right: 4px;
+  margin-bottom: 2px;
+}
+
+.token-main-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 0.5rem;
+}
+
+.token-price {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.token-volume {
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.token-change {
+  font-size: 14px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.token-change.positive {
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.15);
+}
+
+.token-change.negative {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.15);
+}

@@ -1,0 +1,867 @@
+{
+  "images": [
+    {
+      "id": 1,
+      "title": "Epic Moonshot Meme",
+      "description": "When your portfolio finally breaks even after months of holding",
+      "commentCount": 3,
+      "author": "CryptoMoonKing",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-15T10:30:00Z",
+      "reactions": {
+        "😂": 12,
+        "🚀": 8,
+        "💎": 5,
+        "🔥": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "HODLQueen",
+          "avatar": "👑",
+          "text": "This is so me! 😂",
+          "timestamp": "5 min ago"
+        },
+        {
+          "id": 2,
+          "author": "BearMarketBob",
+          "avatar": "🐻",
+          "text": "Finally, some good news!",
+          "timestamp": "12 min ago"
+        },
+        {
+          "id": 3,
+          "author": "CryptoNinja",
+          "avatar": "🥷",
+          "text": "HODL strong! 💪",
+          "timestamp": "20 min ago"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "title": "Diamond Hands Forever",
+      "description": "HODL till the moon or bust! 💎🙌",
+      "commentCount": 2,
+      "author": "DiamondHandsDan",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-14T15:20:00Z",
+      "reactions": {
+        "💎": 15,
+        "🙌": 10,
+        "🚀": 7,
+        "😂": 4
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "MoonWalker",
+          "avatar": "🌙",
+          "text": "Diamond hands never fold! 💎",
+          "timestamp": "3 min ago"
+        },
+        {
+          "id": 2,
+          "author": "PaperHandsPete",
+          "avatar": "📄",
+          "text": "I wish I had your strength",
+          "timestamp": "15 min ago"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "title": "When Lambo?",
+      "description": "Still waiting for my Lambo... any day now",
+      "commentCount": 4,
+      "author": "LamboWaiter420",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-13T09:15:00Z",
+      "reactions": {
+        "🚗": 20,
+        "😂": 15,
+        "💰": 8,
+        "🔥": 5
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "RichKid",
+          "avatar": "🤑",
+          "text": "Lambo soon brother! 🚗",
+          "timestamp": "2 min ago"
+        },
+        {
+          "id": 2,
+          "author": "RealistRick",
+          "avatar": "🧐",
+          "text": "Maybe start with a Honda first 😅",
+          "timestamp": "8 min ago"
+        },
+        {
+          "id": 3,
+          "author": "DreamBig",
+          "avatar": "✨",
+          "text": "We all gonna make it!",
+          "timestamp": "18 min ago"
+        },
+        {
+          "id": 4,
+          "author": "CarDealer",
+          "avatar": "🚘",
+          "text": "I accept crypto payments 😉",
+          "timestamp": "25 min ago"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Degen Life",
+      "description": "Living the degen lifestyle, no regrets",
+      "commentCount": 2,
+      "author": "DegenMaster",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-12T18:45:00Z",
+      "reactions": {
+        "🔥": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "SafeInvestor",
+          "avatar": "🛡️",
+          "text": "Risky but respect the hustle!",
+          "timestamp": "10 min ago"
+        },
+        {
+          "id": 2,
+          "author": "DegenGang",
+          "avatar": "🎲",
+          "text": "Degen life is the only life! 🔥",
+          "timestamp": "22 min ago"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "title": "HODL Strong",
+      "description": "Never selling, only buying the dip",
+      "commentCount": 3,
+      "author": "HODLWarrior",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-11T12:00:00Z",
+      "reactions": {
+        "💪": 12,
+        "😂": 9,
+        "💰": 6,
+        "🔥": 4
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "DipBuyer",
+          "avatar": "💰",
+          "text": "Buy the dip strategy always works!",
+          "timestamp": "7 min ago"
+        },
+        {
+          "id": 2,
+          "author": "MarketTimer",
+          "avatar": "⏰",
+          "text": "Time in the market > timing the market",
+          "timestamp": "14 min ago"
+        },
+        {
+          "id": 3,
+          "author": "CryptoVet",
+          "avatar": "🎖️",
+          "text": "Been HODLing since 2017 💪",
+          "timestamp": "30 min ago"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "title": "To The Moon",
+      "description": "Next stop: Moon! 🚀🌙",
+      "commentCount": 2,
+      "author": "MoonBoyDeluxe",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-10T14:30:00Z",
+      "reactions": {
+        "🚀": 18,
+        "😂": 12,
+        "🌙": 8,
+        "🔥": 5
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "Astronaut",
+          "avatar": "🧑‍🚀",
+          "text": "Buckle up, we're going to space! 🚀",
+          "timestamp": "4 min ago"
+        },
+        {
+          "id": 2,
+          "author": "EarthBound",
+          "avatar": "🌍",
+          "text": "I'll stay on Earth, thanks 😂",
+          "timestamp": "16 min ago"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "Buying the Dip",
+      "description": "Bought the dip... and it kept dipping",
+      "commentCount": 3,
+      "author": "DipBuyer3000",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-09T11:20:00Z",
+      "reactions": {
+        "😂": 14,
+        "💰": 10,
+        "🔥": 7,
+        "🙌": 4
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "DipCollector",
+          "avatar": "🍟",
+          "text": "There's always another dip 😅",
+          "timestamp": "6 min ago"
+        },
+        {
+          "id": 2,
+          "author": "PatientPete",
+          "avatar": "⏳",
+          "text": "DCA is the way!",
+          "timestamp": "11 min ago"
+        },
+        {
+          "id": 3,
+          "author": "ChartMaster",
+          "avatar": "📊",
+          "text": "The dip before the dip before the dip",
+          "timestamp": "19 min ago"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Wen Moon?",
+      "description": "Seriously though, when moon?",
+      "commentCount": 1,
+      "author": "ImpatientApe",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-08T16:40:00Z",
+      "reactions": {
+        "😂": 10,
+        "🚀": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "OldTimer",
+          "avatar": "👴",
+          "text": "Soon™",
+          "timestamp": "9 min ago"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "Crypto Vibes",
+      "description": "Just vibing with my crypto fam",
+      "commentCount": 2,
+      "author": "VibeChecker",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-07T13:15:00Z",
+      "reactions": {
+        "🙌": 12,
+        "😂": 9,
+        "💎": 6,
+        "🔥": 4
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "ChillBro",
+          "avatar": "😎",
+          "text": "Best community ever! 🙌",
+          "timestamp": "5 min ago"
+        },
+        {
+          "id": 2,
+          "author": "CryptoFam",
+          "avatar": "👨‍👩‍👧‍👦",
+          "text": "We're all gonna make it together!",
+          "timestamp": "13 min ago"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "title": "Paper Hands Exit",
+      "description": "Paper hands sold at the bottom again 😂",
+      "commentCount": 3,
+      "author": "NotPaperHands",
+      "type": "trending",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-06T10:00:00Z",
+      "reactions": {
+        "😂": 15,
+        "💎": 10,
+        "🔥": 7,
+        "🙌": 5
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "DiamondGrip",
+          "avatar": "💎",
+          "text": "Never selling! 💪",
+          "timestamp": "3 min ago"
+        },
+        {
+          "id": 2,
+          "author": "RegretfulSeller",
+          "avatar": "😢",
+          "text": "I sold too early...",
+          "timestamp": "17 min ago"
+        },
+        {
+          "id": 3,
+          "author": "IronHands",
+          "avatar": "🦾",
+          "text": "Paper hands always regret it",
+          "timestamp": "24 min ago"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "Official Launch",
+      "description": "LaughCoin official launch day! History in the making!",
+      "commentCount": 1,
+      "author": "LaughCoinTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-05T08:00:00Z",
+      "reactions": {
+        "🚀": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "EarlyAdopter",
+          "avatar": "🎯",
+          "text": "Got in early! Let's go! 🚀",
+          "timestamp": "8 min ago"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "title": "Community Takeover",
+      "description": "The community is taking over! Join us!",
+      "commentCount": 2,
+      "author": "CommunityLead",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-04T14:20:00Z",
+      "reactions": {
+        "🤝": 12,
+        "😂": 9,
+        "💎": 6,
+        "🙌": 4
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "CommunityFirst",
+          "avatar": "🤝",
+          "text": "Power to the people!",
+          "timestamp": "12 min ago"
+        },
+        {
+          "id": 2,
+          "author": "JoinedToday",
+          "avatar": "🆕",
+          "text": "Happy to be part of this!",
+          "timestamp": "21 min ago"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "Partnership Announcement",
+      "description": "Huge partnership incoming! Stay tuned!",
+      "commentCount": 2,
+      "author": "LaughCoinTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-03T11:45:00Z",
+      "reactions": {
+        "🤩": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "Excited",
+          "avatar": "🤩",
+          "text": "Can't wait to see who it is!",
+          "timestamp": "6 min ago"
+        },
+        {
+          "id": 2,
+          "author": "Bullish",
+          "avatar": "🐂",
+          "text": "This is huge! 📈",
+          "timestamp": "15 min ago"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "title": "New Features",
+      "description": "Check out our latest platform updates!",
+      "commentCount": 1,
+      "author": "DevTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-02T09:30:00Z",
+      "reactions": {
+        "💻": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "TechEnthusiast",
+          "avatar": "💻",
+          "text": "Love the new UI! 🔥",
+          "timestamp": "10 min ago"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "title": "Exclusive Drop",
+      "description": "Limited edition NFTs dropping soon!",
+      "commentCount": 2,
+      "author": "NFTTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2024-01-01T12:00:00Z",
+      "reactions": {
+        "🖼️": 12,
+        "😂": 9,
+        "💎": 6,
+        "🙌": 4
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "NFTCollector",
+          "avatar": "🖼️",
+          "text": "Need this in my collection!",
+          "timestamp": "4 min ago"
+        },
+        {
+          "id": 2,
+          "author": "ArtLover",
+          "avatar": "🎨",
+          "text": "The art is amazing!",
+          "timestamp": "18 min ago"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "Limited Edition",
+      "description": "Get yours before they're gone!",
+      "commentCount": 1,
+      "author": "LaughCoinTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-31T15:30:00Z",
+      "reactions": {
+        "😱": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "FOMO",
+          "avatar": "😱",
+          "text": "Just bought mine!",
+          "timestamp": "7 min ago"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "Special Collab",
+      "description": "Epic collaboration announcement!",
+      "commentCount": 1,
+      "author": "PartnershipsTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-30T10:15:00Z",
+      "reactions": {
+        "🤝": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "CollabFan",
+          "avatar": "🤝",
+          "text": "Two legends together!",
+          "timestamp": "11 min ago"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "title": "Premium Content",
+      "description": "Exclusive content for our community!",
+      "commentCount": 1,
+      "author": "ContentTeam",
+      "type": "sponsored",
+      "badge": "SPONSORED",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-29T13:45:00Z",
+      "reactions": {
+        "⭐": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "VIPMember",
+          "avatar": "⭐",
+          "text": "Worth every penny!",
+          "timestamp": "14 min ago"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "title": "Bullish AF",
+      "description": "Everything is bullish right now!",
+      "commentCount": 0,
+      "author": "BullMarketBob",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-28T11:20:00Z",
+      "reactions": {
+        "📈": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 20,
+      "title": "Bear Market Blues",
+      "description": "Surviving another bear market...",
+      "commentCount": 0,
+      "author": "BearSurvivor",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-27T09:00:00Z",
+      "reactions": {
+        "😢": 7,
+        "😂": 5,
+        "💎": 3,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 21,
+      "title": "Pump It Up",
+      "description": "Let's pump it to the moon!",
+      "commentCount": 1,
+      "author": "PumpMaster",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-26T14:30:00Z",
+      "reactions": {
+        "🚀": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "PumpChaser",
+          "avatar": "📈",
+          "text": "Pump it! 🚀",
+          "timestamp": "9 min ago"
+        }
+      ]
+    },
+    {
+      "id": 22,
+      "title": "Rekt Life",
+      "description": "Got rekt again, but still laughing",
+      "commentCount": 0,
+      "author": "RektButHappy",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-25T16:45:00Z",
+      "reactions": {
+        "😂": 8,
+        "💎": 6,
+        "🔥": 4,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 23,
+      "title": "Crypto Winter",
+      "description": "Winter is here, but we're still HODLing",
+      "commentCount": 0,
+      "author": "WinterHodler",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-24T12:00:00Z",
+      "reactions": {
+        "❄️": 7,
+        "😂": 5,
+        "💎": 3,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 24,
+      "title": "Green Candles",
+      "description": "Finally seeing some green!",
+      "commentCount": 1,
+      "author": "GreenCandleFan",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-23T10:30:00Z",
+      "reactions": {
+        "🟢": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "GreenDay",
+          "avatar": "🟢",
+          "text": "Green is my favorite color!",
+          "timestamp": "5 min ago"
+        }
+      ]
+    },
+    {
+      "id": 25,
+      "title": "Red Alert",
+      "description": "Everything's red but we're not selling",
+      "commentCount": 0,
+      "author": "RedDayWarrior",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-22T15:15:00Z",
+      "reactions": {
+        "🔴": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 26,
+      "title": "Whale Watching",
+      "description": "Watching whales move the market",
+      "commentCount": 0,
+      "author": "WhaleWatcher",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-21T11:45:00Z",
+      "reactions": {
+        "🐋": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": []
+    },
+    {
+      "id": 27,
+      "title": "Moonboy Dreams",
+      "description": "Living in my moonboy fantasies",
+      "commentCount": 0,
+      "author": "DreamerBoy",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-20T13:20:00Z",
+      "reactions": {
+        "🌙": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 28,
+      "title": "Shitcoin Season",
+      "description": "Is it shitcoin season yet?",
+      "commentCount": 1,
+      "author": "ShitcoinHunter",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-19T09:40:00Z",
+      "reactions": {
+        "😂": 10,
+        "💎": 7,
+        "🔥": 5,
+        "🙌": 3
+      },
+      "comments": [
+        {
+          "id": 1,
+          "author": "SeasonChecker",
+          "avatar": "🌱",
+          "text": "Always shitcoin season! 😂",
+          "timestamp": "16 min ago"
+        }
+      ]
+    },
+    {
+      "id": 29,
+      "title": "FOMO Incoming",
+      "description": "FOMO is real, can't resist buying",
+      "commentCount": 0,
+      "author": "FOMOKing",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-18T14:00:00Z",
+      "reactions": {
+        "😱": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 30,
+      "title": "Bag Holder Club",
+      "description": "Proud member of the bag holder club",
+      "commentCount": 0,
+      "author": "BagHolderPro",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-17T10:25:00Z",
+      "reactions": {
+        "👜": 7,
+        "😂": 5,
+        "💎": 3,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 31,
+      "title": "Airdrop Hunter",
+      "description": "Hunting for the next big airdrop",
+      "commentCount": 0,
+      "author": "AirdropNinja",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-16T12:50:00Z",
+      "reactions": {
+        "🎯": 8,
+        "😂": 6,
+        "💎": 4,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 32,
+      "title": "Gas Fees Hurt",
+      "description": "Gas fees are killing me softly",
+      "commentCount": 0,
+      "author": "GasVictim",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-15T15:35:00Z",
+      "reactions": {
+        "⛽": 7,
+        "😂": 5,
+        "💎": 3,
+        "🙌": 2
+      },
+      "comments": []
+    },
+    {
+      "id": 33,
+      "title": "Degen Energy",
+      "description": "Running on pure degen energy",
+      "commentCount": 0,
+      "author": "DegenEnergy",
+      "type": "all",
+      "imageUrl": "/laugh.png",
+      "createdAt": "2023-12-14T11:10:00Z",
+      "reactions": {
+        "🔥": 10,
+        "😂": 7,
+        "💎": 5,
+        "🙌": 3
+      },
+      "comments": []
+    }
+  ]
+}

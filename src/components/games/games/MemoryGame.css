@@ -1,0 +1,148 @@
+.memory-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.memory-game h2 {
+  margin: 0;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.memory-game p {
+  color: #a5b4fc;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.memory-stats {
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+}
+
+.memory-stat {
+  font-size: 1rem;
+  color: white;
+  font-weight: 600;
+}
+
+.memory-won {
+  font-size: 1rem;
+  color: #10b981;
+  font-weight: 700;
+}
+
+.memory-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 80px);
+  gap: 0.75rem;
+}
+
+.memory-card {
+  width: 80px;
+  height: 80px;
+  perspective: 1000px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.memory-card:disabled {
+  cursor: not-allowed;
+}
+
+.memory-card-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transition: transform 0.6s;
+  transform-style: preserve-3d;
+}
+
+.memory-card.flipped .memory-card-inner {
+  transform: rotateY(180deg);
+}
+
+.memory-card-front,
+.memory-card-back {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.5rem;
+  border-radius: 10px;
+  border: 2px solid rgba(139, 92, 246, 0.3);
+}
+
+.memory-card-front {
+  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
+}
+
+.memory-card-back {
+  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  transform: rotateY(180deg);
+}
+
+.memory-card.matched .memory-card-back {
+  background: linear-gradient(135deg, #10b981, #059669);
+  animation: matchPulse 0.5s;
+}
+
+@keyframes matchPulse {
+  0%,
+  100% {
+    transform: rotateY(180deg) scale(1);
+  }
+  50% {
+    transform: rotateY(180deg) scale(1.1);
+  }
+}
+
+.memory-restart-btn {
+  background: linear-gradient(135deg, #10b981, #059669);
+  border: none;
+  color: white;
+  padding: 0.65rem 1.25rem;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.memory-restart-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+}
+
+.memory-laugh-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+  background: #fff;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+@media (max-width: 600px) {
+  .memory-grid {
+    grid-template-columns: repeat(4, 65px);
+    gap: 0.5rem;
+  }
+  .memory-card {
+    width: 65px;
+    height: 65px;
+  }
+  .memory-card-front,
+  .memory-card-back {
+    font-size: 2rem;
+  }
+}
