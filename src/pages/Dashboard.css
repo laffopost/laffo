@@ -1,7 +1,7 @@
 .dashboard {
   min-height: 100vh;
   padding: 20px;
-  color: #ffffff;
+  color: var(--text-base);
 }
 
 .dashboard-header {
@@ -12,7 +12,7 @@
 .dashboard-header h1 {
   font-size: 2.5rem;
   margin: 0 0 10px 0;
-  background: linear-gradient(45deg, #8b5cf6, #06b6d4);
+  background: var(--gradient-title);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -20,7 +20,7 @@
 
 .dashboard-header p {
   font-size: 1.1rem;
-  color: rgba(255, 255, 255, 0.8);
+  color: var(--text-primary);
   margin: 0;
 }
 

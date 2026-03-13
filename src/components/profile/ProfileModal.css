@@ -1,8 +1,8 @@
 .profile-modal-back-btn {
   margin-bottom: 12px;
-  background: #23234a;
-  color: #a5b4fc;
-  border: 1.5px solid #8b5cf6;
+  background: var(--bg-card-solid);
+  color: var(--text-label);
+  border: 1.5px solid var(--color-primary);
   border-radius: 10px;
   padding: 0.5rem 1.2rem;
   font-weight: 600;
@@ -11,7 +11,7 @@
   transition: background 0.18s, color 0.18s, border 0.18s;
 }
 .profile-modal-back-btn:hover {
-  background: #18182f;
-  color: #fff;
-  border-color: #a5b4fc;
+  background: var(--bg-card-alt);
+  color: var(--text-base);
+  border-color: var(--text-label);
 }

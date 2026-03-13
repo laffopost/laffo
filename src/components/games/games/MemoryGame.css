@@ -8,12 +8,12 @@
 
 .memory-game h2 {
   margin: 0;
-  color: white;
+  color: var(--text-base);
   font-size: 1.5rem;
 }
 
 .memory-game p {
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   margin: 0;
   font-size: 0.85rem;
 }
@@ -26,13 +26,13 @@
 
 .memory-stat {
   font-size: 1rem;
-  color: white;
+  color: var(--text-base);
   font-weight: 600;
 }
 
 .memory-won {
   font-size: 1rem;
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 700;
 }
 
@@ -78,20 +78,20 @@
   justify-content: center;
   font-size: 2.5rem;
   border-radius: 10px;
-  border: 2px solid rgba(139, 92, 246, 0.3);
+  border: 2px solid var(--border-primary);
 }
 
 .memory-card-front {
-  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
+  background: var(--gradient-primary-145);
 }
 
 .memory-card-back {
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: var(--gradient-primary);
   transform: rotateY(180deg);
 }
 
 .memory-card.matched .memory-card-back {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--gradient-success);
   animation: matchPulse 0.5s;
 }
 
@@ -106,9 +106,9 @@
 }
 
 .memory-restart-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--gradient-success);
   border: none;
-  color: white;
+  color: var(--text-base);
   padding: 0.65rem 1.25rem;
   border-radius: 10px;
   font-size: 0.9rem;
@@ -119,15 +119,15 @@
 
 .memory-restart-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: var(--shadow-success-lg);
 }
 
 .memory-laugh-icon {
   width: 2.2rem;
   height: 2.2rem;
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
-  background: #fff;
+  box-shadow: 0 2px 8px var(--color-primary-20);
+  background: var(--text-base);
   display: inline-block;
   vertical-align: middle;
 }

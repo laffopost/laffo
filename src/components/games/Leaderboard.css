@@ -1,6 +1,6 @@
 .leaderboard {
-  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: var(--gradient-primary-145);
+  border: 1px solid var(--border-primary);
   border-radius: 16px;
   padding: 1.25rem;
   height: fit-content;
@@ -10,7 +10,7 @@
 
 .leaderboard h3 {
   margin: 0 0 0.75rem 0;
-  color: white;
+  color: var(--text-base);
   font-size: 1.1rem;
   text-align: center;
 }
@@ -28,10 +28,10 @@
 }
 
 .refresh-btn {
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: var(--color-primary-20);
+  border: 1px solid var(--color-primary-40);
   border-radius: 6px;
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   font-size: 0.8rem;
   padding: 0.25rem 0.5rem;
   cursor: pointer;
@@ -39,8 +39,8 @@
 }
 
 .refresh-btn:hover:not(:disabled) {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.6);
+  background: var(--color-primary-30);
+  border-color: var(--color-primary-70);
 }
 
 .refresh-btn:disabled {
@@ -49,7 +49,7 @@
 }
 
 .leaderboard-loading {
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   text-align: center;
   margin: 1rem 0;
   font-size: 0.85rem;
@@ -67,20 +67,20 @@
 }
 
 .leaderboard-empty {
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   text-align: center;
   margin: 1rem 0;
   font-size: 0.85rem;
   padding: 1rem;
-  background: rgba(139, 92, 246, 0.05);
+  background: var(--color-primary-5);
   border-radius: 8px;
 }
 
 .refresh-empty-btn {
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.4);
+  background: var(--color-primary-20);
+  border: 1px solid var(--color-primary-40);
   border-radius: 6px;
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   font-size: 0.75rem;
   padding: 0.375rem 0.75rem;
   cursor: pointer;
@@ -89,8 +89,8 @@
 }
 
 .refresh-empty-btn:hover {
-  background: rgba(139, 92, 246, 0.3);
-  border-color: rgba(139, 92, 246, 0.6);
+  background: var(--color-primary-30);
+  border-color: var(--color-primary-70);
 }
 
 .leaderboard-list {
@@ -103,8 +103,8 @@
 }
 
 .leaderboard-item {
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--color-primary-10);
+  border: 1px solid var(--color-primary-20);
   border-radius: 8px;
   padding: 0.6rem 0.75rem;
   display: flex;
@@ -114,8 +114,8 @@
 }
 
 .leaderboard-item:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: var(--color-primary-20);
+  border-color: var(--color-primary-40);
   transform: translateX(4px);
 }
 
@@ -149,23 +149,23 @@
 .leaderboard-item.current-user {
   background: linear-gradient(
     135deg,
-    rgba(16, 185, 129, 0.2),
-    rgba(5, 150, 105, 0.1)
+    var(--color-success-20),
+    var(--color-success-10)
   );
-  border-color: rgba(16, 185, 129, 0.6);
-  box-shadow: 0 0 12px rgba(16, 185, 129, 0.3);
+  border-color: var(--color-success-50);
+  box-shadow: 0 0 12px var(--color-success-30);
 }
 
 .leaderboard-rank {
   font-weight: 700;
-  color: #8b5cf6;
+  color: var(--color-primary);
   min-width: 35px;
   font-size: 0.9rem;
 }
 
 .leaderboard-name {
   flex: 1;
-  color: white;
+  color: var(--text-base);
   font-weight: 600;
   font-size: 0.85rem;
   overflow: hidden;
@@ -177,8 +177,8 @@
 }
 
 .you-badge {
-  background: #10b981;
-  color: white;
+  background: var(--color-success);
+  color: var(--text-base);
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
   border-radius: 4px;
@@ -187,7 +187,7 @@
 }
 
 .leaderboard-score {
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 700;
   font-size: 0.95rem;
 }
@@ -211,6 +211,6 @@
   opacity: 1;
 }
 .leaderboard-dm-btn:hover {
-  background: rgba(34, 197, 94, 0.25);
+  background: var(--color-success-25);
   transform: scale(1.15);
 }

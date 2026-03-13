@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(30, 30, 46, 0.7);
+  background: var(--bg-overlay);
   z-index: 9999;
   display: flex;
   align-items: center;
@@ -12,10 +12,10 @@
 }
 
 .gallery-share-menu {
-  background: #23233a;
-  border: 1.5px solid #10b981;
+  background: var(--bg-card-solid);
+  border: 1.5px solid var(--color-success);
   border-radius: 12px;
-  box-shadow: 0 4px 24px rgba(16, 185, 129, 0.15);
+  box-shadow: 0 4px 24px var(--color-success-15);
   min-width: 180px;
   padding: 1rem 0.5rem;
   display: flex;
@@ -26,7 +26,7 @@
 .gallery-share-menu .share-option {
   background: none;
   border: none;
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 600;
   font-size: 1rem;
   padding: 8px 12px;
@@ -37,18 +37,18 @@
 }
 
 .gallery-share-menu .share-option:hover {
-  background: rgba(16, 185, 129, 0.12);
-  color: #fff;
+  background: var(--color-success-10);
+  color: var(--text-base);
 }
 
 .gallery-share-menu .share-option.close {
-  color: #f87171;
-  border-top: 1px solid #333;
+  color: var(--color-danger);
+  border-top: 1px solid var(--border-divider);
   margin-top: 8px;
   font-weight: 700;
 }
 
 .gallery-share-menu .share-option.close:hover {
-  background: rgba(239, 68, 68, 0.12);
-  color: #fff;
+  background: var(--color-danger-10);
+  color: var(--text-base);
 }

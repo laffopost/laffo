@@ -1,3 +1,4 @@
+/* No hardcoded values to migrate — colors are set inline via JS */
 .animated-dots-bg {
   position: fixed;
   inset: 0;

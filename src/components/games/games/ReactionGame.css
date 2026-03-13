@@ -8,12 +8,12 @@
 
 .reaction-game h2 {
   margin: 0;
-  color: white;
+  color: var(--text-base);
   font-size: 1.5rem;
 }
 
 .reaction-game p {
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   margin: 0;
   font-size: 0.85rem;
 }
@@ -27,31 +27,31 @@
   justify-content: center;
   font-size: 1.25rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-base);
   cursor: pointer;
   transition: all 0.2s;
   border: 3px solid transparent;
 }
 
 .reaction-box.idle {
-  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
-  border-color: rgba(139, 92, 246, 0.3);
+  background: var(--gradient-primary-145);
+  border-color: var(--border-primary);
 }
 
 .reaction-box.waiting {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  border-color: #ef4444;
+  background: var(--gradient-danger);
+  border-color: var(--color-danger);
 }
 
 .reaction-box.ready {
-  background: linear-gradient(135deg, #10b981, #059669);
-  border-color: #10b981;
+  background: var(--gradient-success);
+  border-color: var(--color-success);
   animation: pulse 0.5s infinite;
 }
 
 .reaction-box.done {
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
-  border-color: #8b5cf6;
+  background: var(--gradient-primary);
+  border-color: var(--color-primary);
 }
 
 @keyframes pulse {
@@ -65,9 +65,9 @@
 }
 
 .reaction-start-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--gradient-success);
   border: none;
-  color: white;
+  color: var(--text-base);
   padding: 0.75rem 1.5rem;
   border-radius: 10px;
   font-size: 1rem;
@@ -78,14 +78,14 @@
 
 .reaction-start-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: var(--shadow-success-lg);
 }
 
 .reaction-result {
   font-size: 1rem;
-  color: white;
+  color: var(--text-base);
 }
 
 .reaction-result strong {
-  color: #10b981;
+  color: var(--color-success);
 }

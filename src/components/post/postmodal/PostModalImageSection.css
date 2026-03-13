@@ -15,10 +15,10 @@
 .postmodal-user-avatar-small {
   width: 32px;
   height: 32px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
-  border: 2px solid #8b5cf6;
-  background: #23234a;
+  border: 2px solid var(--color-primary);
+  background: var(--bg-card-solid);
   margin-right: 6px;
   flex-shrink: 0;
   display: none;
@@ -27,7 +27,7 @@
 .postmodal-user-author-name {
   font-weight: 600;
   font-size: 1.08rem;
-  color: #fff;
+  color: var(--text-base);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -63,11 +63,11 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border: 1px solid rgba(139, 92, 246, 0.25);
+  border: 1px solid var(--color-primary-25);
   box-shadow:
-    0 12px 48px rgba(0, 0, 0, 0.5),
-    0 0 0 1px rgba(255, 255, 255, 0.04) inset,
-    0 0 60px rgba(139, 92, 246, 0.06);
+    0 12px 48px var(--bg-dark-50),
+    0 0 0 1px var(--bg-input) inset,
+    0 0 60px var(--color-primary-8);
   min-height: 480px;
 }
 
@@ -80,10 +80,10 @@
   background: linear-gradient(
     135deg,
     #5b21b6 0%,
-    #7c3aed 30%,
-    #8b5cf6 50%,
+    var(--color-primary-deep) 30%,
+    var(--color-primary) 50%,
     #a78bfa 70%,
-    #6366f1 100%
+    var(--color-primary-dark) 100%
   );
   position: relative;
 }
@@ -102,16 +102,16 @@
 .postmodal-user-avatar {
   width: 86px;
   height: 86px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
   border: 4px solid #1a1836;
   box-shadow:
-    0 0 0 3px rgba(139, 92, 246, 0.6),
-    0 0 20px rgba(139, 92, 246, 0.25),
-    0 8px 24px rgba(0, 0, 0, 0.5);
+    0 0 0 3px var(--color-primary-60),
+    0 0 20px var(--color-primary-25),
+    0 8px 24px var(--bg-dark-50);
   margin-top: -48px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: var(--gradient-primary);
   transition:
     transform 0.3s,
     box-shadow 0.3s;
@@ -120,9 +120,9 @@
 .postmodal-user-avatar:hover {
   transform: scale(1.1);
   box-shadow:
-    0 0 0 3px rgba(139, 92, 246, 0.9),
-    0 0 30px rgba(139, 92, 246, 0.4),
-    0 12px 32px rgba(0, 0, 0, 0.5);
+    0 0 0 3px var(--color-primary-90),
+    0 0 30px var(--color-primary-40),
+    0 12px 32px var(--bg-dark-50);
 }
 
 .postmodal-user-header {
@@ -144,7 +144,7 @@
 .postmodal-user-username {
   font-size: 1.2rem;
   font-weight: 800;
-  color: #fff;
+  color: var(--text-base);
   letter-spacing: -0.02em;
   background: linear-gradient(135deg, #fff 0%, #c4b5fd 100%);
   -webkit-background-clip: text;
@@ -154,14 +154,14 @@
 
 .postmodal-user-status {
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   font-weight: 500;
   font-style: italic;
   line-height: 1.4;
   padding: 7px 12px;
-  background: rgba(139, 92, 246, 0.08);
+  background: var(--color-primary-8);
   border-radius: 10px;
-  border-left: 3px solid rgba(139, 92, 246, 0.6);
+  border-left: 3px solid var(--color-primary-60);
   width: 100%;
   text-align: left;
 }
@@ -175,7 +175,7 @@
 
 .postmodal-stat-card {
   background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--bg-input);
   border-radius: 14px;
   padding: 12px 8px;
   text-align: center;
@@ -186,8 +186,8 @@
 }
 
 .postmodal-stat-card:hover {
-  background: rgba(139, 92, 246, 0.14);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: var(--color-primary-15);
+  border-color: var(--color-primary-40);
   transform: translateY(-3px);
 }
 
@@ -201,7 +201,7 @@
 
 .postmodal-stat-label {
   font-size: 0.6rem;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--text-30);
   font-weight: 600;
   margin-top: 5px;
   display: block;
@@ -223,7 +223,7 @@
   padding: 8px 12px;
   background: rgba(255, 255, 255, 0.025);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--bg-input);
   transition:
     background 0.2s,
     transform 0.15s;
@@ -241,7 +241,7 @@
 }
 
 .postmodal-detail-text {
-  color: rgba(255, 255, 255, 0.7);
+  color: var(--text-muted);
   font-size: 0.82rem;
   font-weight: 500;
   word-break: break-word;
@@ -263,10 +263,10 @@
 
 .postmodal-user-profile-btn {
   flex: 1;
-  background: linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%);
-  color: #fff;
+  background: var(--gradient-primary);
+  color: var(--text-base);
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 11px 16px;
   font-weight: 700;
   font-size: 0.85rem;
@@ -275,7 +275,7 @@
     opacity 0.2s,
     transform 0.15s,
     box-shadow 0.2s;
-  box-shadow: 0 4px 18px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 4px 18px var(--color-primary-30);
   letter-spacing: 0.01em;
   display: flex;
   align-items: center;
@@ -286,7 +286,7 @@
 .postmodal-user-profile-btn:hover {
   opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.5);
+  box-shadow: 0 8px 24px var(--color-primary-50);
 }
 
 .postmodal-user-dm-btn {
@@ -294,12 +294,12 @@
   background: rgba(34, 197, 94, 0.15);
   border: 1px solid rgba(34, 197, 94, 0.4);
   color: #4ade80;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   padding: 11px 16px;
   font-weight: 700;
   font-size: 0.85rem;
   cursor: pointer;
-  transition: all 0.25s;
+  transition: var(--transition-normal);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -323,7 +323,7 @@
 .postmodal-image-img {
   width: 100%;
   border-radius: 14px;
-  background: #18182f;
+  background: var(--bg-card-alt);
   object-fit: contain;
 }
 
@@ -335,12 +335,12 @@
 
 .postmodal-image-title {
   margin: 0 0 8px 0;
-  color: #fff;
+  color: var(--text-base);
   font-size: 1.1rem;
 }
 
 .postmodal-image-desc {
-  color: #a5b4fc;
+  color: var(--text-label);
   font-size: 0.95rem;
   margin-bottom: 8px;
 }
@@ -365,7 +365,7 @@
   padding: 0;
   border-radius: 0;
   border: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--bg-input-focus);
 }
 
 /* Right-side actions group: badge + delete + random */
@@ -387,7 +387,7 @@
   border: none;
   border-bottom: 2px solid transparent;
   margin-bottom: -1px;
-  color: rgba(255, 255, 255, 0.38);
+  color: var(--text-30);
   padding: 6px 12px;
   border-radius: 0;
   font-weight: 500;
@@ -403,32 +403,32 @@
 
 .postmodal-tab-btn.active {
   color: rgba(255, 255, 255, 0.9);
-  border-bottom-color: #8b5cf6;
+  border-bottom-color: var(--color-primary);
   font-weight: 600;
 }
 
 .postmodal-tab-btn:hover:not(.active) {
-  color: rgba(255, 255, 255, 0.6);
-  border-bottom-color: rgba(139, 92, 246, 0.3);
+  color: var(--text-muted);
+  border-bottom-color: var(--border-primary);
 }
 
 .postmodal-tab-avatar {
   width: 20px;
   height: 20px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   object-fit: cover;
-  border: 1.5px solid rgba(139, 92, 246, 0.5);
-  background: #23234a;
+  border: 1.5px solid var(--color-primary-50);
+  background: var(--bg-card-solid);
   flex-shrink: 0;
   transition: border-color 0.18s;
 }
 
 .postmodal-tab-btn.active .postmodal-tab-avatar {
-  border-color: #8b5cf6;
+  border-color: var(--color-primary);
 }
 
 .postmodal-type-badge-inline {
-  background: rgba(139, 92, 246, 0.9);
+  background: var(--color-primary-90);
   color: white;
   padding: 3px 8px;
   border-radius: 6px;
@@ -438,8 +438,8 @@
   white-space: nowrap;
   flex-shrink: 0;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--border-subtle-hover);
+  box-shadow: 0 2px 4px var(--bg-dark-30);
 }
 
 /* ── Inline action buttons (delete / random) in the tabs header ──────────── */
@@ -449,7 +449,7 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   border: none;
   font-size: 14px;
   cursor: pointer;
@@ -461,9 +461,9 @@
 }
 
 .postmodal-action-btn--delete {
-  background: rgba(239, 68, 68, 0.15);
+  background: var(--color-danger-10);
   color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  border: 1px solid var(--color-danger-border);
 }
 
 .postmodal-action-btn--delete:hover {
@@ -487,7 +487,7 @@
 .postmodal-action-btn--random {
   background: rgba(236, 72, 153, 0.15);
   color: #f9a8d4;
-  border: 1px solid rgba(236, 72, 153, 0.3);
+  border: 1px solid var(--color-pink-30);
 }
 
 .postmodal-action-btn--random:hover {

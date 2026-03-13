@@ -1,12 +1,12 @@
 .quick-trade-section {
-  background: linear-gradient(145deg, #2e2e42, #1e1e2e);
-  border: 2px solid rgba(139, 92, 246, 0.4);
+  background: var(--gradient-primary-145);
+  border: 2px solid var(--color-primary-40);
   border-radius: 16px;
   padding: 2rem;
 }
 
 .quick-trade-title {
-  color: white;
+  color: var(--text-base);
   font-size: 1.75rem;
   font-weight: 700;
   margin: 0 0 1.5rem 0;
@@ -20,15 +20,15 @@
 }
 
 .contract-section h3 {
-  color: white;
+  color: var(--text-base);
   font-size: 1.1rem;
   margin: 0 0 0.75rem 0;
   font-weight: 600;
 }
 
 .contract-box {
-  background: rgba(0, 0, 0, 0.3);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  background: var(--bg-dark-30);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 1rem;
   display: flex;
@@ -39,7 +39,7 @@
 }
 
 .contract-address {
-  color: #8b5cf6;
+  color: var(--color-primary);
   font-family: monospace;
   font-size: 0.85rem;
   word-break: break-all;
@@ -48,9 +48,9 @@
 }
 
 .copy-btn {
-  background: rgba(139, 92, 246, 0.2);
-  border: 1px solid rgba(139, 92, 246, 0.4);
-  color: white;
+  background: var(--color-primary-20);
+  border: 1px solid var(--color-primary-40);
+  color: var(--text-base);
   padding: 0.5rem 1rem;
   border-radius: 8px;
   cursor: pointer;
@@ -61,7 +61,7 @@
 }
 
 .copy-btn:hover {
-  background: rgba(139, 92, 246, 0.4);
+  background: var(--color-primary-40);
   transform: translateY(-2px);
 }
 
@@ -74,7 +74,7 @@
 
 .platform-card {
   background: linear-gradient(145deg, #3e3e52, #2e2e42);
-  border: 1px solid rgba(139, 92, 246, 0.3);
+  border: 1px solid var(--border-primary);
   border-radius: 12px;
   padding: 1.25rem;
   text-align: center;
@@ -87,9 +87,9 @@
 }
 
 .platform-card:hover {
-  border-color: rgba(139, 92, 246, 0.8);
+  border-color: var(--color-primary-80);
   transform: translateY(-4px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+  box-shadow: 0 8px 24px var(--color-primary-30);
 }
 
 .platform-logo {
@@ -97,38 +97,38 @@
   height: 50px;
   object-fit: contain;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-input);
   padding: 6px;
 }
 
 .platform-name {
-  color: #fff;
+  color: var(--text-base);
   font-size: 1.1rem;
   margin: 0;
   font-weight: 700;
 }
 
 .platform-description {
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   font-size: 0.8rem;
   margin: 0;
   opacity: 0.8;
 }
 
 .platform-cta {
-  color: #8b5cf6;
+  color: var(--color-primary);
   font-weight: 600;
   font-size: 0.9rem;
   margin-top: auto;
 }
 
 .platform-card:hover .platform-cta {
-  color: #a78bfa;
+  color: var(--color-accent-muted);
 }
 
 /* How to Buy Steps */
 .buy-steps-section h3 {
-  color: #8b5cf6;
+  color: var(--color-primary);
   font-size: 1.5rem;
   margin: 0 0 1.5rem 0;
   text-align: center;
@@ -149,18 +149,18 @@
   position: relative;
   padding: 1rem 1rem 1rem 4rem;
   margin-bottom: 1rem;
-  background: rgba(139, 92, 246, 0.08);
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  background: var(--color-primary-8);
+  border: 1px solid var(--color-primary-20);
   border-radius: 12px;
-  color: white;
+  color: var(--text-base);
   font-size: 1rem;
   line-height: 1.6;
   transition: all 0.2s;
 }
 
 .buy-steps li:hover {
-  background: rgba(139, 92, 246, 0.15);
-  border-color: rgba(139, 92, 246, 0.4);
+  background: var(--color-primary-15);
+  border-color: var(--color-primary-40);
   transform: translateX(4px);
 }
 
@@ -170,8 +170,8 @@
   left: 1rem;
   top: 50%;
   transform: translateY(-50%);
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
-  color: white;
+  background: var(--gradient-primary);
+  color: var(--text-base);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -180,23 +180,23 @@
   justify-content: center;
   font-weight: 700;
   font-size: 1.1rem;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 4px 12px var(--color-primary-40);
 }
 
 .buy-steps li:last-child {
   margin-bottom: 0;
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.3);
+  background: var(--color-success-10);
+  border-color: var(--color-success-30);
 }
 
 .buy-steps li:last-child::before {
-  background: linear-gradient(135deg, #10b981, #059669);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  background: var(--gradient-success);
+  box-shadow: 0 4px 12px var(--color-success-glow);
 }
 
 .buy-steps li:last-child:hover {
-  background: rgba(16, 185, 129, 0.15);
-  border-color: rgba(16, 185, 129, 0.5);
+  background: var(--color-success-15);
+  border-color: var(--color-success-50);
 }
 
 @media (max-width: 768px) {

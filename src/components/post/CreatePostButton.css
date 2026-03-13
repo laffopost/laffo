@@ -1,26 +1,26 @@
 .create-post-btn {
   padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
+  background: var(--gradient-success);
+  color: var(--text-base);
   border: none;
   border-radius: 10px;
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: var(--transition-normal);
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+  box-shadow: var(--shadow-success);
   white-space: nowrap;
   flex-shrink: 0;
 }
 
 .create-post-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
-  background: linear-gradient(135deg, #059669, #10b981);
+  box-shadow: var(--shadow-success-lg);
+  background: var(--gradient-success-rev);
 }
 
 .create-post-btn:active {

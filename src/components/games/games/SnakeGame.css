@@ -8,7 +8,7 @@
 
 .snake-game h2 {
   margin: 0;
-  color: white;
+  color: var(--text-base);
   font-size: 1.5rem;
   display: flex;
   align-items: center;
@@ -21,36 +21,36 @@
 }
 
 .snake-game p {
-  color: #a5b4fc;
+  color: var(--color-accent-muted);
   margin: 0;
   font-size: 0.85rem;
 }
 
 .snake-score {
   font-size: 1.25rem;
-  color: #10b981;
+  color: var(--color-success);
   font-weight: 700;
 }
 
 .snake-canvas {
-  border: 3px solid rgba(139, 92, 246, 0.5);
+  border: 3px solid var(--color-primary-50);
   border-radius: 12px;
-  background: #1e1e2e;
-  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.4);
+  background: var(--bg-card-deep);
+  box-shadow: 0 6px 24px var(--bg-dark-30);
 }
 
 .snake-game-over {
   text-align: center;
-  color: #ef4444;
+  color: var(--color-danger);
   font-size: 1.25rem;
   font-weight: 700;
   line-height: 1.6;
 }
 
 .snake-start-btn {
-  background: linear-gradient(135deg, #10b981, #059669);
+  background: var(--gradient-success);
   border: none;
-  color: white;
+  color: var(--text-base);
   padding: 0.75rem 1.5rem;
   border-radius: 10px;
   font-size: 1rem;
@@ -61,5 +61,5 @@
 
 .snake-start-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+  box-shadow: var(--shadow-success-lg);
 }

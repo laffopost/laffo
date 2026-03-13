@@ -20,7 +20,7 @@
   -webkit-backdrop-filter: blur(24px);
   border-radius: 24px;
   overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, 0.22);
+  border: 1px solid var(--color-primary-22);
   box-shadow:
     0 20px 60px rgba(0, 0, 0, 0.55),
     0 0 100px rgba(139, 92, 246, 0.07);
@@ -31,6 +31,7 @@
 }
 
 /* ─── Hero banner ─── */
+/* Keep the decorative gradient as-is per instructions */
 .profile-hero-banner {
   height: 100px;
   background: linear-gradient(
@@ -52,7 +53,7 @@
   background:
     radial-gradient(
       ellipse at 25% 60%,
-      rgba(139, 92, 246, 0.35) 0%,
+      var(--color-primary-35) 0%,
       transparent 55%
     ),
     radial-gradient(
@@ -70,9 +71,9 @@
   right: -40px;
   width: 200px;
   height: 200px;
-  border-radius: 50%;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.18);
+  border-radius: var(--radius-full);
+  background: var(--color-primary-10);
+  border: 1px solid var(--color-primary-15);
   pointer-events: none;
 }
 
@@ -112,27 +113,27 @@
 .profile-avatar {
   width: 82px;
   height: 82px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  border-radius: var(--radius-full);
+  background: var(--gradient-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 2.2rem;
-  color: #fff;
+  color: var(--text-base);
   overflow: hidden;
   /* double ring: dark gap + purple outer */
   border: 4px solid rgba(18, 18, 52, 0.95);
   box-shadow:
-    0 0 0 2.5px rgba(139, 92, 246, 0.65),
+    0 0 0 2.5px var(--color-primary-60),
     0 10px 28px rgba(0, 0, 0, 0.55);
-  transition: all 0.3s;
+  transition: var(--transition-normal);
   flex-shrink: 0;
 }
 
 .profile-avatar:hover {
   box-shadow:
-    0 0 0 3px #8b5cf6,
-    0 14px 36px rgba(139, 92, 246, 0.45);
+    0 0 0 3px var(--color-primary),
+    0 14px 36px var(--color-primary-40);
   transform: scale(1.04);
 }
 
@@ -145,7 +146,7 @@
 .profile-avatar-fallback {
   font-size: 3rem;
   font-weight: 800;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  text-shadow: 0 2px 8px var(--bg-dark-30);
 }
 
 /* ─── Name area ─── */
@@ -158,7 +159,7 @@
 .profile-display-name {
   font-size: 1.75rem;
   font-weight: 900;
-  color: #fff;
+  color: var(--text-base);
   line-height: 1.1;
   margin: 0 0 3px;
   text-shadow: 0 2px 14px rgba(0, 0, 0, 0.6);
@@ -178,7 +179,7 @@
   margin: 9px 0 0;
   padding: 8px 13px;
   background: rgba(139, 92, 246, 0.09);
-  border-left: 3px solid #8b5cf6;
+  border-left: 3px solid var(--color-primary);
   border-radius: 0 8px 8px 0;
   line-height: 1.45;
 }
@@ -219,7 +220,7 @@
   font-weight: 700;
   font-size: 0.78rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--transition-fast);
   border: none;
   white-space: nowrap;
   min-width: 80px;
@@ -232,22 +233,22 @@
 }
 
 .profile-edit-btn {
-  background: rgba(139, 92, 246, 0.22);
+  background: var(--color-primary-22);
   color: #e9d5ff;
-  border: 1.5px solid rgba(139, 92, 246, 0.48);
+  border: 1.5px solid var(--color-primary-40);
   backdrop-filter: blur(10px);
 }
 
 .profile-edit-btn:hover {
-  background: #8b5cf6;
+  background: var(--color-primary);
   color: white;
-  border-color: #8b5cf6;
+  border-color: var(--color-primary);
   transform: translateY(-1px);
-  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.45);
+  box-shadow: 0 4px 14px var(--color-primary-40);
 }
 
 .profile-logout-btn {
-  background: rgba(239, 68, 68, 0.14);
+  background: var(--color-danger-12);
   color: #fca5a5;
   border: 1.5px solid rgba(239, 68, 68, 0.38);
   backdrop-filter: blur(10px);
@@ -255,7 +256,7 @@
 
 .profile-logout-btn:hover {
   background: rgba(239, 68, 68, 0.28);
-  border-color: #ef4444;
+  border-color: var(--color-danger);
   color: white;
   transform: translateY(-1px);
 }
@@ -270,8 +271,8 @@
 
 .profile-stat {
   background: rgba(139, 92, 246, 0.07);
-  border: 1.5px solid rgba(139, 92, 246, 0.18);
-  border-radius: 12px;
+  border: 1.5px solid var(--color-primary-15);
+  border-radius: var(--radius-md);
   padding: 10px 8px;
   text-align: center;
   transition: all 0.22s;
@@ -279,10 +280,10 @@
 }
 
 .profile-stat:hover {
-  background: rgba(139, 92, 246, 0.14);
+  background: var(--color-primary-15);
   border-color: rgba(139, 92, 246, 0.42);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 6px 20px var(--color-primary-20);
 }
 
 .profile-stat-value {
@@ -291,7 +292,7 @@
   color: #c4b5fd;
   display: block;
   line-height: 1;
-  text-shadow: 0 2px 10px rgba(139, 92, 246, 0.4);
+  text-shadow: 0 2px 10px var(--color-primary-40);
 }
 
 .profile-stat-label {
@@ -307,7 +308,7 @@
 /* ─── Generic section block ─── */
 .profile-section {
   padding: 12px 18px;
-  border-top: 1px solid rgba(139, 92, 246, 0.1);
+  border-top: 1px solid var(--color-primary-10);
 }
 
 .profile-section-title {
@@ -336,12 +337,12 @@
   background: rgba(255, 255, 255, 0.03);
   border-radius: 9px;
   border: 1px solid rgba(255, 255, 255, 0.055);
-  transition: all 0.2s;
+  transition: var(--transition-fast);
 }
 
 .profile-detail-row:hover {
-  background: rgba(139, 92, 246, 0.08);
-  border-color: rgba(139, 92, 246, 0.2);
+  background: var(--color-primary-8);
+  border-color: var(--color-primary-20);
   transform: translateY(-1px);
 }
 
@@ -383,9 +384,9 @@
   width: 32px;
   height: 32px;
   border-radius: 9px;
-  background: rgba(139, 92, 246, 0.1);
-  border: 1.5px solid rgba(139, 92, 246, 0.22);
-  transition: all 0.2s;
+  background: var(--color-primary-10);
+  border: 1.5px solid var(--color-primary-22);
+  transition: var(--transition-fast);
   cursor: pointer;
   text-decoration: none;
   flex-shrink: 0;
@@ -393,10 +394,10 @@
 
 .profile-social-icon:hover,
 .profile-social-icon:focus {
-  background: #8b5cf6;
-  border-color: #8b5cf6;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
   transform: translateY(-3px);
-  box-shadow: 0 7px 18px rgba(139, 92, 246, 0.48);
+  box-shadow: 0 7px 18px var(--color-primary-40);
 }
 
 .profile-social-icon img {
@@ -418,7 +419,7 @@
   align-items: center;
   gap: 10px;
   background: rgba(16, 185, 129, 0.07);
-  border: 1px solid rgba(16, 185, 129, 0.22);
+  border: 1px solid var(--color-success-20);
   border-radius: 10px;
   padding: 10px 14px;
   max-width: 100%;
@@ -436,7 +437,7 @@
 }
 
 .profile-solana-copy {
-  background: rgba(16, 185, 129, 0.16);
+  background: var(--color-success-16);
   border: 1px solid rgba(16, 185, 129, 0.28);
   color: white;
   width: 28px;
@@ -447,7 +448,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: var(--transition-fast);
   flex-shrink: 0;
 }
 
@@ -458,9 +459,9 @@
 
 /* ─── Auth error ─── */
 .profile-auth-error {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--color-danger);
+  background: var(--color-danger-10);
+  border: 1px solid var(--color-danger-border);
   border-radius: 10px;
   padding: 8px 12px;
   margin: 0 24px 12px;
@@ -495,20 +496,20 @@
 .shimmer {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.04) 0%,
-    rgba(255, 255, 255, 0.1) 50%,
-    rgba(255, 255, 255, 0.04) 100%
+    var(--bg-input) 0%,
+    var(--bg-surface-hover) 50%,
+    var(--bg-input) 100%
   );
   background-size: 600px 100%;
   animation: shimmer 1.5s infinite linear;
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
 }
 
 .profile-skeleton {
   background: rgba(18, 18, 52, 0.95);
   border-radius: 24px;
   overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, 0.15);
+  border: 1px solid var(--color-primary-15);
 }
 
 .profile-skeleton-banner {
@@ -527,7 +528,7 @@
 .profile-skeleton-avatar {
   width: 72px;
   height: 72px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   flex-shrink: 0;
   border: 4px solid rgba(18, 18, 52, 0.95);
 }
@@ -546,7 +547,7 @@
 
 .profile-skeleton-stat {
   height: 52px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
 }
 
 .profile-skeleton-body {
@@ -572,7 +573,7 @@
   right: 4px;
   width: 13px;
   height: 13px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: #22c55e;
   border: 2.5px solid rgba(18, 18, 52, 0.95);
   box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.35);
@@ -625,7 +626,7 @@
   font-size: 0.75rem;
   font-weight: 600;
   text-decoration: none;
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--border-subtle);
   background: rgba(255, 255, 255, 0.07);
   color: #e5e7eb;
   transition: all 0.18s;
@@ -633,7 +634,7 @@
 
 .profile-song-chip:hover {
   transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.25);
+  border-color: var(--border-subtle-hover);
 }
 
 .profile-song-chip--spotify {
@@ -679,20 +680,20 @@
   justify-content: center;
   min-height: 300px;
   font-size: 1.1rem;
-  color: #a5b4fc;
+  color: var(--text-label);
 }
 
 .profile-page-card {
   background: rgba(18, 18, 52, 0.92);
-  border-radius: 20px;
+  border-radius: var(--radius-xl);
   padding: 48px 32px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-modal);
   text-align: center;
-  border: 1px solid rgba(139, 92, 246, 0.2);
+  border: 1px solid var(--color-primary-20);
 }
 
 .profile-page-card h2 {
-  color: #fff;
+  color: var(--text-base);
   margin: 0;
 }
 

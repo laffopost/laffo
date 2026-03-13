@@ -1,6 +1,6 @@
 .notifications-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a2e 100%);
+  background: linear-gradient(135deg, var(--bg-base) 0%, var(--bg-card-deep) 100%);
   padding: 20px;
 }
 
@@ -18,14 +18,14 @@
 }
 
 .notifications-title-section h1 {
-  color: #fff;
+  color: var(--text-base);
   font-size: 2rem;
   margin: 0 0 8px 0;
   font-weight: 700;
 }
 
 .notifications-subtitle {
-  color: #a1a1aa;
+  color: var(--text-muted);
   font-size: 1rem;
   margin: 0;
 }
@@ -47,22 +47,22 @@
 }
 
 .mark-all-btn {
-  background: #10b981;
-  color: white;
+  background: var(--color-success);
+  color: var(--text-base);
 }
 
 .mark-all-btn:hover {
-  background: #059669;
+  background: var(--color-success-dark);
   transform: translateY(-1px);
 }
 
 .clear-all-btn {
-  background: #ef4444;
-  color: white;
+  background: var(--color-danger);
+  color: var(--text-base);
 }
 
 .clear-all-btn:hover {
-  background: #dc2626;
+  background: var(--color-danger-dark);
   transform: translateY(-1px);
 }
 
@@ -72,14 +72,14 @@
   align-items: center;
   justify-content: center;
   min-height: 300px;
-  color: #a1a1aa;
+  color: var(--text-muted);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(255, 255, 255, 0.1);
-  border-top: 4px solid #10b981;
+  border: 4px solid var(--border-subtle);
+  border-top: 4px solid var(--color-success);
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin-bottom: 16px;
@@ -95,9 +95,9 @@
 }
 
 .notifications-content {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-input);
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-subtle);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   overflow: hidden;
@@ -106,7 +106,7 @@
 .no-notifications-message {
   text-align: center;
   padding: 60px 40px;
-  color: #a1a1aa;
+  color: var(--text-muted);
 }
 
 .no-notifications-icon {
@@ -116,7 +116,7 @@
 }
 
 .no-notifications-message h3 {
-  color: #fff;
+  color: var(--text-base);
   font-size: 1.5rem;
   margin: 0 0 12px 0;
   font-weight: 600;
@@ -129,7 +129,7 @@
 }
 
 .notifications-section {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid var(--color-primary-5);
 }
 
 .notifications-section:last-child {
@@ -137,13 +137,13 @@
 }
 
 .section-title {
-  color: #fff;
+  color: var(--text-base);
   font-size: 1.2rem;
   font-weight: 600;
   margin: 0;
   padding: 20px 24px 16px;
-  background: rgba(255, 255, 255, 0.02);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: var(--color-primary-5);
+  border-bottom: 1px solid var(--color-primary-5);
 }
 
 .notifications-list {
@@ -157,7 +157,7 @@
   padding: 20px 24px;
   cursor: pointer;
   transition: all 0.2s;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  border-bottom: 1px solid var(--color-primary-5);
   position: relative;
 }
 
@@ -166,15 +166,15 @@
 }
 
 .notification-card:hover {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-input);
 }
 
 .notification-card.unread {
-  background: rgba(16, 185, 129, 0.05);
+  background: var(--color-success-5);
 }
 
 .notification-card.unread:hover {
-  background: rgba(16, 185, 129, 0.1);
+  background: var(--color-success-10);
 }
 
 .notification-icon-large {
@@ -189,7 +189,7 @@
 }
 
 .notification-message-large {
-  color: #fff;
+  color: var(--text-base);
   font-size: 1rem;
   font-weight: 500;
   margin-bottom: 8px;
@@ -197,17 +197,17 @@
 }
 
 .notification-post-info {
-  color: #a1a1aa;
+  color: var(--text-muted);
   font-size: 0.9rem;
   margin-bottom: 6px;
 }
 
 .notification-post-info strong {
-  color: #d1d5db;
+  color: var(--text-faint);
 }
 
 .notification-comment-preview {
-  color: #d1d5db;
+  color: var(--text-faint);
   font-size: 0.85rem;
   font-style: italic;
   margin-bottom: 8px;
@@ -216,7 +216,7 @@
 }
 
 .notification-timestamp {
-  color: #6b7280;
+  color: var(--text-muted);
   font-size: 0.8rem;
 }
 
@@ -226,7 +226,7 @@
   top: 24px;
   width: 10px;
   height: 10px;
-  background: #10b981;
+  background: var(--color-success);
   border-radius: 50%;
   flex-shrink: 0;
 }

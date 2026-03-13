@@ -9,11 +9,11 @@
   position: relative;
   width: 100%;
   padding-bottom: 125%;
-  background: linear-gradient(145deg, #2e2e42, #1e1e2e);
+  background: var(--gradient-primary-145);
   border-radius: 16px;
   overflow: hidden;
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  border: 1px solid var(--border-primary);
+  box-shadow: 0 8px 24px var(--bg-dark-30);
 }
 
 @media (min-width: 1400px) {
@@ -38,7 +38,7 @@
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
-  color: rgba(255, 255, 255, 0.6);
+  color: var(--text-muted);
   font-size: 1rem;
   z-index: -1;
 }

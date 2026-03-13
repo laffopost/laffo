@@ -10,7 +10,7 @@
   border-radius: 12px;
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 32px var(--bg-dark-30);
   animation: slideIn 0.3s ease-out;
   min-width: 320px;
   max-width: 450px;
@@ -29,27 +29,27 @@
 }
 
 .notification-success {
-  background: rgba(16, 185, 129, 0.95);
-  border-color: rgba(16, 185, 129, 0.6);
-  color: white;
+  background: var(--color-success-90);
+  border-color: var(--color-success-50);
+  color: var(--text-base);
 }
 
 .notification-error {
-  background: rgba(239, 68, 68, 0.95);
-  border-color: rgba(239, 68, 68, 0.6);
-  color: white;
+  background: var(--color-danger-90);
+  border-color: var(--color-danger-50);
+  color: var(--text-base);
 }
 
 .notification-warning {
   background: rgba(245, 158, 11, 0.95);
   border-color: rgba(245, 158, 11, 0.6);
-  color: white;
+  color: var(--text-base);
 }
 
 .notification-info {
-  background: rgba(139, 92, 246, 0.95);
-  border-color: rgba(139, 92, 246, 0.6);
-  color: white;
+  background: var(--color-primary-90);
+  border-color: var(--color-primary-50);
+  color: var(--text-base);
 }
 
 .notification-icon {
@@ -62,7 +62,7 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--bg-input-focus-alt);
 }
 
 .notification-message {
@@ -73,9 +73,9 @@
 }
 
 .notification-close {
-  background: rgba(255, 255, 255, 0.2);
+  background: var(--bg-input-focus-alt);
   border: none;
-  color: white;
+  color: var(--text-base);
   width: 28px;
   height: 28px;
   border-radius: 50%;
@@ -89,7 +89,7 @@
 }
 
 .notification-close:hover {
-  background: rgba(255, 255, 255, 0.3);
+  background: var(--bg-dark-30);
   transform: scale(1.1);
 }
 

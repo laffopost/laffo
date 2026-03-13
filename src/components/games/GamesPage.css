@@ -15,15 +15,15 @@
   flex-wrap: wrap;
   justify-content: center;
   align-items: center;
-  background: rgba(139, 92, 246, 0.05);
+  background: var(--color-primary-5);
   border-radius: 12px;
   padding: 0.75rem;
-  border: 1px solid rgba(139, 92, 246, 0.1);
+  border: 1px solid var(--color-primary-10);
 }
 
 .game-selector-btn {
-  background: linear-gradient(145deg, #2a2a3a, #1e1e2e);
-  border: 2px solid rgba(139, 92, 246, 0.2);
+  background: var(--gradient-primary-145);
+  border: 2px solid var(--color-primary-20);
   border-radius: 10px;
   padding: 0.65rem 1rem;
   cursor: pointer;
@@ -38,15 +38,15 @@
 }
 
 .game-selector-btn:hover {
-  border-color: rgba(139, 92, 246, 0.5);
+  border-color: var(--color-primary-50);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+  box-shadow: 0 4px 12px var(--color-primary-20);
 }
 
 .game-selector-btn.active {
-  background: linear-gradient(135deg, #8b5cf6, #6366f1);
+  background: var(--gradient-primary);
   border-color: transparent;
-  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+  box-shadow: var(--shadow-primary-lg);
 }
 
 .game-selector-icon {
@@ -57,12 +57,12 @@
 .game-selector-name {
   font-weight: 600;
   font-size: 0.75rem;
-  color: white;
+  color: var(--text-base);
   white-space: nowrap;
 }
 
 .game-selector-btn.active .game-selector-name {
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--text-primary);
 }
 
 .games-container {
