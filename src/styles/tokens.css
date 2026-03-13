@@ -1,0 +1,155 @@
+/* ============================================================
+   LAFFO Design Tokens
+   Single source of truth for colors, spacing, radii, shadows.
+   Applied via .dark / .light class on <body> (set by ThemeContext).
+   ============================================================ */
+
+/* ─── Dark theme (default) ─────────────────────────────────── */
+.dark {
+  /* Brand */
+  --color-primary:        #8b5cf6;
+  --color-primary-dark:   #6366f1;
+  --color-primary-glow:   rgba(139, 92, 246, 0.3);
+  --color-primary-hover:  rgba(139, 92, 246, 0.15);
+
+  /* Success / Action */
+  --color-success:        #10b981;
+  --color-success-dark:   #059669;
+  --color-success-glow:   rgba(16, 185, 129, 0.4);
+
+  /* Danger */
+  --color-danger:         #ef4444;
+  --color-danger-muted:   rgba(239, 68, 68, 0.2);
+  --color-danger-border:  rgba(239, 68, 68, 0.3);
+  --color-danger-hover:   rgba(239, 68, 68, 0.4);
+
+  /* Accent */
+  --color-accent:         #06b6d4;
+  --color-accent-muted:   #a5b4fc;
+
+  /* Backgrounds */
+  --bg-base:              #0f0f12;
+  --bg-card:              linear-gradient(145deg, #2a2a3a, #1e1e2e);
+  --bg-card-solid:        #23234a;
+  --bg-surface:           rgba(255, 255, 255, 0.05);
+  --bg-surface-hover:     rgba(255, 255, 255, 0.10);
+  --bg-overlay:           rgba(0, 0, 0, 0.80);
+
+  /* Text */
+  --text-primary:         rgba(255, 255, 255, 0.87);
+  --text-base:            #ffffff;
+  --text-muted:           rgba(255, 255, 255, 0.60);
+  --text-faint:           rgba(255, 255, 255, 0.70);
+
+  /* Borders */
+  --border-subtle:        rgba(255, 255, 255, 0.10);
+  --border-subtle-hover:  rgba(255, 255, 255, 0.20);
+  --border-primary:       rgba(139, 92, 246, 0.30);
+  --border-primary-hover: rgba(139, 92, 246, 0.70);
+  --border-divider:       #333333;
+
+  /* Shadows */
+  --shadow-card:   0 8px 28px rgba(139, 92, 246, 0.2), 0 2px 8px rgba(0, 0, 0, 0.35);
+  --shadow-primary: 0 4px 15px rgba(139, 92, 246, 0.4);
+  --shadow-success: 0 4px 15px rgba(16, 185, 129, 0.4);
+  --shadow-danger:  0 2px 8px rgba(239, 68, 68, 0.4);
+  --shadow-dropdown: 0 4px 16px rgba(35, 35, 74, 0.4);
+
+  /* Border radii */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-pill: 9999px;
+  --radius-full: 50%;
+
+  /* Transitions */
+  --transition-fast:   all 0.2s ease;
+  --transition-normal: all 0.3s ease;
+
+  /* Spacing (8-pt grid) */
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+
+  color-scheme: dark;
+}
+
+/* ─── Light theme (opt-in) ──────────────────────────────────── */
+.light {
+  /* Brand — slightly deeper for contrast on white */
+  --color-primary:        #7c3aed;
+  --color-primary-dark:   #4f46e5;
+  --color-primary-glow:   rgba(124, 58, 237, 0.25);
+  --color-primary-hover:  rgba(124, 58, 237, 0.10);
+
+  /* Success */
+  --color-success:        #059669;
+  --color-success-dark:   #047857;
+  --color-success-glow:   rgba(5, 150, 105, 0.35);
+
+  /* Danger */
+  --color-danger:         #dc2626;
+  --color-danger-muted:   rgba(220, 38, 38, 0.12);
+  --color-danger-border:  rgba(220, 38, 38, 0.25);
+  --color-danger-hover:   rgba(220, 38, 38, 0.25);
+
+  /* Accent */
+  --color-accent:         #0891b2;
+  --color-accent-muted:   #6366f1;
+
+  /* Backgrounds */
+  --bg-base:              #f5f5f7;
+  --bg-card:              linear-gradient(145deg, #ffffff, #f0f0f8);
+  --bg-card-solid:        #ffffff;
+  --bg-surface:           rgba(0, 0, 0, 0.04);
+  --bg-surface-hover:     rgba(0, 0, 0, 0.08);
+  --bg-overlay:           rgba(0, 0, 0, 0.50);
+
+  /* Text */
+  --text-primary:         rgba(15, 15, 18, 0.90);
+  --text-base:            #0f0f12;
+  --text-muted:           rgba(15, 15, 18, 0.55);
+  --text-faint:           rgba(15, 15, 18, 0.65);
+
+  /* Borders */
+  --border-subtle:        rgba(0, 0, 0, 0.10);
+  --border-subtle-hover:  rgba(0, 0, 0, 0.20);
+  --border-primary:       rgba(124, 58, 237, 0.25);
+  --border-primary-hover: rgba(124, 58, 237, 0.60);
+  --border-divider:       #d1d5db;
+
+  /* Shadows */
+  --shadow-card:    0 4px 16px rgba(0, 0, 0, 0.10), 0 1px 4px rgba(0, 0, 0, 0.06);
+  --shadow-primary: 0 4px 15px rgba(124, 58, 237, 0.30);
+  --shadow-success: 0 4px 15px rgba(5, 150, 105, 0.30);
+  --shadow-danger:  0 2px 8px rgba(220, 38, 38, 0.30);
+  --shadow-dropdown: 0 4px 16px rgba(0, 0, 0, 0.12);
+
+  /* Radii, transitions, spacing — identical across themes */
+  --radius-sm:   8px;
+  --radius-md:   12px;
+  --radius-lg:   16px;
+  --radius-xl:   20px;
+  --radius-pill: 9999px;
+  --radius-full: 50%;
+
+  --transition-fast:   all 0.2s ease;
+  --transition-normal: all 0.3s ease;
+
+  --space-1:  0.25rem;
+  --space-2:  0.5rem;
+  --space-3:  0.75rem;
+  --space-4:  1rem;
+  --space-5:  1.25rem;
+  --space-6:  1.5rem;
+  --space-8:  2rem;
+  --space-10: 2.5rem;
+
+  color-scheme: light;
+}

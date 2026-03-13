@@ -1,0 +1,105 @@
+/* ============================================================
+   LAFFO Reusable Button Classes
+   Opt-in utility classes — do not override existing component buttons.
+   Requires tokens.css to be loaded first.
+   ============================================================ */
+
+/* ─── Base ──────────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-5);
+  border: none;
+  border-radius: var(--radius-xl);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition-normal);
+  white-space: nowrap;
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* ─── Variants ──────────────────────────────────────────────── */
+.btn-primary {
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  box-shadow: var(--shadow-primary);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--color-primary-glow);
+  filter: brightness(1.1);
+}
+
+.btn-success {
+  background: linear-gradient(135deg, var(--color-success), var(--color-success-dark));
+  color: #fff;
+  box-shadow: var(--shadow-success);
+}
+
+.btn-success:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px var(--color-success-glow);
+  background: linear-gradient(135deg, var(--color-success-dark), var(--color-success));
+}
+
+.btn-danger {
+  background: var(--color-danger-muted);
+  border: 1px solid var(--color-danger-border);
+  color: var(--color-danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: var(--color-danger-hover);
+  border-color: var(--color-danger);
+}
+
+.btn-ghost {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+}
+
+.btn-ghost:hover:not(:disabled) {
+  background: var(--bg-surface-hover);
+  border-color: var(--border-subtle-hover);
+  color: var(--text-primary);
+  transform: translateY(-2px);
+}
+
+/* ─── Sizes ─────────────────────────────────────────────────── */
+.btn-sm {
+  padding: var(--space-1) var(--space-3);
+  font-size: 0.8rem;
+  border-radius: var(--radius-md);
+}
+
+.btn-lg {
+  padding: var(--space-3) var(--space-8);
+  font-size: 1rem;
+  border-radius: var(--radius-xl);
+}
+
+.btn-icon {
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--radius-full);
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.btn-full {
+  width: 100%;
+}

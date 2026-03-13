@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useUnreadMessageCount } from "../../hooks/useUnreadMessageCount";
 import { NotificationBell } from "../features/utilities";
+import { ThemeToggle } from "../common";
 import laughLogo from "../../assets/laugh.png";
 import "./Header.css";
 import { signOut } from "firebase/auth";
@@ -346,6 +347,7 @@ const Header = memo(function Header() {
               )}
             </button>
           </div>
+          <ThemeToggle />
 
           <Link
             to="/"

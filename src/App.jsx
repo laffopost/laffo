@@ -15,6 +15,7 @@ import {
 import { ImageProvider } from "./context/PostContext";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
+import { ThemeProvider } from "./context/ThemeContext";
 import { DirectMessages } from "./components/features/chat";
 import useGlobalClickSound from "./hooks/useGlobalClickSound";
 import "./App.css";
@@ -189,47 +190,49 @@ function App() {
   useGlobalClickSound();
 
   return (
-    <AuthProvider>
-      <NotificationProvider>
-        <ImageProvider>
-          <Router>
-            <div className="App">
-              <a href="#main-content" className="skip-to-content">
-                Skip to content
-              </a>
-              <Toaster
-                position="top-right"
-                toastOptions={{
-                  duration: 3000,
-                  style: {
-                    background: "#2a2a3a",
-                    color: "#fff",
-                    border: "1px solid rgba(139, 92, 246, 0.3)",
-                    borderRadius: "12px",
-                    fontSize: "0.9rem",
-                  },
-                  success: {
-                    iconTheme: { primary: "#10b981", secondary: "#fff" },
-                  },
-                  error: {
-                    iconTheme: { primary: "#ef4444", secondary: "#fff" },
-                  },
-                }}
-              />
-              <AnimatedDotsBackground />
-              <Header />
-              <DirectMessages />
-              <main id="main-content" className="main-container">
-                <Suspense fallback={<LoadingFallback />}>
-                  <AppRoutes />
-                </Suspense>
-              </main>
-              <Footer />
-            </div>
-          </Router>
-        </ImageProvider>
-      </NotificationProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <NotificationProvider>
+          <ImageProvider>
+            <Router>
+              <div className="App">
+                <a href="#main-content" className="skip-to-content">
+                  Skip to content
+                </a>
+                <Toaster
+                  position="top-right"
+                  toastOptions={{
+                    duration: 3000,
+                    style: {
+                      background: "#2a2a3a",
+                      color: "#fff",
+                      border: "1px solid rgba(139, 92, 246, 0.3)",
+                      borderRadius: "12px",
+                      fontSize: "0.9rem",
+                    },
+                    success: {
+                      iconTheme: { primary: "#10b981", secondary: "#fff" },
+                    },
+                    error: {
+                      iconTheme: { primary: "#ef4444", secondary: "#fff" },
+                    },
+                  }}
+                />
+                <AnimatedDotsBackground />
+                <Header />
+                <DirectMessages />
+                <main id="main-content" className="main-container">
+                  <Suspense fallback={<LoadingFallback />}>
+                    <AppRoutes />
+                  </Suspense>
+                </main>
+                <Footer />
+              </div>
+            </Router>
+          </ImageProvider>
+        </NotificationProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
