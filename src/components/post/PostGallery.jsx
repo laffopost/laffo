@@ -66,6 +66,8 @@ const PostGallery = memo(function PostGallery({
   const [notification, setNotification] = useState(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
+  console.log("isLoadingMore", isLoadingMore);
+
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -76,6 +78,8 @@ const PostGallery = memo(function PostGallery({
   const galleryRef = useRef(null);
   const sentinelRef = useRef(null);
 
+  const isLoadingMoreRef = useRef(false);
+
   // Infinite scroll — IntersectionObserver on a sentinel div at the bottom
   // Much cheaper than a window scroll listener (fires ~60/sec)
   useEffect(() => {
@@ -84,9 +88,13 @@ const PostGallery = memo(function PostGallery({
 
     const observer = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting && !isLoadingMore) {
+        if (entries[0].isIntersecting && !isLoadingMoreRef.current) {
+          isLoadingMoreRef.current = true;
           setIsLoadingMore(true);
-          loadMorePosts().finally(() => setIsLoadingMore(false));
+          loadMorePosts().finally(() => {
+            isLoadingMoreRef.current = false;
+            setIsLoadingMore(false);
+          });
         }
       },
       { rootMargin: "500px" }, // start loading 500px before sentinel is visible
@@ -94,7 +102,7 @@ const PostGallery = memo(function PostGallery({
 
     observer.observe(sentinel);
     return () => observer.disconnect();
-  }, [isLoadingMore, loadMorePosts]);
+  }, [loadMorePosts]);
 
   // Guarded version of toggleReaction for cards
   const guardedToggleReaction = useCallback(
@@ -376,10 +384,11 @@ const PostGallery = memo(function PostGallery({
     FILTERS.find((f) => f.value === activeFilter) || FILTERS[0];
 
   const handleAddPost = (newPost) => {
-    addPost(newPost)
-      .then(() => toast.success("Post created successfully! 🎉"))
-      .catch((err) => toast.error(err.message || "Failed to create post"));
+    const toastId = toast.loading("Creating post...");
     setShowAddModal(false);
+    addPost(newPost)
+      .then(() => toast.success("Post created successfully! 🎉", { id: toastId }))
+      .catch((err) => toast.error(err.message || "Failed to create post", { id: toastId }));
   };
 
   const handlePostDelete = useCallback(

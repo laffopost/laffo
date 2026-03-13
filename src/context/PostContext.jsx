@@ -32,21 +32,10 @@ import {
   deleteDoc,
   getDocs,
 } from "firebase/firestore";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
-import { storage } from "../firebase/config";
 import { useAuth } from "./AuthContext";
 import { createNotificationForPost } from "../utils/notificationUtils";
 import { getPostExpiryService } from "../utils/postExpiry";
 
-// Helper: convert base64 data URL to Blob (for canvas drawings)
-function dataURLtoBlob(dataURL) {
-  const [header, data] = dataURL.split(",");
-  const mime = header.match(/:(.*?);/)[1];
-  const binary = atob(data);
-  const array = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i++) array[i] = binary.charCodeAt(i);
-  return new Blob([array], { type: mime });
-}
 
 // Two separate contexts:
 // - PostDataContext  → reactive data (images, loading, etc.) — changes on every update
@@ -55,8 +44,7 @@ const PostDataContext = createContext();
 const PostActionsContext = createContext();
 
 // Disable console logs in production
-const isDev =
-  typeof process !== "undefined" && process.env?.NODE_ENV === "development";
+const isDev = import.meta.env.DEV;
 const log = isDev ? console.log : () => {};
 const logError = console.error; // Keep errors always
 
@@ -375,16 +363,30 @@ export const ImageProvider = ({ children }) => {
 
   const addPost = useCallback(
     async (postData) => {
+      log(
+        "🔥 addPost ENTER — firebaseUser:",
+        firebaseUser?.uid,
+        "isAnonymous:",
+        firebaseUser?.isAnonymous,
+      );
       // Auth check: block anonymous users
       if (!firebaseUser || firebaseUser.isAnonymous) {
+        log("🔥 addPost BLOCKED — not logged in");
         throw new Error("You must be logged in to create a post");
       }
 
       // Rate limiting: prevent spam posting
       const now = Date.now();
       const elapsed = now - lastPostTimeRef.current;
+      log(
+        "🔥 addPost rate limit check — elapsed:",
+        elapsed,
+        "cooldown:",
+        POST_COOLDOWN_MS,
+      );
       if (elapsed < POST_COOLDOWN_MS) {
         const waitSec = Math.ceil((POST_COOLDOWN_MS - elapsed) / 1000);
+        log("🔥 addPost BLOCKED — rate limit, wait:", waitSec);
         throw new Error(`Please wait ${waitSec}s before posting again`);
       }
 
@@ -397,33 +399,16 @@ export const ImageProvider = ({ children }) => {
           ? userDoc.data().username
           : firebaseUser.displayName || "Anonymous";
 
-        // --- Upload image to Firebase Storage ---
+        // --- Use compressed base64 image directly (no Storage needed) ---
         let imageUrl = null;
         if (postData.type !== "status" && postData.type !== "poll") {
           if (postData.imageFile instanceof File) {
-            const ext = postData.imageFile.name.split(".").pop() || "jpg";
-            const storageRef = ref(
-              storage,
-              `posts/${firebaseUser.uid}/${Date.now()}.${ext}`,
-            );
-            const snapshot = await uploadBytes(storageRef, postData.imageFile);
-            imageUrl = await getDownloadURL(snapshot.ref);
-            log("✅ Image uploaded to Storage:", imageUrl);
-          } else if (
-            postData.image &&
-            typeof postData.image === "string" &&
-            postData.image.startsWith("data:")
-          ) {
-            const blob = dataURLtoBlob(postData.image);
-            const storageRef = ref(
-              storage,
-              `posts/${firebaseUser.uid}/${Date.now()}_canvas.jpg`,
-            );
-            const snapshot = await uploadBytes(storageRef, blob);
-            imageUrl = await getDownloadURL(snapshot.ref);
-            log("✅ Canvas image uploaded to Storage:", imageUrl);
-          } else {
+            // Convert file to base64 via the already-compressed previewUrl
             imageUrl = postData.image || null;
+            log("✅ Using compressed base64 image, size:", imageUrl?.length);
+          } else if (postData.image) {
+            imageUrl = postData.image;
+            log("✅ Using canvas base64 image, size:", imageUrl?.length);
           }
         }
 
@@ -546,14 +531,11 @@ export const ImageProvider = ({ children }) => {
           edited: true,
         };
 
-        // Handle image upload if new image is provided
+        // Handle image update if new image is provided (base64)
         if (updateData.newImage) {
-          const imageRef = ref(storage, `images/${postId}-${Date.now()}`);
-          await uploadBytes(imageRef, updateData.newImage);
-          const newImageUrl = await getDownloadURL(imageRef);
-          editData.image = newImageUrl;
-          editData.imageUrl = newImageUrl;
-          delete editData.newImage; // Remove the file object from Firestore data
+          editData.image = updateData.newImage;
+          editData.imageUrl = updateData.newImage;
+          delete editData.newImage;
         }
 
         await updateDoc(postRef, editData);
