@@ -40,6 +40,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
     embedUrl: initialData?.embedUrl || "",
     mediaType: initialData?.mediaType || null,
   });
+  const [mediaUrlInput, setMediaUrlInput] = useState(initialData?.url || "");
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -47,6 +48,16 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
     const authorAvatar = userProfile?.avatar || null;
     setFormData((prev) => ({ ...prev, author, authorAvatar }));
   }, [userProfile, firebaseUser]);
+
+  // Auto-parse URL when shared from music player
+  useEffect(() => {
+    if (initialData?.url && !isEditMode) {
+      parseMediaUrl(initialData.url);
+      if (initialData.title && !formData.title) {
+        setFormData((prev) => ({ ...prev, title: initialData.title }));
+      }
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const parseMediaUrl = (url) => {
     // YouTube
@@ -107,6 +118,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
 
   const handleMediaUrlChange = (e) => {
     const url = e.target.value;
+    setMediaUrlInput(url);
     setFormData((prev) => ({ ...prev, embedUrl: "" }));
     if (url.trim()) {
       parseMediaUrl(url);
@@ -199,6 +211,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
           <input
             type="url"
             id="mediaUrl"
+            value={mediaUrlInput}
             onChange={handleMediaUrlChange}
             placeholder="Paste YouTube or Spotify link..."
             required

@@ -1,7 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/AuthContext";
+import { usePostActions } from "../../../context/PostContext";
 import toast from "react-hot-toast";
 import FirebaseChat from "../chat/FirebaseChat";
+import AddPostModal from "../../post/AddPostModal";
 import "./MusicPlayer.css";
 
 const GENRES = [
@@ -212,12 +214,20 @@ export default function MusicPlayer() {
   const [isSearching, setIsSearching] = useState(false);
 
   const [showChat, setShowChat] = useState(false);
+  const [shareData, setShareData] = useState(null);
   const { firebaseUser, userProfile } = useAuth();
+  const { addPost } = usePostActions();
 
   const audioRef = useRef(null);
   const iframeRef = useRef(null);
+  const iframeHostRef = useRef(null);
+  const miniSlotRef = useRef(null);
+  const fullSlotRef = useRef(null);
   const genreCarouselRef = useRef(null);
   const prevVolumeRef = useRef(80);
+
+  // YouTube iframes don't expose volume control — hide volume UI for embeds
+  const isEmbed = playerType === "embed";
 
   // YouTube Search using YouTube Data API v3
   const searchYouTubeMusic = useCallback(async (query) => {
@@ -564,6 +574,20 @@ export default function MusicPlayer() {
     );
   };
 
+  const handleShareToPost = useCallback((station) => {
+    const url = station.originalUrl || station.url;
+    // Only YouTube and Spotify can be shared as media posts
+    if (url.includes("youtube.com") || url.includes("youtu.be") || url.includes("spotify.com")) {
+      setShareData({
+        url,
+        title: station.name || station.title || "",
+        artist: station.artist || "",
+      });
+    } else {
+      toast.error("Only YouTube and Spotify links can be shared as posts");
+    }
+  }, []);
+
   const handleMinimize = () => {
     setIsMinimized(true);
     setIsOpen(false);
@@ -606,6 +630,61 @@ export default function MusicPlayer() {
     };
   }, []);
 
+  // Create a persistent iframe DOM element (not React-managed) that we
+  // manually reparent between mini / full / hidden slots.
+  // This prevents React from unmounting it on state changes.
+  useEffect(() => {
+    if (!isEmbed || !currentStation) {
+      // Remove any stale iframe
+      if (iframeRef.current) {
+        iframeRef.current.remove();
+        iframeRef.current = null;
+      }
+      return;
+    }
+
+    // Create iframe only once per station URL
+    if (!iframeRef.current || iframeRef.current.dataset.src !== currentStation.url) {
+      if (iframeRef.current) iframeRef.current.remove();
+
+      const iframe = document.createElement("iframe");
+      iframe.src = currentStation.url;
+      iframe.width = "100%";
+      iframe.height = "100%";
+      iframe.style.border = "none";
+      iframe.style.display = "block";
+      iframe.allow = "autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture";
+      iframe.title = "player";
+      iframe.dataset.src = currentStation.url;
+      iframeRef.current = iframe;
+    }
+
+    // Move iframe into the correct slot
+    const iframe = iframeRef.current;
+    const target = isMinimized
+      ? miniSlotRef.current
+      : isOpen
+        ? fullSlotRef.current
+        : iframeHostRef.current;
+
+    if (target && iframe.parentNode !== target) {
+      target.appendChild(iframe);
+    }
+
+    // In mini mode, disable pointer events so clicking restores the player
+    iframe.style.pointerEvents = isMinimized ? "none" : "auto";
+  }, [isOpen, isMinimized, isEmbed, currentStation]);
+
+  // Cleanup iframe on unmount
+  useEffect(() => {
+    return () => {
+      if (iframeRef.current) {
+        iframeRef.current.remove();
+        iframeRef.current = null;
+      }
+    };
+  }, []);
+
   // Space bar shortcut
   useEffect(() => {
     const fn = (e) => {
@@ -630,14 +709,32 @@ export default function MusicPlayer() {
           ? "🔉"
           : "🔊";
 
-  /* ── Minimized ──────────────────────────────────────────────────────── */
-  if (isMinimized) {
-    return (
-      <>
-        {/* Keep audio element alive so radio continues playing */}
-        <audio ref={audioRef} preload="none" crossOrigin="anonymous" />
+  // Determine which view is active
+  const isClosed = !isOpen && !isMinimized;
+
+  return (
+    <>
+      {/* Single persistent audio element — never unmounts */}
+      <audio ref={audioRef} preload="none" crossOrigin="anonymous" />
+
+      {/* Hidden host — iframe parks here when player is closed */}
+      <div className="iframe-host" ref={iframeHostRef} />
+
+      {/* ── FAB (closed state) ─────────────────────────────────────────── */}
+      {isClosed && (
+        <button
+          className="music-open"
+          onClick={() => setIsOpen(true)}
+          title="Open Music Player"
+        >
+          <span className="music-open-icon">🎵</span>
+          <span className="music-open-pulse" />
+        </button>
+      )}
+
+      {/* ── Minimized card ─────────────────────────────────────────────── */}
+      {isMinimized && (
         <div className="music-minimized">
-          {/* ── Top bar: title + maximize / close ── */}
           <div className="mini-header">
             <div className="mini-header-info" onClick={handleRestore}>
               <span
@@ -674,18 +771,10 @@ export default function MusicPlayer() {
             </div>
           </div>
 
-          {/* ── Media display: YouTube iframe OR audio visualizer ── */}
+          {/* Media display: persistent iframe lands here via CSS, or show audio visualizer */}
           <div className="mini-media" onClick={handleRestore}>
-            {playerType === "embed" && currentStation ? (
-              <iframe
-                src={isPlaying ? currentStation.url : undefined}
-                width="100%"
-                height="100%"
-                frameBorder="0"
-                allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                title="mini-player"
-                className="mini-media-iframe"
-              />
+            {isEmbed && currentStation ? (
+              <div className="mini-iframe-slot" ref={miniSlotRef} />
             ) : (
               <div className="mini-visualizer-area">
                 <div className="mini-visualizer">
@@ -706,7 +795,7 @@ export default function MusicPlayer() {
             )}
           </div>
 
-          {/* ── Bottom transport controls ── */}
+          {/* Bottom transport controls */}
           <div className="mini-transport">
             <button
               className="mini-ctrl-btn"
@@ -736,178 +825,23 @@ export default function MusicPlayer() {
             >
               ⏭
             </button>
-            <div className="mini-volume-wrap">
-              <button
-                className="mini-ctrl-btn"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setShowVolume((v) => !v);
-                }}
-                title="Volume"
-              >
-                {volIcon}
-              </button>
-              {showVolume && (
-                <div
-                  className="mini-volume-popup"
-                  onClick={(e) => e.stopPropagation()}
+            {/* Volume only for audio streams — YouTube volume can't be controlled */}
+            {!isEmbed && (
+              <div className="mini-volume-wrap">
+                <button
+                  className="mini-ctrl-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowVolume((v) => !v);
+                  }}
+                  title="Volume"
                 >
-                  <input
-                    type="range"
-                    min="0"
-                    max="100"
-                    value={volume}
-                    onChange={handleVolumeChange}
-                    className="mini-volume-slider"
-                    style={{ "--vol": `${volume}%` }}
-                  />
-                  <span className="mini-volume-val">{volume}%</span>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </>
-    );
-  }
-
-  /* ── Closed (FAB) ───────────────────────────────────────────────────── */
-  if (!isOpen) {
-    return (
-      <button
-        className="music-open"
-        onClick={() => setIsOpen(true)}
-        title="Open Music Player"
-      >
-        <span className="music-open-icon">🎵</span>
-        <span className="music-open-pulse" />
-      </button>
-    );
-  }
-
-  /* ── Full Player ────────────────────────────────────────────────────── */
-  return (
-    <>
-      <audio ref={audioRef} preload="none" crossOrigin="anonymous" />
-      <div className="music-overlay" onClick={handleMinimize}>
-        <div className="music-player" onClick={(e) => e.stopPropagation()}>
-          <div className="music-header">
-            <div className="music-header-left">
-              <span className="music-header-icon">🎵</span>
-              <h3>Music Player</h3>
-            </div>
-            <div className="header-btns">
-              <button onClick={handleMinimize} title="Minimize">
-                <span>–</span>
-              </button>
-              <button className="close-btn" onClick={handleClose} title="Close">
-                <span>✕</span>
-              </button>
-            </div>
-          </div>
-
-          <div className="music-player-layout">
-            <div className="music-content">
-              {/* Player display */}
-              <div className="video-player">
-                {playerType === "embed" && currentStation ? (
-                  <div className="embed-wrapper">
-                    <iframe
-                      ref={iframeRef}
-                      src={currentStation.url}
-                      width="100%"
-                      height="260"
-                      frameBorder="0"
-                      allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-                      title="player"
-                    />
-                  </div>
-                ) : playerType === "audio" && currentStation ? (
-                  <div className="audio-player-display">
-                    <div className="audio-player-top">
-                      <div className="audio-album-art">
-                        <div className="audio-visualizer">
-                          {isPlaying ? (
-                            <>
-                              {[...Array(7)].map((_, i) => (
-                                <div key={i} className="audio-bar" />
-                              ))}
-                            </>
-                          ) : (
-                            <div className="audio-paused">🎧</div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <div className="audio-info">
-                      <div className="audio-genre-tag">
-                        {GENRE_ICONS[selectedGenre]} {selectedGenre}
-                      </div>
-                      <div className="audio-title">{currentStation.name}</div>
-                      <div
-                        className="audio-status-badge"
-                        data-playing={isPlaying}
-                      >
-                        {isPlaying ? "● LIVE" : "⏸ PAUSED"}
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="video-placeholder">
-                    <div className="placeholder-icon">🎧</div>
-                    <p>Select a station or paste a URL</p>
-                    <span className="placeholder-hint">
-                      Music auto-plays when you pick a station
-                    </span>
-                  </div>
-                )}
-              </div>
-
-              {/* Transport bar */}
-              <div className="transport-bar">
-                <div className="transport-left">
-                  <button
-                    className="transport-btn"
-                    onClick={handleShuffle}
-                    title="Shuffle"
-                  >
-                    🔀
-                  </button>
-                  <button
-                    className="transport-btn"
-                    onClick={handlePrevStation}
-                    title="Previous"
-                  >
-                    ⏮
-                  </button>
-                  <button
-                    className={`transport-btn play-main ${isPlaying ? "active" : ""}`}
-                    onClick={handleTogglePlay}
-                    title={isPlaying ? "Pause" : "Play"}
-                  >
-                    {isPlaying ? "⏸" : "▶"}
-                  </button>
-                  <button
-                    className="transport-btn"
-                    onClick={handleNextStation}
-                    title="Next"
-                  >
-                    ⏭
-                  </button>
-                </div>
-                <div className="transport-right">
-                  <button
-                    className="transport-btn volume-btn"
-                    onClick={handleToggleMute}
-                    onMouseEnter={() => setShowVolume(true)}
-                    title={isMuted ? "Unmute" : "Mute"}
-                  >
-                    {volIcon}
-                  </button>
+                  {volIcon}
+                </button>
+                {showVolume && (
                   <div
-                    className={`volume-slider-wrap ${showVolume ? "visible" : ""}`}
-                    onMouseEnter={() => setShowVolume(true)}
-                    onMouseLeave={() => setShowVolume(false)}
+                    className="mini-volume-popup"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <input
                       type="range"
@@ -915,201 +849,383 @@ export default function MusicPlayer() {
                       max="100"
                       value={volume}
                       onChange={handleVolumeChange}
-                      className="volume-slider"
+                      className="mini-volume-slider"
                       style={{ "--vol": `${volume}%` }}
                     />
-                    <span className="volume-label">{volume}%</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Custom URL */}
-              <div className="custom-input-section">
-                <div className="custom-input">
-                  <div className="custom-input-icon">🎧</div>
-                  <input
-                    type="text"
-                    placeholder="Paste YouTube, Spotify, or audio URL..."
-                    value={customUrl}
-                    onChange={(e) => setCustomUrl(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && handlePlayCustom()}
-                  />
-                  <button onClick={handlePlayCustom}>▶ Play</button>
-                </div>
-              </div>
-
-              {/* Music Search */}
-              <div className="custom-input-section">
-                <form onSubmit={handleSearch} className="music-search-form">
-                  <div className="custom-input">
-                    <div className="custom-input-icon">🔍</div>
-                    <input
-                      type="text"
-                      placeholder="Search for artists, songs... (e.g. AC/DC, Queen, Beatles)"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      disabled={isSearching}
-                    />
-                    <button
-                      type="submit"
-                      disabled={isSearching || !searchQuery.trim()}
-                      className={isSearching ? "searching" : ""}
-                    >
-                      {isSearching ? "🔄" : "🔍"} Search
-                    </button>
-                  </div>
-                </form>
-                {searchResults.length > 0 && (
-                  <div className="search-results-info">
-                    <span>
-                      Found {searchResults.length} songs for "{searchQuery}"
-                    </span>
+                    <span className="mini-volume-val">{volume}%</span>
                   </div>
                 )}
               </div>
+            )}
+          </div>
+        </div>
+      )}
 
-              {/* Genre carousel */}
-              <div className="genre-carousel-container">
-                <div className="genre-carousel-row">
-                  <button
-                    className="carousel-nav-btn left"
-                    onClick={() => scrollGenres("left")}
-                    aria-label="Scroll left"
-                  >
-                    ‹
-                  </button>
-                  <div className="genre-carousel-wrapper">
-                    <div className="genre-carousel" ref={genreCarouselRef}>
-                      {GENRES.map((genre) => (
-                        <button
-                          key={genre}
-                          className={`genre-pill ${selectedGenre === genre ? "active" : ""}`}
-                          onClick={() => setSelectedGenre(genre)}
-                        >
-                          <span className="genre-pill-icon">
-                            {GENRE_ICONS[genre]}
-                          </span>
-                          {genre}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                  <button
-                    className="carousel-nav-btn right"
-                    onClick={() => scrollGenres("right")}
-                    aria-label="Scroll right"
-                  >
-                    ›
-                  </button>
-                </div>
+      {/* ── Full Player ────────────────────────────────────────────────── */}
+      {isOpen && (
+        <div className="music-overlay" onClick={handleMinimize}>
+          <div className="music-player" onClick={(e) => e.stopPropagation()}>
+            <div className="music-header">
+              <div className="music-header-left">
+                <span className="music-header-icon">🎵</span>
+                <h3>Music Player</h3>
               </div>
-
-              {/* Station list */}
-              <div className="stations-container">
-                {selectedGenre === "Search" ? (
-                  <div className="search-results">
-                    {searchResults.length === 0 ? (
-                      <div className="search-empty">
-                        <div className="search-empty-icon">🔍</div>
-                        <p>Search for your favorite artists and songs!</p>
-                        <span className="search-empty-hint">
-                          Try searching for: "AC/DC", "Queen", "Beatles",
-                          "Taylor Swift"
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="stations search-stations scrollable-results">
-                        {searchResults.map((result) => {
-                          const isCurrent =
-                            currentStation?.name === result.title && isPlaying;
-                          return (
-                            <button
-                              key={result.id}
-                              className={`station-item search-result ${isCurrent ? "active" : ""}`}
-                              onClick={() => playSearchResult(result)}
-                            >
-                              <span className="station-playing-indicator">
-                                {isCurrent ? "▶" : ""}
-                              </span>
-                              <div className="search-result-info">
-                                <span className="search-result-title">
-                                  {result.title}
-                                </span>
-                                <span className="search-result-meta">
-                                  {result.artist} • {result.duration}
-                                </span>
-                              </div>
-                              <span
-                                className="station-badge"
-                                style={{ backgroundColor: "#FF0000" }}
-                              >
-                                📺 YouTube
-                              </span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="stations">
-                    {STATIONS[selectedGenre]?.map((station, i) => {
-                      const badge = getSourceBadge(station.type);
-                      const isCurrent =
-                        currentStation?.name === station.name && isPlaying;
-                      return (
-                        <button
-                          key={i}
-                          className={`station-item ${isCurrent ? "active" : ""}`}
-                          onClick={() => handlePlayStation(station)}
-                        >
-                          <span className="station-playing-indicator">
-                            {isCurrent ? "▶" : ""}
-                          </span>
-                          <span className="station-name">{station.name}</span>
-                          <span
-                            className="station-badge clickable"
-                            style={{ backgroundColor: badge.color }}
-                            onClick={(e) => handleOpenStationInTab(e, station)}
-                            title="Open in new tab"
-                          >
-                            {badge.icon} {badge.label} ↗
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              {/* Mobile-only Chat Toggle */}
-              <div className="music-chat-toggle-bar">
-                <button
-                  className={`music-chat-toggle-btn ${showChat ? "active" : ""}`}
-                  onClick={() => setShowChat((v) => !v)}
-                >
-                  💬 {showChat ? "Hide Chat" : "Music Chat"}
+              <div className="header-btns">
+                <button onClick={handleMinimize} title="Minimize">
+                  <span>–</span>
+                </button>
+                <button className="close-btn" onClick={handleClose} title="Close">
+                  <span>✕</span>
                 </button>
               </div>
-
-              {/* Mobile-only Chat Panel */}
-              {showChat && (
-                <div className="music-chat-panel music-chat-mobile-only">
-                  <FirebaseChat collection="music-chat" variant="inline" />
-                </div>
-              )}
             </div>
 
-            {/* Desktop Right-Side Chat Panel */}
-            <div className="music-chat-sidebar">
-              <div className="music-chat-sidebar-header">
-                <span>💬</span> Music Chat
+            <div className="music-player-layout">
+              <div className="music-content">
+                {/* Player display */}
+                <div className="video-player">
+                  {isEmbed && currentStation ? (
+                    <div className="full-iframe-slot" ref={fullSlotRef} />
+                  ) : playerType === "audio" && currentStation ? (
+                    <div className="audio-player-display">
+                      <div className="audio-player-top">
+                        <div className="audio-album-art">
+                          <div className="audio-visualizer">
+                            {isPlaying ? (
+                              <>
+                                {[...Array(7)].map((_, i) => (
+                                  <div key={i} className="audio-bar" />
+                                ))}
+                              </>
+                            ) : (
+                              <div className="audio-paused">🎧</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="audio-info">
+                        <div className="audio-genre-tag">
+                          {GENRE_ICONS[selectedGenre]} {selectedGenre}
+                        </div>
+                        <div className="audio-title">{currentStation.name}</div>
+                        <div
+                          className="audio-status-badge"
+                          data-playing={isPlaying}
+                        >
+                          {isPlaying ? "● LIVE" : "⏸ PAUSED"}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="video-placeholder">
+                      <div className="placeholder-icon">🎧</div>
+                      <p>Select a station or paste a URL</p>
+                      <span className="placeholder-hint">
+                        Music auto-plays when you pick a station
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Transport bar */}
+                <div className="transport-bar">
+                  <div className="transport-left">
+                    <button
+                      className="transport-btn"
+                      onClick={handleShuffle}
+                      title="Shuffle"
+                    >
+                      🔀
+                    </button>
+                    <button
+                      className="transport-btn"
+                      onClick={handlePrevStation}
+                      title="Previous"
+                    >
+                      ⏮
+                    </button>
+                    <button
+                      className={`transport-btn play-main ${isPlaying ? "active" : ""}`}
+                      onClick={handleTogglePlay}
+                      title={isPlaying ? "Pause" : "Play"}
+                    >
+                      {isPlaying ? "⏸" : "▶"}
+                    </button>
+                    <button
+                      className="transport-btn"
+                      onClick={handleNextStation}
+                      title="Next"
+                    >
+                      ⏭
+                    </button>
+                  </div>
+                  <div className="transport-right">
+                    {currentStation && (
+                      <button
+                        className="transport-btn share-btn"
+                        onClick={() => handleShareToPost(currentStation)}
+                        title="Share to Post"
+                      >
+                        📤
+                      </button>
+                    )}
+                    {/* Volume only for audio streams — YouTube volume can't be controlled */}
+                    {!isEmbed && (
+                      <>
+                        <button
+                          className="transport-btn volume-btn"
+                          onClick={handleToggleMute}
+                          onMouseEnter={() => setShowVolume(true)}
+                          title={isMuted ? "Unmute" : "Mute"}
+                        >
+                          {volIcon}
+                        </button>
+                        <div
+                          className={`volume-slider-wrap ${showVolume ? "visible" : ""}`}
+                          onMouseEnter={() => setShowVolume(true)}
+                          onMouseLeave={() => setShowVolume(false)}
+                        >
+                          <input
+                            type="range"
+                            min="0"
+                            max="100"
+                            value={volume}
+                            onChange={handleVolumeChange}
+                            className="volume-slider"
+                            style={{ "--vol": `${volume}%` }}
+                          />
+                          <span className="volume-label">{volume}%</span>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Custom URL */}
+                <div className="custom-input-section">
+                  <div className="custom-input">
+                    <div className="custom-input-icon">🎧</div>
+                    <input
+                      type="text"
+                      placeholder="Paste YouTube, Spotify, or audio URL..."
+                      value={customUrl}
+                      onChange={(e) => setCustomUrl(e.target.value)}
+                      onKeyDown={(e) => e.key === "Enter" && handlePlayCustom()}
+                    />
+                    <button className="url-action-btn play" onClick={handlePlayCustom}>▶ Play</button>
+                  </div>
+                </div>
+
+                {/* Music Search */}
+                <div className="custom-input-section">
+                  <form onSubmit={handleSearch} className="music-search-form">
+                    <div className="custom-input">
+                      <div className="custom-input-icon">🔍</div>
+                      <input
+                        type="text"
+                        placeholder="Search for artists, songs... (e.g. AC/DC, Queen, Beatles)"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        disabled={isSearching}
+                      />
+                      <button
+                        type="submit"
+                        disabled={isSearching || !searchQuery.trim()}
+                        className={`url-action-btn search ${isSearching ? "searching" : ""}`}
+                      >
+                        {isSearching ? "🔄" : "🔍"} Search
+                      </button>
+                    </div>
+                  </form>
+                  {searchResults.length > 0 && (
+                    <div className="search-results-info">
+                      <span>
+                        Found {searchResults.length} songs for "{searchQuery}"
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Genre carousel */}
+                <div className="genre-carousel-container">
+                  <div className="genre-carousel-row">
+                    <button
+                      className="carousel-nav-btn left"
+                      onClick={() => scrollGenres("left")}
+                      aria-label="Scroll left"
+                    >
+                      ‹
+                    </button>
+                    <div className="genre-carousel-wrapper">
+                      <div className="genre-carousel" ref={genreCarouselRef}>
+                        {GENRES.map((genre) => (
+                          <button
+                            key={genre}
+                            className={`genre-pill ${selectedGenre === genre ? "active" : ""}`}
+                            onClick={() => setSelectedGenre(genre)}
+                          >
+                            <span className="genre-pill-icon">
+                              {GENRE_ICONS[genre]}
+                            </span>
+                            {genre}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    <button
+                      className="carousel-nav-btn right"
+                      onClick={() => scrollGenres("right")}
+                      aria-label="Scroll right"
+                    >
+                      ›
+                    </button>
+                  </div>
+                </div>
+
+                {/* Station list */}
+                <div className="stations-container">
+                  {selectedGenre === "Search" ? (
+                    <div className="search-results">
+                      {searchResults.length === 0 ? (
+                        <div className="search-empty">
+                          <div className="search-empty-icon">🔍</div>
+                          <p>Search for your favorite artists and songs!</p>
+                          <span className="search-empty-hint">
+                            Try searching for: "AC/DC", "Queen", "Beatles",
+                            "Taylor Swift"
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="stations search-stations scrollable-results">
+                          {searchResults.map((result) => {
+                            const isCurrent =
+                              currentStation?.name === result.title && isPlaying;
+                            return (
+                              <button
+                                key={result.id}
+                                className={`station-item search-result ${isCurrent ? "active" : ""}`}
+                                onClick={() => playSearchResult(result)}
+                              >
+                                <span className="station-playing-indicator">
+                                  {isCurrent ? "▶" : ""}
+                                </span>
+                                <div className="search-result-info">
+                                  <span className="search-result-title">
+                                    {result.title}
+                                  </span>
+                                  <span className="search-result-meta">
+                                    {result.artist} • {result.duration}
+                                  </span>
+                                </div>
+                                <button
+                                  className="station-share-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleShareToPost({
+                                      name: result.title,
+                                      url: `https://www.youtube.com/watch?v=${result.youtubeId}`,
+                                      originalUrl: `https://www.youtube.com/watch?v=${result.youtubeId}`,
+                                      artist: result.artist,
+                                    });
+                                  }}
+                                  title="Share to Post"
+                                >
+                                  📤
+                                </button>
+                                <span
+                                  className="station-badge"
+                                  style={{ backgroundColor: "#FF0000" }}
+                                >
+                                  📺 YouTube
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="stations">
+                      {STATIONS[selectedGenre]?.map((station, i) => {
+                        const badge = getSourceBadge(station.type);
+                        const isCurrent =
+                          currentStation?.name === station.name && isPlaying;
+                        return (
+                          <button
+                            key={i}
+                            className={`station-item ${isCurrent ? "active" : ""}`}
+                            onClick={() => handlePlayStation(station)}
+                          >
+                            <span className="station-playing-indicator">
+                              {isCurrent ? "▶" : ""}
+                            </span>
+                            <span className="station-name">{station.name}</span>
+                            {(station.type === "youtube") && (
+                              <button
+                                className="station-share-btn"
+                                onClick={(e) => { e.stopPropagation(); handleShareToPost(station); }}
+                                title="Share to Post"
+                              >
+                                📤
+                              </button>
+                            )}
+                            <span
+                              className="station-badge clickable"
+                              style={{ backgroundColor: badge.color }}
+                              onClick={(e) => handleOpenStationInTab(e, station)}
+                              title="Open in new tab"
+                            >
+                              {badge.icon} {badge.label} ↗
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Mobile-only Chat Toggle */}
+                <div className="music-chat-toggle-bar">
+                  <button
+                    className={`music-chat-toggle-btn ${showChat ? "active" : ""}`}
+                    onClick={() => setShowChat((v) => !v)}
+                  >
+                    💬 {showChat ? "Hide Chat" : "Music Chat"}
+                  </button>
+                </div>
+
+                {/* Mobile-only Chat Panel */}
+                {showChat && (
+                  <div className="music-chat-panel music-chat-mobile-only">
+                    <FirebaseChat collection="music-chat" variant="inline" />
+                  </div>
+                )}
               </div>
-              <FirebaseChat collection="music-chat" variant="inline" />
+
+              {/* Desktop Right-Side Chat Panel */}
+              <div className="music-chat-sidebar">
+                <div className="music-chat-sidebar-header">
+                  <span>💬</span> Music Chat
+                </div>
+                <FirebaseChat collection="music-chat" variant="inline" />
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
+
+      {shareData && (
+        <AddPostModal
+          onClose={() => setShareData(null)}
+          onSubmit={addPost}
+          shareType="media"
+          shareInitialData={{
+            url: shareData.url,
+            title: shareData.title,
+            artist: shareData.artist,
+          }}
+        />
+      )}
     </>
   );
 }

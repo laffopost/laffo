@@ -20,6 +20,12 @@ import { DirectMessages } from "./components/features/chat";
 import useGlobalClickSound from "./hooks/useGlobalClickSound";
 import "./App.css";
 
+const MusicPlayer = lazy(() =>
+  import("./components/features/music").then((m) => ({
+    default: m.MusicPlayer,
+  })),
+);
+
 // Lazy load pages to reduce initial bundle
 const Home = lazy(() => import("./pages/Home"));
 const Sports = lazy(() => import("./pages/Sports"));
@@ -206,6 +212,9 @@ function App() {
                 <AnimatedDotsBackground />
                 <Header />
                 <DirectMessages />
+                <Suspense fallback={null}>
+                  <MusicPlayer />
+                </Suspense>
                 <main id="main-content" className="main-container">
                   <Suspense fallback={<LoadingFallback />}>
                     <AppRoutes />

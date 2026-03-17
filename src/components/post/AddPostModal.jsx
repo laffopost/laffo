@@ -115,7 +115,7 @@ export default function AddPostModal({
             onSubmit={onSubmit}
             onClose={onClose}
             onBack={handleBack}
-            initialData={editMode ? editPostData : null}
+            initialData={editMode ? editPostData : shareInitialData}
             onSave={editMode ? editPost : null}
           />
         )}

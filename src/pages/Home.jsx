@@ -25,11 +25,6 @@ const CommunityStats = lazy(() =>
     default: m.CommunityStats,
   })),
 );
-const MusicPlayer = lazy(() =>
-  import("../components/features/music").then((m) => ({
-    default: m.MusicPlayer,
-  })),
-);
 const LiveFeed = lazy(() =>
   import("../components/features/feeds").then((m) => ({
     default: m.LiveFeed,
@@ -63,9 +58,6 @@ export default function Home() {
 
   return (
     <div className="home">
-      <Suspense fallback={<WidgetFallback />}>
-        <MusicPlayer />
-      </Suspense>
       <div className="home-layout">
         <div className="left-column">
           <Suspense fallback={<WidgetFallback />}>
