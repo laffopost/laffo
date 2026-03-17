@@ -114,7 +114,7 @@ const EMOJI_CATEGORIES = {
   ],
 };
 
-export default function FirebaseChat() {
+export default function FirebaseChat({ collection: collectionName = "chat-messages", title = "Live Chat", variant = "sidebar" }) {
   logger.log("FirebaseChat rendered");
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -176,8 +176,8 @@ export default function FirebaseChat() {
     if (!user) return;
 
     logger.log("FirebaseChat: subscribing to Firestore chat-messages");
-    const messagesRef = collection(db, "chat-messages");
-    const q = query(messagesRef, orderBy("timestamp", "desc"), limit(30));
+    const messagesRef = collection(db, collectionName);
+    const q = query(messagesRef, orderBy("timestamp", "desc"), limit(50));
 
     const unsubscribe = onSnapshot(
       q,
@@ -253,7 +253,7 @@ export default function FirebaseChat() {
 
       try {
         lastMessageTimeRef.current = now;
-        const messagesRef = collection(db, "chat-messages");
+        const messagesRef = collection(db, collectionName);
         await addDoc(messagesRef, {
           text: newMessage.trim(),
           userId: user.uid,
@@ -277,6 +277,93 @@ export default function FirebaseChat() {
     setShowEmojiPicker(false);
   }, []);
 
+  const isLoggedIn = !loading && firebaseUser && !firebaseUser.isAnonymous;
+  const isInline = variant === "inline";
+
+  // Inline variant: just messages + input, no wrapper/header (used inside MusicPlayer)
+  if (isInline) {
+    if (!isLoggedIn) {
+      return (
+        <div className="chat-login-prompt">
+          <div className="chat-login-icon">💬</div>
+          <p>Log in to join the chat</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        {error && <div className="chat-error">{error}</div>}
+        <div ref={chatRef} className="chat-messages">
+          {messages.length === 0 ? (
+            <div className="chat-empty">
+              <div className="empty-icon">💬</div>
+              <div>Chat while you listen!</div>
+            </div>
+          ) : (
+            messages.map((msg) => (
+              <div key={msg.id} className={`chat-message-small ${msg.userId === user?.uid ? "own" : ""}`}>
+                <div className="message-header-row">
+                  {msg.userId !== user?.uid ? (
+                    <button
+                      className="message-username message-username-dm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        window.dispatchEvent(new CustomEvent("openDM", { detail: { uid: msg.userId, username: msg.userName, avatar: null } }));
+                      }}
+                      title={`DM ${msg.userName}`}
+                    >
+                      {msg.userName}
+                    </button>
+                  ) : (
+                    <span className="message-username">{msg.userName}</span>
+                  )}
+                  <span className="message-time">{formatTime(msg.timestamp)}</span>
+                </div>
+                <div className="message-text">{msg.text}</div>
+              </div>
+            ))
+          )}
+        </div>
+        <form onSubmit={handleSendMessage} className="chat-input-form">
+          <div className="chat-input-wrapper">
+            <input
+              ref={inputRef}
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              placeholder="Say something..."
+              maxLength={200}
+              disabled={!!error}
+              className="chat-input"
+            />
+            <div className="chat-actions">
+              <button type="button" className="emoji-toggle-btn" onClick={() => setShowEmojiPicker(!showEmojiPicker)} title="Add emoji">😊</button>
+              <button type="submit" className="chat-send-btn" title="Send">➤</button>
+            </div>
+          </div>
+          {showEmojiPicker && (
+            <div className="emoji-picker-container" ref={emojiPickerRef}>
+              <div className="emoji-picker-custom">
+                {Object.entries(EMOJI_CATEGORIES).map(([category, emojis]) => (
+                  <div key={category} className="emoji-category">
+                    <div className="emoji-category-label">{category}</div>
+                    <div className="emoji-grid">
+                      {emojis.map((emoji) => (
+                        <button key={emoji} type="button" className="emoji-btn" onClick={() => handleEmojiClick(emoji)}>{emoji}</button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </form>
+      </>
+    );
+  }
+
+  // Sidebar variant (default): full card with header + minimize
   if (minimized) {
     return (
       <div
@@ -285,7 +372,25 @@ export default function FirebaseChat() {
         title="Open Chat"
       >
         <span className="chat-live-dot" />
-        <span className="chat-min-title">Live Chat</span>
+        <span className="chat-min-title">{title}</span>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) {
+    return (
+      <div className="firebase-chat">
+        <div className="chat-header">
+          <div className="chat-header-row">
+            <span className="chat-live-dot" />
+            <span className="chat-title-ellipsis">{title}</span>
+          </div>
+          <button className="chat-minimize-btn" title="Minimize" onClick={() => setMinimized(true)}>–</button>
+        </div>
+        <div className="chat-login-prompt">
+          <div className="chat-login-icon">💬</div>
+          <p>Log in to join the chat</p>
+        </div>
       </div>
     );
   }
@@ -295,16 +400,10 @@ export default function FirebaseChat() {
       <div className="chat-header">
         <div className="chat-header-row">
           <span className="chat-live-dot" />
-          <span className="chat-title-ellipsis">Live Chat</span>
+          <span className="chat-title-ellipsis">{title}</span>
           {user && <span className="chat-user-ellipsis">@{user.name}</span>}
         </div>
-        <button
-          className="chat-minimize-btn"
-          title="Minimize"
-          onClick={() => setMinimized(true)}
-        >
-          –
-        </button>
+        <button className="chat-minimize-btn" title="Minimize" onClick={() => setMinimized(true)}>–</button>
       </div>
 
       {error && <div className="chat-error">{error}</div>}
@@ -313,7 +412,7 @@ export default function FirebaseChat() {
         {messages.length === 0 ? (
           <div className="chat-empty">
             <div className="empty-icon">💬</div>
-            <div>Welcome to LaughCoin Chat</div>
+            <div>Welcome to {title}</div>
           </div>
         ) : (
           messages.map((msg) => (

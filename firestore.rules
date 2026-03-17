@@ -15,6 +15,25 @@ service cloud.firestore {
       allow update: if false;
     }
 
+    // Games chat collection
+    match /games-chat/{messageId} {
+      allow read: if request.auth != null
+                  && request.auth.token.firebase.sign_in_provider != 'anonymous';
+      allow create: if request.auth != null
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                    && request.resource.data.keys().hasAll(['text', 'userId', 'userName', 'timestamp'])
+                    && request.resource.data.text is string
+                    && request.resource.data.text.size() > 0
+                    && request.resource.data.text.size() <= 200
+                    && request.resource.data.userId is string
+                    && request.resource.data.userName is string
+                    && request.auth.uid == request.resource.data.userId;
+      allow delete: if request.auth != null
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                    && request.auth.uid == resource.data.userId;
+      allow update: if false;
+    }
+
     // Music chat collection
     match /music-chat/{messageId} {
       allow read: if true;

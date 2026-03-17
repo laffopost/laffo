@@ -91,6 +91,28 @@
   text-align: center;
 }
 
+.chat-login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1;
+  min-height: 100px;
+  color: var(--text-50);
+  text-align: center;
+  padding: 1rem;
+}
+
+.chat-login-icon {
+  font-size: 1.8rem;
+}
+
+.chat-login-prompt p {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
 .empty-icon {
   font-size: 48px;
   margin-bottom: 12px;

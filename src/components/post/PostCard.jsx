@@ -214,6 +214,9 @@ const PostCard = memo(
               <h4 onClick={onClick}>
                 {image.type === "user" ? image.author : image.title}
               </h4>
+              {image.edited && (
+                <span className="post-edited-chip">edited</span>
+              )}
             </div>
             {image.type !== "user" && image.description && (
               <p className="image-info-desc">{image.description}</p>

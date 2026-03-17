@@ -1,56 +1,3 @@
-.juggle-game {
-  background: var(--gradient-primary-145);
-  border: 1px solid var(--border-primary);
-  border-radius: 16px;
-  padding: 1.5rem;
-  color: var(--text-base);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  min-height: 500px;
-}
-
-.juggle-game h2 {
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-accent-muted);
-  font-size: 1.5rem;
-}
-
-.juggle-game p {
-  margin: 0;
-  color: var(--text-muted);
-  text-align: center;
-  font-size: 0.9rem;
-}
-
-.juggle-stats {
-  display: flex;
-  gap: 2rem;
-  margin: 0.5rem 0;
-}
-
-.juggle-stat {
-  text-align: center;
-}
-
-.juggle-stat-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-bottom: 0.25rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.juggle-stat-value {
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--color-accent-muted);
-}
-
 .juggle-game-area {
   position: relative;
   width: 400px;
@@ -67,86 +14,7 @@
   box-shadow: 0 0 20px var(--color-primary-20);
 }
 
-.juggle-ball {
-  position: absolute;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  cursor: pointer;
-  user-select: none;
-  transition: transform 0.1s ease;
-  filter: drop-shadow(0 2px 4px var(--bg-dark-30));
-}
-
-.juggle-ball:hover {
-  transform: scale(1.1);
-  filter: drop-shadow(0 4px 8px var(--bg-dark-50)) brightness(1.2);
-}
-
-.juggle-ball:active {
-  transform: scale(0.9);
-}
-
-.juggle-game-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 10px;
-}
-
-.juggle-game-message {
-  text-align: center;
-  color: var(--text-base);
-  font-size: 1.1rem;
-  padding: 1rem;
-  line-height: 1.5;
-}
-
-.juggle-final-score {
-  font-size: 1.3rem;
-  font-weight: bold;
-  color: var(--color-accent-muted);
-}
-
-.juggle-start-btn {
-  background: linear-gradient(145deg, var(--color-primary), var(--color-primary-deep));
-  border: none;
-  border-radius: 12px;
-  color: var(--text-base);
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 0.75rem 2rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.juggle-start-btn:hover {
-  background: linear-gradient(145deg, var(--color-primary-deep), var(--color-primary-dark));
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px var(--color-primary-40);
-}
-
-.juggle-start-btn:active {
-  transform: translateY(0);
-}
-
-.game-title-icon {
-  width: 24px;
-  height: 24px;
-}
-
-/* Add ground line effect */
+/* danger line at bottom */
 .juggle-game-area::after {
   content: "";
   position: absolute;
@@ -158,20 +26,23 @@
   opacity: 0.6;
 }
 
-/* Mobile responsive */
-@media (max-width: 768px) {
-  .juggle-game-area {
-    width: 320px;
-    height: 240px;
-  }
+.juggle-ball {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  cursor: pointer;
+  user-select: none;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
 
-  .juggle-ball {
-    width: 35px;
-    height: 35px;
-    font-size: 1.5rem;
-  }
+.juggle-ball:hover  { transform: scale(1.1); }
+.juggle-ball:active { transform: scale(0.9); }
 
-  .juggle-stats {
-    gap: 1.5rem;
-  }
+@media (max-width: 600px) {
+  .juggle-game-area { width: 300px; height: 230px; }
+  .juggle-ball { width: 35px; height: 35px; font-size: 1.5rem; }
 }

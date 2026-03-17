@@ -46,18 +46,19 @@ const DURATION_MS = {
   "7d": 604800000,
 };
 
-export default function CreatePostForm({ onSubmit, onClose, onBack }) {
+export default function CreatePostForm({ onSubmit, onClose, onBack, initialData = null, onSave = null }) {
   const { userProfile, firebaseUser } = useAuth();
+  const isEditMode = !!onSave;
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    title: initialData?.title || "",
+    description: initialData?.description || "",
     author: "",
     authorAvatar: null,
     imageFile: null,
     useCanvas: false,
-    type: "all",
+    type: initialData?.type || "all",
   });
   const [previewUrl, setPreviewUrl] = useState(null);
   const [canvasBgColor, setCanvasBgColor] = useState("#8b5cf6");
@@ -171,6 +172,16 @@ export default function CreatePostForm({ onSubmit, onClose, onBack }) {
       return;
     }
 
+    if (isEditMode) {
+      onSave({
+        title: formData.title.trim(),
+        description: formData.description || "",
+        type: formData.type,
+      });
+      onClose();
+      return;
+    }
+
     let finalImage = previewUrl;
 
     if (formData.useCanvas && canvasRef.current) {
@@ -218,7 +229,7 @@ export default function CreatePostForm({ onSubmit, onClose, onBack }) {
 
   return (
     <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>✨ Create an Image Post</h3>
+      <h3>{isEditMode ? "✏️ Edit Post" : "✨ Create an Image Post"}</h3>
 
       <div className="form-group">
         <label htmlFor="title">Title *</label>
@@ -247,24 +258,26 @@ export default function CreatePostForm({ onSubmit, onClose, onBack }) {
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="author">Posting as</label>
-        <input
-          type="text"
-          id="author"
-          value={postAsAnonymous ? "Anonymous" : formData.author}
-          disabled
-          className="author-display-input"
-        />
-        <label className="checkbox-label">
+      {!isEditMode && (
+        <div className="form-group">
+          <label htmlFor="author">Posting as</label>
           <input
-            type="checkbox"
-            checked={postAsAnonymous}
-            onChange={() => setPostAsAnonymous((v) => !v)}
+            type="text"
+            id="author"
+            value={postAsAnonymous ? "Anonymous" : formData.author}
+            disabled
+            className="author-display-input"
           />
-          <span>Post as Anonymous</span>
-        </label>
-      </div>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={postAsAnonymous}
+              onChange={() => setPostAsAnonymous((v) => !v)}
+            />
+            <span>Post as Anonymous</span>
+          </label>
+        </div>
+      )}
 
       <div className="form-group">
         <label htmlFor="type">Category *</label>
@@ -285,33 +298,37 @@ export default function CreatePostForm({ onSubmit, onClose, onBack }) {
         </div>
       </div>
 
-      <div className="form-divider">
-        <span>Image Source</span>
-      </div>
+      {!isEditMode && (
+        <>
+          <div className="form-divider">
+            <span>Image Source</span>
+          </div>
 
-      <div className="form-group">
-        <label className="upload-label">
-          📁 Upload from Device
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="file-input-hidden"
-          />
-        </label>
-      </div>
+          <div className="form-group">
+            <label className="upload-label">
+              📁 Upload from Device
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleFileChange}
+                className="file-input-hidden"
+              />
+            </label>
+          </div>
 
-      <div className="form-group">
-        <button
-          type="button"
-          onClick={handleCanvasToggle}
-          className="btn-canvas-toggle"
-        >
-          🎨 {formData.useCanvas ? "Hide Canvas" : "Draw Your Own"}
-        </button>
-      </div>
+          <div className="form-group">
+            <button
+              type="button"
+              onClick={handleCanvasToggle}
+              className="btn-canvas-toggle"
+            >
+              🎨 {formData.useCanvas ? "Hide Canvas" : "Draw Your Own"}
+            </button>
+          </div>
+        </>
+      )}
 
-      {formData.useCanvas && (
+      {!isEditMode && formData.useCanvas && (
         <div className="canvas-section">
           <div className="canvas-controls">
             <div className="control-group">
@@ -396,35 +413,37 @@ export default function CreatePostForm({ onSubmit, onClose, onBack }) {
         </div>
       )}
 
-      {previewUrl && !formData.useCanvas && (
+      {!isEditMode && previewUrl && !formData.useCanvas && (
         <div className="image-preview">
           <label>Preview</label>
           <img src={previewUrl} alt="Preview" />
         </div>
       )}
 
-      <div className="form-group">
-        <label>Post Duration</label>
-        <div className="poll-duration-row">
-          {DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
-              onClick={() => setDuration(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
+      {!isEditMode && (
+        <div className="form-group">
+          <label>Post Duration</label>
+          <div className="poll-duration-row">
+            {DURATIONS.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
+                onClick={() => setDuration(d.value)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="form-actions">
         <button type="button" onClick={onBack} className="btn-back">
           ← Back
         </button>
         <button type="submit" className="btn-submit">
-          Create Post ✨
+          {isEditMode ? "Save Changes ✓" : "Create Post ✨"}
         </button>
       </div>
     </form>

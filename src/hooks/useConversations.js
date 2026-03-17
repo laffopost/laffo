@@ -78,24 +78,7 @@ export function useConversations({ onConversationStarted } = {}) {
     return () => unsub();
   }, [currentUser]);
 
-  // ── Mark all conversations as read (page-level side-effect) ───────
-  useEffect(() => {
-    if (!currentUser || conversations.length === 0) return;
-    conversations.forEach(async (convo) => {
-      if (
-        convo.lastSenderId !== currentUser.uid &&
-        !convo[`read_${currentUser.uid}`]
-      ) {
-        try {
-          await updateDoc(doc(db, "conversations", convo.id), {
-            [`read_${currentUser.uid}`]: true,
-          });
-        } catch (_) {
-          // Silently ignore
-        }
-      }
-    });
-  }, [currentUser, conversations]);
+  // Conversations are only marked read when actively opened (see setActiveConvo usage below)
 
   // ── Messages subscription ─────────────────────────────────────────
   useEffect(() => {
@@ -145,6 +128,8 @@ export function useConversations({ onConversationStarted } = {}) {
       if (existing) {
         setActiveConvo(existing);
         setShowNewChat(false);
+        setSearchQuery("");
+        setSearchResults([]);
         onConversationStarted?.();
         return;
       }
@@ -157,6 +142,8 @@ export function useConversations({ onConversationStarted } = {}) {
         if (existingDoc.exists()) {
           setActiveConvo({ id: convoId, ...existingDoc.data() });
           setShowNewChat(false);
+          setSearchQuery("");
+          setSearchResults([]);
           onConversationStarted?.();
           return;
         }
@@ -194,6 +181,8 @@ export function useConversations({ onConversationStarted } = {}) {
           },
         });
         setShowNewChat(false);
+        setSearchQuery("");
+        setSearchResults([]);
         onConversationStarted?.();
       } catch (error) {
         toast.error(

@@ -1,65 +1,45 @@
-.snake-game {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  width: 100%;
-}
-
-.snake-game h2 {
-  margin: 0;
-  color: var(--text-base);
-  font-size: 1.5rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.game-title-icon {
-  width: 28px;
-  height: 28px;
-}
-
-.snake-game p {
-  color: var(--color-accent-muted);
-  margin: 0;
-  font-size: 0.85rem;
-}
-
-.snake-score {
-  font-size: 1.25rem;
-  color: var(--color-success);
-  font-weight: 700;
-}
-
 .snake-canvas {
   border: 3px solid var(--color-primary-50);
   border-radius: 12px;
-  background: var(--bg-card-deep);
-  box-shadow: 0 6px 24px var(--bg-dark-30);
+  background: #1e1e2e;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.3);
 }
 
-.snake-game-over {
-  text-align: center;
-  color: var(--color-danger);
-  font-size: 1.25rem;
-  font-weight: 700;
-  line-height: 1.6;
+.snake-touch-controls {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
-.snake-start-btn {
-  background: var(--gradient-success);
-  border: none;
-  color: var(--text-base);
-  padding: 0.75rem 1.5rem;
+.snake-touch-row {
+  display: flex;
+  gap: 4px;
+}
+
+.snake-touch-btn {
+  width: 48px;
+  height: 48px;
   border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 700;
+  border: 2px solid var(--color-primary-30);
+  background: var(--color-primary-10);
+  color: var(--text-base);
+  font-size: 1.2rem;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.snake-start-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-success-lg);
+.snake-touch-btn:hover,
+.snake-touch-btn:active {
+  background: var(--gradient-primary);
+  border-color: transparent;
+  transform: scale(0.95);
+}
+
+@media (max-width: 600px) {
+  .snake-canvas { width: 280px; height: 280px; }
+  .snake-touch-btn { width: 42px; height: 42px; font-size: 1rem; }
 }

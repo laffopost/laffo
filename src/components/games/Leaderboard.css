@@ -186,10 +186,66 @@
   letter-spacing: 0.5px;
 }
 
+.leaderboard-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--color-primary-30);
+}
+
+.leaderboard-avatar-placeholder {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--color-primary-20);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.leaderboard-username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-score-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+}
+
 .leaderboard-score {
   color: var(--color-success);
   font-weight: 700;
-  font-size: 0.95rem;
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.leaderboard-time {
+  font-size: 0.6rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.leaderboard-your-rank {
+  margin-top: 0.6rem;
+  text-align: center;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  border-top: 1px solid var(--color-primary-15);
+  padding-top: 0.5rem;
+}
+
+.leaderboard-your-rank strong {
+  color: var(--color-primary);
 }
 
 .leaderboard-dm-btn {

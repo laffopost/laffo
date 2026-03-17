@@ -39,13 +39,14 @@ const DURATION_MS = {
   "7d": 604800000,
 };
 
-export default function CreatePollForm({ onSubmit, onClose, onBack }) {
+export default function CreatePollForm({ onSubmit, onClose, onBack, initialData = null, onSave = null }) {
   const { userProfile, firebaseUser } = useAuth();
-  const [question, setQuestion] = useState("");
-  const [description, setDescription] = useState("");
-  const [options, setOptions] = useState(["", ""]);
+  const isEditMode = !!onSave;
+  const [question, setQuestion] = useState(initialData?.question || "");
+  const [description, setDescription] = useState(initialData?.description || "");
+  const [options, setOptions] = useState(initialData?.options?.length ? initialData.options : ["", ""]);
   const [error, setError] = useState("");
-  const [bgColor, setBgColor] = useState("#1a1a2e");
+  const [bgColor, setBgColor] = useState(initialData?.bgColor || "#1a1a2e");
   const [duration, setDuration] = useState("7d");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [author] = useState(
@@ -70,6 +71,18 @@ export default function CreatePollForm({ onSubmit, onClose, onBack }) {
     const validOptions = options.filter((o) => o.trim());
     if (!question.trim() || validOptions.length < 2) {
       setError("Enter a question and at least 2 options.");
+      return;
+    }
+
+    if (isEditMode) {
+      onSave({
+        question: question.trim(),
+        description: description.trim() || null,
+        options: validOptions,
+        bgColor,
+        title: question.trim(),
+      });
+      onClose();
       return;
     }
 
@@ -99,7 +112,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack }) {
 
   return (
     <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>📊 Create a Poll</h3>
+      <h3>{isEditMode ? "✏️ Edit Poll" : "📊 Create a Poll"}</h3>
 
       <div className="form-group">
         <label>Question *</label>
@@ -128,23 +141,25 @@ export default function CreatePollForm({ onSubmit, onClose, onBack }) {
         <span className="char-counter">{description.length}/200</span>
       </div>
 
-      <div className="form-group">
-        <label>Posting as</label>
-        <input
-          type="text"
-          value={postAsAnonymous ? "Anonymous" : author}
-          disabled
-          className="author-display-input"
-        />
-        <label className="checkbox-label">
+      {!isEditMode && (
+        <div className="form-group">
+          <label>Posting as</label>
           <input
-            type="checkbox"
-            checked={postAsAnonymous}
-            onChange={() => setPostAsAnonymous((v) => !v)}
+            type="text"
+            value={postAsAnonymous ? "Anonymous" : author}
+            disabled
+            className="author-display-input"
           />
-          <span>Post as Anonymous</span>
-        </label>
-      </div>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={postAsAnonymous}
+              onChange={() => setPostAsAnonymous((v) => !v)}
+            />
+            <span>Post as Anonymous</span>
+          </label>
+        </div>
+      )}
 
       <div className="form-group">
         <label>Options * (minimum 2)</label>
@@ -195,21 +210,23 @@ export default function CreatePollForm({ onSubmit, onClose, onBack }) {
         </div>
       </div>
 
-      <div className="form-group">
-        <label>Poll Duration</label>
-        <div className="poll-duration-row">
-          {DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
-              onClick={() => setDuration(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
+      {!isEditMode && (
+        <div className="form-group">
+          <label>Poll Duration</label>
+          <div className="poll-duration-row">
+            {DURATIONS.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
+                onClick={() => setDuration(d.value)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="status-preview-section">
         <label className="status-preview-label">Preview</label>
@@ -234,7 +251,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack }) {
           ← Back
         </button>
         <button type="submit" className="btn-submit">
-          Create Poll 📊
+          {isEditMode ? "Save Changes ✓" : "Create Poll 📊"}
         </button>
       </div>
     </form>

@@ -1,17 +1,7 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import {
-  collection,
-  addDoc,
-  query,
-  orderBy,
-  limit,
-  onSnapshot,
-  serverTimestamp,
-} from "firebase/firestore";
-import { db } from "../../../firebase/config";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useAuth } from "../../../context/AuthContext";
 import toast from "react-hot-toast";
-import { EmojiPicker } from "../utilities";
+import FirebaseChat from "../chat/FirebaseChat";
 import "./MusicPlayer.css";
 
 const GENRES = [
@@ -221,231 +211,13 @@ export default function MusicPlayer() {
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Music chat state
   const [showChat, setShowChat] = useState(false);
-  const [chatMessages, setChatMessages] = useState([]);
-  const [chatInput, setChatInput] = useState("");
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const chatScrollRef = useRef(null); // Desktop chat scroll
-  const mobileScrollRef = useRef(null); // Mobile chat scroll
-  const chatCooldownRef = useRef(0);
   const { firebaseUser, userProfile } = useAuth();
-
-  // Debug showChat state changes
-  useEffect(() => {
-    console.log("🎵 [MusicChat] showChat state changed:", showChat);
-  }, [showChat]);
-
-  // Debug showChat state changes
-  useEffect(() => {
-    console.log("🎵 [MusicChat] showChat state changed:", showChat);
-  }, [showChat]);
 
   const audioRef = useRef(null);
   const iframeRef = useRef(null);
   const genreCarouselRef = useRef(null);
   const prevVolumeRef = useRef(80);
-
-  // Chat user info
-  const chatUser = useMemo(() => {
-    console.log("🎵 [MusicChat] Setting up chat user:", {
-      firebaseUser: !!firebaseUser,
-      userProfile: !!userProfile,
-      uid: firebaseUser?.uid,
-      username: userProfile?.username,
-      displayName: firebaseUser?.displayName,
-    });
-
-    if (!firebaseUser) {
-      console.log("🎵 [MusicChat] No firebase user, chat disabled");
-      return null;
-    }
-
-    const user = {
-      uid: firebaseUser.uid,
-      name: userProfile?.username || firebaseUser.displayName || "Anon",
-    };
-
-    console.log("🎵 [MusicChat] Chat user created:", user);
-    return user;
-  }, [firebaseUser, userProfile]);
-
-  // Subscribe to chat-messages (same collection as main chat)
-  const [subscriptionActive, setSubscriptionActive] = useState(false);
-  useEffect(() => {
-    console.log("🎵 [MusicChat] Setting up Firestore subscription:", {
-      chatUser: !!chatUser,
-      chatUserUid: chatUser?.uid,
-    });
-
-    // Start subscription as soon as we have a user, regardless of showChat
-    if (!chatUser) {
-      console.log(
-        "🎵 [MusicChat] Skipping subscription - no chatUser:",
-        !!chatUser,
-      );
-      setSubscriptionActive(false);
-      return;
-    }
-
-    console.log(
-      "🎵 [MusicChat] Creating Firestore query for music-chat collection",
-    );
-    setSubscriptionActive(true);
-    const q = query(
-      collection(db, "music-chat"),
-      orderBy("timestamp", "desc"),
-      limit(50),
-    );
-
-    const unsub = onSnapshot(
-      q,
-      (snap) => {
-        console.log("🎵 [MusicChat] Firestore snapshot received:", {
-          size: snap.size,
-          empty: snap.empty,
-          hasPendingWrites: snap.metadata.hasPendingWrites,
-        });
-
-        const msgs = [];
-        snap.forEach((doc) => {
-          const data = doc.data();
-          console.log("🎵 [MusicChat] Processing message:", {
-            id: doc.id,
-            text: data.text,
-            userName: data.userName,
-            userId: data.userId,
-            timestamp: data.timestamp,
-          });
-          msgs.push({ id: doc.id, ...data });
-        });
-
-        const reversedMsgs = msgs.reverse();
-        console.log("🎵 [MusicChat] Setting chat messages:", {
-          count: reversedMsgs.length,
-          messages: reversedMsgs.map((m) => ({
-            id: m.id,
-            text: m.text,
-            userName: m.userName,
-          })),
-        });
-        setChatMessages(reversedMsgs);
-      },
-      (error) => {
-        console.error("🎵 [MusicChat] Firestore subscription error:", error);
-        toast.error("Failed to load music chat");
-      },
-    );
-
-    return () => {
-      console.log("🎵 [MusicChat] Cleaning up Firestore subscription");
-      setSubscriptionActive(false);
-      unsub();
-    };
-  }, [chatUser]); // Only depend on chatUser, not showChat
-
-  // Monitor chatMessages state changes
-  useEffect(() => {
-    console.log("🎵 [MusicChat] ChatMessages state changed:", {
-      count: chatMessages.length,
-      messages: chatMessages.map((m) => ({
-        id: m.id,
-        text: m.text?.substring(0, 50) + (m.text?.length > 50 ? "..." : ""),
-        userName: m.userName,
-        userId: m.userId,
-        timestamp: m.timestamp ? "has timestamp" : "no timestamp",
-      })),
-    });
-  }, [chatMessages]);
-
-  // Auto-scroll chat
-  useEffect(() => {
-    if (chatMessages.length > 0) {
-      const scrollToBottom = (ref) => {
-        if (ref.current) {
-          const t = setTimeout(() => {
-            ref.current.scrollTop = ref.current.scrollHeight;
-          }, 80);
-          return t;
-        }
-        return null;
-      };
-
-      const timeouts = [];
-      if (chatScrollRef.current) timeouts.push(scrollToBottom(chatScrollRef));
-      if (mobileScrollRef.current)
-        timeouts.push(scrollToBottom(mobileScrollRef));
-
-      return () => timeouts.forEach((t) => t && clearTimeout(t));
-    }
-  }, [chatMessages]);
-
-  const handleSendChatMessage = useCallback(
-    async (e) => {
-      e.preventDefault();
-
-      console.log("🎵 [MusicChat] Send message attempt:", {
-        chatInput: chatInput.trim(),
-        chatUser: !!chatUser,
-        chatUserUid: chatUser?.uid,
-        chatUserName: chatUser?.name,
-      });
-
-      if (!chatInput.trim() || !chatUser) {
-        console.log(
-          "🎵 [MusicChat] Send message blocked - empty input or no user",
-        );
-        return;
-      }
-
-      const now = Date.now();
-      if (now - chatCooldownRef.current < 2000) {
-        console.log("🎵 [MusicChat] Send message blocked - cooldown active");
-        toast.error("Slow down! Wait a moment.");
-        return;
-      }
-
-      chatCooldownRef.current = now;
-
-      const messageData = {
-        text: chatInput.trim().slice(0, 200),
-        userId: chatUser.uid,
-        userName: chatUser.name,
-        timestamp: serverTimestamp(),
-      };
-
-      console.log("🎵 [MusicChat] Sending message to Firestore:", messageData);
-
-      try {
-        const docRef = await addDoc(collection(db, "music-chat"), messageData);
-        console.log("🎵 [MusicChat] Message sent successfully:", {
-          docId: docRef.id,
-          messageData,
-        });
-        setChatInput("");
-        toast.success("Message sent!");
-      } catch (error) {
-        console.error("🎵 [MusicChat] Failed to send message:", error);
-        toast.error("Failed to send message: " + error.message);
-      }
-    },
-    [chatInput, chatUser],
-  );
-
-  const formatChatTime = useCallback((ts) => {
-    if (!ts) return "";
-    return ts.toDate().toLocaleTimeString("en-US", {
-      hour12: false,
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  }, []);
-
-  // Handle emoji selection
-  const handleEmojiSelect = useCallback((emoji) => {
-    setChatInput((prev) => prev + emoji);
-    setShowEmojiPicker(false);
-  }, []);
 
   // YouTube Search using YouTube Data API v3
   const searchYouTubeMusic = useCallback(async (query) => {
@@ -1314,179 +1086,30 @@ export default function MusicPlayer() {
               <div className="music-chat-toggle-bar">
                 <button
                   className={`music-chat-toggle-btn ${showChat ? "active" : ""}`}
-                  onClick={() => {
-                    console.log(
-                      "🎵 [MusicChat] Toggling chat visibility:",
-                      !showChat,
-                    );
-                    setShowChat((v) => !v);
-                  }}
+                  onClick={() => setShowChat((v) => !v)}
                 >
                   💬 {showChat ? "Hide Chat" : "Music Chat"}
-                  {chatMessages.length > 0 && !showChat && (
-                    <span className="music-chat-badge">
-                      {chatMessages.length}
-                    </span>
-                  )}
                 </button>
               </div>
 
-              {/* Mobile-only Chat Panel (shown when toggled) */}
-              {showChat &&
-                (() => {
-                  console.log("🎵 [MusicChat] Rendering mobile chat panel:", {
-                    showChat,
-                    messagesCount: chatMessages.length,
-                    chatUser: !!chatUser,
-                  });
-                  return (
-                    <div className="music-chat-panel music-chat-mobile-only">
-                      <div
-                        className="music-chat-messages"
-                        ref={mobileScrollRef}
-                      >
-                        {chatMessages.length === 0 ? (
-                          <div className="music-chat-empty">
-                            <span>💬</span>
-                            <p>Chat while you listen!</p>
-                          </div>
-                        ) : (
-                          chatMessages.map((msg) => (
-                            <div
-                              key={msg.id}
-                              className={`music-chat-msg ${msg.userId === chatUser?.uid ? "own" : ""}`}
-                            >
-                              <div className="music-chat-msg-header">
-                                <span className="music-chat-msg-user">
-                                  {msg.userName}
-                                </span>
-                                <span className="music-chat-msg-time">
-                                  {formatChatTime(msg.timestamp)}
-                                </span>
-                              </div>
-                              <div className="music-chat-msg-text">
-                                {msg.text}
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                      {chatUser ? (
-                        <form
-                          onSubmit={handleSendChatMessage}
-                          className="music-chat-form"
-                        >
-                          <input
-                            type="text"
-                            value={chatInput}
-                            onChange={(e) => setChatInput(e.target.value)}
-                            placeholder="Say something..."
-                            maxLength={200}
-                            className="music-chat-input"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                            className="music-chat-emoji"
-                            title="Add emoji"
-                          >
-                            😊
-                          </button>
-                          <button type="submit" className="music-chat-send">
-                            ➤
-                          </button>
-                        </form>
-                      ) : (
-                        <div className="music-chat-login-hint">
-                          Log in to chat 💬
-                        </div>
-                      )}
-                    </div>
-                  );
-                })()}
+              {/* Mobile-only Chat Panel */}
+              {showChat && (
+                <div className="music-chat-panel music-chat-mobile-only">
+                  <FirebaseChat collection="music-chat" variant="inline" />
+                </div>
+              )}
             </div>
 
             {/* Desktop Right-Side Chat Panel */}
             <div className="music-chat-sidebar">
               <div className="music-chat-sidebar-header">
                 <span>💬</span> Music Chat
-                <span
-                  style={{
-                    fontSize: "10px",
-                    marginLeft: "8px",
-                    padding: "2px 4px",
-                    borderRadius: "3px",
-                    background: subscriptionActive ? "#90EE90" : "#FFB6C1",
-                    color: "#000",
-                  }}
-                >
-                  {subscriptionActive ? "🟢 Live" : "🔴 Offline"}
-                </span>
               </div>
-              <div className="music-chat-messages" ref={chatScrollRef}>
-                {chatMessages.length === 0 ? (
-                  <div className="music-chat-empty">
-                    <span>💬</span>
-                    <p>Chat while you listen!</p>
-                  </div>
-                ) : (
-                  chatMessages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={`music-chat-msg ${msg.userId === chatUser?.uid ? "own" : ""}`}
-                    >
-                      <div className="music-chat-msg-header">
-                        <span className="music-chat-msg-user">
-                          {msg.userName}
-                        </span>
-                        <span className="music-chat-msg-time">
-                          {formatChatTime(msg.timestamp)}
-                        </span>
-                      </div>
-                      <div className="music-chat-msg-text">{msg.text}</div>
-                    </div>
-                  ))
-                )}
-              </div>
-              {chatUser ? (
-                <form
-                  onSubmit={handleSendChatMessage}
-                  className="music-chat-form"
-                >
-                  <input
-                    type="text"
-                    value={chatInput}
-                    onChange={(e) => setChatInput(e.target.value)}
-                    placeholder="Say something..."
-                    maxLength={200}
-                    className="music-chat-input"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
-                    className="music-chat-emoji"
-                    title="Add emoji"
-                  >
-                    😊
-                  </button>
-                  <button type="submit" className="music-chat-send">
-                    ➤
-                  </button>
-                </form>
-              ) : (
-                <div className="music-chat-login-hint">Log in to chat 💬</div>
-              )}
+              <FirebaseChat collection="music-chat" variant="inline" />
             </div>
           </div>
         </div>
       </div>
-
-      {/* Emoji Picker */}
-      <EmojiPicker
-        isOpen={showEmojiPicker}
-        onClose={() => setShowEmojiPicker(false)}
-        onEmojiSelect={handleEmojiSelect}
-      />
     </>
   );
 }

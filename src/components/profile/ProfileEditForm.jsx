@@ -135,12 +135,9 @@ export default function ProfileEditForm({
               <input
                 type="text"
                 name="username"
-                placeholder="Username"
                 value={form.username}
-                onChange={handleChange}
-                required
-                className="profile-auth-input"
-                maxLength={30}
+                disabled
+                className="profile-auth-input profile-input-disabled"
               />
             </div>
             <div className="form-field">
@@ -149,8 +146,6 @@ export default function ProfileEditForm({
                 type="email"
                 name="email"
                 value={form.email}
-                onChange={handleChange}
-                required
                 disabled
                 className="profile-auth-input profile-input-disabled"
               />
@@ -363,7 +358,7 @@ export default function ProfileEditForm({
           <div className="form-actions-centered">
             <button
               type="button"
-              className="profile-auth-google-btn cancel-btn"
+              className="pef-btn pef-btn-cancel"
               onClick={onClose}
               disabled={saving}
             >
@@ -371,10 +366,14 @@ export default function ProfileEditForm({
             </button>
             <button
               type="submit"
-              className="profile-auth-login-btn"
+              className="pef-btn pef-btn-save"
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? (
+                <><span className="pef-spinner" /> Saving…</>
+              ) : (
+                "Save Changes"
+              )}
             </button>
           </div>
         </form>

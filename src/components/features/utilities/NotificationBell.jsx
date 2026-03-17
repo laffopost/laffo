@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNotifications } from "../../../context/NotificationContext";
+import { useUnreadMessageCount } from "../../../hooks/useUnreadMessageCount";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
 
@@ -8,6 +9,8 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
+  const unreadMessageCount = useUnreadMessageCount();
+  const totalUnread = unreadCount + unreadMessageCount;
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
@@ -81,14 +84,14 @@ export default function NotificationBell() {
   return (
     <div className="notification-bell-container" ref={dropdownRef}>
       <button
-        className={`notification-bell-button ${unreadCount > 0 ? "has-notifications" : ""}`}
+        className={`notification-bell-button ${totalUnread > 0 ? "has-notifications" : ""}`}
         onClick={() => setIsOpen(!isOpen)}
-        aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ""}`}
+        aria-label={`Notifications ${totalUnread > 0 ? `(${totalUnread} unread)` : ""}`}
       >
         <span className="bell-icon">🔔</span>
-        {unreadCount > 0 && (
+        {totalUnread > 0 && (
           <span className="notification-badge">
-            {unreadCount > 99 ? "99+" : unreadCount}
+            {totalUnread > 99 ? "99+" : totalUnread}
           </span>
         )}
       </button>
@@ -104,13 +107,30 @@ export default function NotificationBell() {
             )}
           </div>
 
+          {unreadMessageCount > 0 && (
+            <div
+              className="notification-item unread"
+              onClick={() => { navigate("/messages"); setIsOpen(false); }}
+              style={{ cursor: "pointer" }}
+            >
+              <div className="notification-icon">✉️</div>
+              <div className="notification-content">
+                <div className="notification-message">
+                  {unreadMessageCount} unread message{unreadMessageCount > 1 ? "s" : ""}
+                </div>
+                <div className="notification-time">Tap to open Messages</div>
+              </div>
+              <div className="unread-indicator" />
+            </div>
+          )}
+
           <div className="notification-list">
-            {notifications.length === 0 ? (
+            {notifications.length === 0 && unreadMessageCount === 0 ? (
               <div className="no-notifications">
                 <span className="no-notifications-icon">🔔</span>
                 <p>No notifications yet</p>
               </div>
-            ) : (
+            ) : notifications.length === 0 ? null : (
               notifications.map((notification) => (
                 <div
                   key={notification.id}

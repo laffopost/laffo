@@ -51,24 +51,15 @@ export default function ChatUI({
       <div className={`chat-sidebar ${activeConvo ? "hide-mobile" : ""}`}>
         <div className="chat-sidebar-header">
           <h3>Messages</h3>
-          <div className="chat-header-actions">
+          {variant === "overlay" && (
             <button
-              className="chat-new-btn"
-              onClick={() => setShowNewChat(!showNewChat)}
-              title="New conversation"
+              className="chat-close-btn"
+              onClick={onClose}
+              title="Close"
             >
-              ✏️
+              ✕
             </button>
-            {variant === "overlay" && (
-              <button
-                className="chat-close-btn"
-                onClick={onClose}
-                title="Close"
-              >
-                ✕
-              </button>
-            )}
-          </div>
+          )}
         </div>
 
         {/* Always-visible search */}
@@ -79,9 +70,8 @@ export default function ChatUI({
             onChange={(e) => handleSearchUsers(e.target.value)}
             placeholder="Search users..."
             className="chat-search-input"
-            autoFocus={showNewChat}
           />
-          {showNewChat && (
+          {(searching || searchResults.length > 0 || searchQuery.length >= 2) && (
             <div className="chat-search-results">
               {searching && (
                 <div className="chat-search-status">Searching...</div>
@@ -119,16 +109,10 @@ export default function ChatUI({
 
         {/* Conversations list */}
         <div className="chat-convo-list">
-          {conversations.length === 0 && !showNewChat ? (
+          {conversations.length === 0 ? (
             <div className="chat-empty-state">
               <span>✉️</span>
-              <p>No messages yet</p>
-              <button
-                className="chat-start-btn"
-                onClick={() => setShowNewChat(true)}
-              >
-                Start a conversation
-              </button>
+              <p>No messages yet. Search for a user above to start chatting.</p>
             </div>
           ) : (
             conversations.map((convo) => {

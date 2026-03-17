@@ -11,128 +11,126 @@ import {
 import { db } from "../../firebase/config";
 
 import logger from "../../utils/logger";
+
+/**
+ * Internal helper: dedup by user (best score per user) and sort descending.
+ */
+function buildRankedScores(rawScores) {
+  const bestByUser = {};
+  rawScores.forEach((score) => {
+    const uid = score.userId;
+    if (!bestByUser[uid] || score.score > bestByUser[uid].score) {
+      bestByUser[uid] = score;
+    } else if (score.score === bestByUser[uid].score) {
+      const t1 = score.timestamp?.toDate?.() || new Date(score.createdAt || 0);
+      const t2 = bestByUser[uid].timestamp?.toDate?.() || new Date(bestByUser[uid].createdAt || 0);
+      if (t1 < t2) bestByUser[uid] = score;
+    }
+  });
+  return Object.values(bestByUser).sort((a, b) => {
+    if (b.score !== a.score) return b.score - a.score;
+    const tA = a.timestamp?.toDate?.() || new Date(a.createdAt || 0);
+    const tB = b.timestamp?.toDate?.() || new Date(b.createdAt || 0);
+    return tA - tB;
+  });
+}
+
+/**
+ * Fetch all raw scores for a game (client-side only — no compound index needed).
+ */
+async function fetchRawScores(gameKey) {
+  const q = query(collection(db, "gameScores"), where("game", "==", gameKey));
+  const snap = await getDocs(q);
+  const scores = [];
+  snap.forEach((doc) => scores.push({ id: doc.id, ...doc.data() }));
+  return scores;
+}
+
 /**
  * Save a game score to Firebase
- * @param {string} gameKey - Game identifier (click, memory, reaction, snake)
- * @param {number} score - Player's score
- * @param {object} user - User object with uid and username
  */
 export const saveGameScore = async (gameKey, score, user) => {
   if (!user || !user.uid) {
     logger.warn("⚠️ No user logged in, score not saved");
     return false;
   }
-
   logger.log("🎮 Attempting to save game score:", { gameKey, score, user });
-
   try {
     const scoreData = {
       game: gameKey,
-      score: score,
+      score,
       userId: user.uid,
       username: user.username || user.displayName || "Anonymous",
       avatar: user.avatar || null,
       timestamp: serverTimestamp(),
       createdAt: new Date().toISOString(),
     };
-
-    logger.log("📝 Score data to save:", scoreData);
     const docRef = await addDoc(collection(db, "gameScores"), scoreData);
-    logger.log("✅ Game score saved successfully with ID:", docRef.id);
+    logger.log("✅ Game score saved:", docRef.id);
     return true;
   } catch (error) {
-    logger.error("❌ Error saving game score:", error);
-    logger.error("Error details:", error.message, error.code);
+    logger.error("❌ Error saving game score:", error.message);
     return false;
   }
 };
 
 /**
  * Get top scores for a specific game
- * @param {string} gameKey - Game identifier
- * @param {number} limitCount - Number of scores to retrieve (default 10)
  */
 export const getGameLeaderboard = async (gameKey, limitCount = 10) => {
-  logger.log(`🔍 Loading leaderboard for ${gameKey}, limit: ${limitCount}`);
-
+  logger.log(`🔍 Loading leaderboard for ${gameKey}`);
   try {
-    const scoresRef = collection(db, "gameScores");
-    // Super simple query - only filter, no ordering (to avoid index requirement)
-    const q = query(
-      scoresRef,
-      where("game", "==", gameKey),
-      // No orderBy or limit - do everything client-side
-    );
-
-    logger.log(`📊 Executing leaderboard query for ${gameKey}`);
-    const querySnapshot = await getDocs(q);
-    const scores = [];
-
-    querySnapshot.forEach((doc) => {
-      scores.push({
-        id: doc.id,
-        ...doc.data(),
-      });
-    });
-
-    logger.log(`📊 Raw scores loaded: ${scores.length} total scores`);
-
-    // Group scores by user and keep only the best score per user
-    const bestScoresByUser = {};
-    scores.forEach((score) => {
-      const userId = score.userId;
-      if (
-        !bestScoresByUser[userId] ||
-        score.score > bestScoresByUser[userId].score
-      ) {
-        bestScoresByUser[userId] = score;
-      } else if (score.score === bestScoresByUser[userId].score) {
-        // If scores are tied, keep the earlier one
-        const currentTime =
-          score.timestamp?.toDate?.() || new Date(score.createdAt || 0);
-        const bestTime =
-          bestScoresByUser[userId].timestamp?.toDate?.() ||
-          new Date(bestScoresByUser[userId].createdAt || 0);
-        if (currentTime < bestTime) {
-          bestScoresByUser[userId] = score;
-        }
-      }
-    });
-
-    // Convert back to array and sort
-    const uniqueScores = Object.values(bestScoresByUser);
-    const sortedScores = uniqueScores
-      .sort((a, b) => {
-        if (b.score !== a.score) {
-          return b.score - a.score; // Higher score wins
-        }
-        // If scores are tied, earlier timestamp wins
-        const timeA = a.timestamp?.toDate?.() || new Date(a.createdAt || 0);
-        const timeB = b.timestamp?.toDate?.() || new Date(b.createdAt || 0);
-        return timeA - timeB;
-      })
-      .slice(0, limitCount); // Limit after sorting
-
-    logger.log(
-      `📊 Final leaderboard for ${gameKey} (unique users):`,
-      sortedScores,
-    );
-    return sortedScores;
+    const raw = await fetchRawScores(gameKey);
+    logger.log(`📊 Raw scores: ${raw.length}`);
+    const ranked = buildRankedScores(raw).slice(0, limitCount);
+    logger.log(`📊 Final leaderboard (${gameKey}):`, ranked);
+    return ranked;
   } catch (error) {
-    logger.error("❌ Error loading leaderboard:", error);
-    logger.error("Error details:", error.message, error.code);
+    logger.error("❌ Error loading leaderboard:", error.message);
     return [];
   }
 };
 
 /**
+ * Get the current user's rank for a game (1-based).
+ * Returns null if the user has no score.
+ */
+export const getUserRank = async (gameKey, userId) => {
+  if (!userId) return null;
+  try {
+    const raw = await fetchRawScores(gameKey);
+    const ranked = buildRankedScores(raw);
+    const idx = ranked.findIndex((s) => s.userId === userId);
+    return idx === -1 ? null : idx + 1;
+  } catch (error) {
+    logger.error("❌ Error getting user rank:", error.message);
+    return null;
+  }
+};
+
+/**
+ * Get the #1 global score for a game.
+ * Returns { score, username, avatar } or null.
+ */
+export const getGlobalHighScore = async (gameKey) => {
+  try {
+    const raw = await fetchRawScores(gameKey);
+    if (!raw.length) return null;
+    const ranked = buildRankedScores(raw);
+    if (!ranked.length) return null;
+    const top = ranked[0];
+    return { score: top.score, username: top.username, avatar: top.avatar };
+  } catch (error) {
+    logger.error("❌ Error getting global high score:", error.message);
+    return null;
+  }
+};
+
+/**
  * Get user's best score for a game
- * @param {string} gameKey - Game identifier
- * @param {string} userId - User's Firebase UID
  */
 export const getUserBestScore = async (gameKey, userId) => {
   if (!userId) return null;
-
   try {
     const scoresRef = collection(db, "gameScores");
     const q = query(
@@ -142,14 +140,11 @@ export const getUserBestScore = async (gameKey, userId) => {
       orderBy("score", "desc"),
       limit(1),
     );
-
-    const querySnapshot = await getDocs(q);
-    if (querySnapshot.empty) return null;
-
-    const bestScore = querySnapshot.docs[0].data();
-    return bestScore;
+    const snap = await getDocs(q);
+    if (snap.empty) return null;
+    return snap.docs[0].data();
   } catch (error) {
-    logger.error("❌ Error loading user best score:", error);
+    logger.error("❌ Error loading user best score:", error.message);
     return null;
   }
 };

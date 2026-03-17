@@ -27,17 +27,18 @@ const DURATION_MS = {
   "7d": 604800000,
 };
 
-export default function CreateMediaForm({ onSubmit, onClose, onBack }) {
+export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData = null, onSave = null }) {
   const { userProfile, firebaseUser } = useAuth();
+  const isEditMode = !!onSave;
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
+    title: initialData?.title || "",
+    description: initialData?.description || "",
     author: "",
     authorAvatar: null,
-    embedUrl: "",
-    mediaType: null,
+    embedUrl: initialData?.embedUrl || "",
+    mediaType: initialData?.mediaType || null,
   });
   const [error, setError] = useState("");
 
@@ -123,6 +124,15 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack }) {
       return;
     }
 
+    if (isEditMode) {
+      onSave({
+        title: formData.title.trim(),
+        description: formData.description || "",
+      });
+      onClose();
+      return;
+    }
+
     if (!formData.embedUrl) {
       setError("Please provide a valid YouTube or Spotify URL!");
       return;
@@ -181,21 +191,23 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack }) {
 
   return (
     <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>✨ Share Media</h3>
+      <h3>{isEditMode ? "✏️ Edit Media" : "✨ Share Media"}</h3>
 
-      <div className="form-group">
-        <label htmlFor="mediaUrl">Media URL *</label>
-        <input
-          type="url"
-          id="mediaUrl"
-          onChange={handleMediaUrlChange}
-          placeholder="Paste YouTube or Spotify link..."
-          required
-        />
-        <small className="form-hint">
-          📺 YouTube videos | 🎵 Spotify tracks/playlists/albums
-        </small>
-      </div>
+      {!isEditMode && (
+        <div className="form-group">
+          <label htmlFor="mediaUrl">Media URL *</label>
+          <input
+            type="url"
+            id="mediaUrl"
+            onChange={handleMediaUrlChange}
+            placeholder="Paste YouTube or Spotify link..."
+            required
+          />
+          <small className="form-hint">
+            📺 YouTube videos | 🎵 Spotify tracks/playlists/albums
+          </small>
+        </div>
+      )}
 
       {formData.embedUrl && (
         <div className="media-preview-section">
@@ -243,40 +255,44 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack }) {
         />
       </div>
 
-      <div className="form-group">
-        <label htmlFor="author">Posting as</label>
-        <input
-          type="text"
-          id="author"
-          value={postAsAnonymous ? "Anonymous" : formData.author}
-          disabled
-          className="author-display-input"
-        />
-        <label className="checkbox-label">
-          <input
-            type="checkbox"
-            checked={postAsAnonymous}
-            onChange={() => setPostAsAnonymous((v) => !v)}
-          />
-          <span>Post as Anonymous</span>
-        </label>
-      </div>
+      {!isEditMode && (
+        <>
+          <div className="form-group">
+            <label htmlFor="author">Posting as</label>
+            <input
+              type="text"
+              id="author"
+              value={postAsAnonymous ? "Anonymous" : formData.author}
+              disabled
+              className="author-display-input"
+            />
+            <label className="checkbox-label">
+              <input
+                type="checkbox"
+                checked={postAsAnonymous}
+                onChange={() => setPostAsAnonymous((v) => !v)}
+              />
+              <span>Post as Anonymous</span>
+            </label>
+          </div>
 
-      <div className="form-group">
-        <label>Post Duration</label>
-        <div className="poll-duration-row">
-          {DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
-              onClick={() => setDuration(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
-        </div>
-      </div>
+          <div className="form-group">
+            <label>Post Duration</label>
+            <div className="poll-duration-row">
+              {DURATIONS.map((d) => (
+                <button
+                  key={d.value}
+                  type="button"
+                  className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
+                  onClick={() => setDuration(d.value)}
+                >
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {error && <div className="form-error">{error}</div>}
 
@@ -287,9 +303,9 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack }) {
         <button
           type="submit"
           className="btn-submit"
-          disabled={!formData.embedUrl || !formData.title.trim()}
+          disabled={(!isEditMode && !formData.embedUrl) || !formData.title.trim()}
         >
-          Share Media ✨
+          {isEditMode ? "Save Changes ✓" : "Share Media ✨"}
         </button>
       </div>
     </form>

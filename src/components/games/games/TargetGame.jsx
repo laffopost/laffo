@@ -1,142 +1,252 @@
-import { useState, useEffect, useCallback } from "react";
-import toast from "react-hot-toast";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useAuth } from "../../../context/AuthContext";
-import { saveGameScore } from "../leaderboardApi";
+import { saveGameScore, getGlobalHighScore } from "../leaderboardApi";
 import "./TargetGame.css";
 
-export default function TargetGame() {
-  const { firebaseUser } = useAuth();
-  const [score, setScore] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [target, setTarget] = useState(null);
-  const [gameWidth] = useState(400);
-  const [gameHeight] = useState(300);
-  const [missCount, setMissCount] = useState(0);
+const DIFFICULTIES = [
+  { key: "easy",   label: "Easy",   duration: 40, size: 70, multiplier: 1 },
+  { key: "normal", label: "Normal", duration: 30, size: 55, multiplier: 1.5 },
+  { key: "hard",   label: "Hard",   duration: 20, size: 38, multiplier: 2.5 },
+];
 
-  // Generate random target position
-  const generateTarget = useCallback(() => {
-    const targetSize = 60;
-    const x = Math.random() * (gameWidth - targetSize);
-    const y = Math.random() * (gameHeight - targetSize);
-    setTarget({ x, y, id: Math.random() });
-  }, [gameWidth, gameHeight]);
+const GAME_W = 400;
+const GAME_H = 300;
 
-  // Start game
-  const startGame = () => {
-    setScore(0);
-    setTimeLeft(30);
-    setMissCount(0);
-    setIsPlaying(true);
-    generateTarget();
-  };
+export default function TargetGame({ onShareResult }) {
+  const { firebaseUser, userProfile } = useAuth();
+  const [difficulty, setDifficulty] = useState("normal");
+  const [gameState, setGameState]   = useState("idle"); // idle | playing | paused | over
+  const [timeLeft, setTimeLeft]     = useState(30);
+  const [target, setTarget]         = useState(null);
+  const [score, setScore]           = useState(0);
+  const [missCount, setMissCount]   = useState(0);
+  const [bestScore, setBestScore]   = useState(0);
 
-  // End game
-  const endGame = useCallback(async () => {
-    setIsPlaying(false);
-    if (firebaseUser && !firebaseUser.isAnonymous) {
-      try {
-        await saveGameScore("target", score, firebaseUser.uid);
-        toast.success(`Game Over! Score: ${score}`);
-      } catch (_err) {
-        toast.error("Failed to save score");
-      }
+  const scoreRef   = useRef(0);
+  const missRef    = useRef(0);
+  const diffRef    = useRef(DIFFICULTIES[1]);
+  const timerRef   = useRef(null);
+  const pausedTimeRef = useRef(0);
+  const [globalHigh, setGlobalHigh] = useState(null);
+
+  useEffect(() => { getGlobalHighScore("target").then(setGlobalHigh); }, []);
+
+  const generateTarget = useCallback((diff = diffRef.current) => {
+    const s = diff.size;
+    setTarget({
+      x: Math.random() * (GAME_W - s),
+      y: Math.random() * (GAME_H - s),
+      id: Math.random(),
+    });
+  }, []);
+
+  const endGame = useCallback(() => {
+    clearInterval(timerRef.current);
+    setGameState("over");
+    const weighted = Math.round(scoreRef.current * diffRef.current.multiplier);
+    setBestScore((b) => Math.max(b, weighted));
+    if (firebaseUser && !firebaseUser.isAnonymous && weighted > 0) {
+      saveGameScore("target", weighted, {
+        uid: firebaseUser.uid,
+        username: userProfile?.username || firebaseUser.displayName || "Anonymous",
+        avatar: userProfile?.avatar,
+      });
     }
-  }, [firebaseUser, score]);
+  }, [firebaseUser, userProfile]);
 
-  // Timer effect
-  useEffect(() => {
-    if (!isPlaying) return;
-
-    const timer = setInterval(() => {
+  const startTimer = (from) => {
+    setTimeLeft(from);
+    clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
       setTimeLeft((prev) => {
-        if (prev <= 1) {
-          setIsPlaying(false);
-          return 0;
-        }
+        if (prev <= 1) { endGame(); return 0; }
         return prev - 1;
       });
     }, 1000);
+  };
 
-    return () => clearInterval(timer);
-  }, [isPlaying]);
+  const startGame = () => {
+    const diff = DIFFICULTIES.find((d) => d.key === difficulty);
+    diffRef.current = diff;
+    scoreRef.current = 0;
+    missRef.current  = 0;
+    setScore(0);
+    setMissCount(0);
+    setGameState("playing");
+    generateTarget(diff);
+    startTimer(diff.duration);
+  };
 
-  // End game when timer reaches 0
-  useEffect(() => {
-    if (isPlaying && timeLeft === 0) {
-      endGame();
-    }
-  }, [timeLeft, isPlaying, endGame]);
+  const pauseGame = () => {
+    clearInterval(timerRef.current);
+    setTimeLeft((t) => { pausedTimeRef.current = t; return t; });
+    setGameState("paused");
+  };
 
-  // Handle target click
+  const resumeGame = () => {
+    setGameState("playing");
+    startTimer(pausedTimeRef.current);
+  };
+
+  const quitGame = () => {
+    clearInterval(timerRef.current);
+    setGameState("idle");
+    setTarget(null);
+    setScore(0);
+    setMissCount(0);
+  };
+
+  useEffect(() => () => clearInterval(timerRef.current), []);
+
   const handleTargetClick = (e) => {
     e.stopPropagation();
-    if (!isPlaying) return;
-    setScore((prev) => prev + 1);
+    if (gameState !== "playing") return;
+    scoreRef.current += 1;
+    setScore(scoreRef.current);
     generateTarget();
   };
 
-  // Handle missed click
-  const handleGameAreaClick = (e) => {
-    if (!isPlaying || !target) return;
-    // Only count as miss if clicking on game area but not on target
+  const handleMiss = (e) => {
+    if (gameState !== "playing") return;
     if (e.target === e.currentTarget) {
-      setMissCount((prev) => prev + 1);
+      missRef.current += 1;
+      setMissCount(missRef.current);
     }
   };
 
-  return (
-    <div className="target-game">
-      <h2>🎯 Target Game</h2>
-      <p>Click the targets as fast as you can!</p>
+  const weighted = Math.round(score * diffRef.current.multiplier);
+  const accuracy = score + missCount > 0
+    ? Math.round((score / (score + missCount)) * 100)
+    : 0;
 
-      <div className="target-stats">
-        <div className="target-stat">
-          <div className="target-stat-label">Score</div>
-          <div className="target-stat-value">{score}</div>
-        </div>
-        <div className="target-stat">
-          <div className="target-stat-label">Time</div>
-          <div className="target-stat-value">{timeLeft}s</div>
-        </div>
-        <div className="target-stat">
-          <div className="target-stat-label">Misses</div>
-          <div className="target-stat-value">{missCount}</div>
-        </div>
+  return (
+    <div className="game-card">
+      <div className="game-card-header">
+        <h2>🎯 Target Practice</h2>
+        <p className="game-desc">
+          Click targets as fast as you can — smaller targets score higher on harder modes!
+        </p>
+        {gameState === "idle" && (
+          <>
+            <div className="game-difficulty-row">
+              {DIFFICULTIES.map((d) => (
+                <button
+                  key={d.key}
+                  className={`game-diff-btn ${difficulty === d.key ? "active" : ""}`}
+                  onClick={() => setDifficulty(d.key)}
+                >
+                  {d.label}
+                  <span className="game-diff-sub">{d.duration}s · ×{d.multiplier}</span>
+                </button>
+              ))}
+            </div>
+            {globalHigh && (
+              <div className="game-global-banner">
+                Record: <strong>{globalHigh.score}</strong> by @{globalHigh.username}
+              </div>
+            )}
+          </>
+        )}
       </div>
 
-      {!isPlaying ? (
-        <>
-          <button className="target-start-btn" onClick={startGame}>
-            {score > 0 ? "Play Again" : "Start Game"}
-          </button>
-          {score > 0 && (
-            <div className="target-final-score">
-              Final Score: {score} | Accuracy:{" "}
-              {Math.round((score / (score + missCount)) * 100) || 0}%
-            </div>
-          )}
-        </>
-      ) : (
-        <div
-          className="target-game-area"
-          onClick={handleGameAreaClick}
-          style={{ cursor: "crosshair" }}
-        >
-          {target && (
-            <div
-              className="target"
-              style={{
-                left: `${target.x}px`,
-                top: `${target.y}px`,
-              }}
-              onClick={handleTargetClick}
-            >
-              🎪
+      <div className="game-card-body">
+        <div className="game-stats">
+          <div className="game-stat">
+            <div className="game-stat-label">Score</div>
+            <div className="game-stat-value">{score}</div>
+          </div>
+          <div className="game-stat">
+            <div className="game-stat-label">Time</div>
+            <div className="game-stat-value">{timeLeft}s</div>
+          </div>
+          <div className="game-stat">
+            <div className="game-stat-label">Misses</div>
+            <div className="game-stat-value">{missCount}</div>
+          </div>
+          {bestScore > 0 && (
+            <div className="game-stat">
+              <div className="game-stat-label">Best</div>
+              <div className="game-stat-value">{bestScore}</div>
             </div>
           )}
         </div>
-      )}
+
+        {(gameState === "playing" || gameState === "paused") && (
+          <div style={{ position: "relative" }}>
+            <div
+              className="target-game-area"
+              onClick={handleMiss}
+              style={{ opacity: gameState === "paused" ? 0.4 : 1 }}
+            >
+              {target && gameState === "playing" && (
+                <div
+                  className="target"
+                  style={{
+                    left: `${target.x}px`,
+                    top:  `${target.y}px`,
+                    width:    `${diffRef.current.size}px`,
+                    height:   `${diffRef.current.size}px`,
+                    fontSize: `${diffRef.current.size * 0.6}px`,
+                  }}
+                  onClick={handleTargetClick}
+                >
+                  🎯
+                </div>
+              )}
+            </div>
+
+            {gameState === "paused" && (
+              <div className="game-pause-overlay">
+                <h3>Paused</h3>
+                <button className="game-btn" onClick={resumeGame}>Resume</button>
+              </div>
+            )}
+          </div>
+        )}
+
+        {(gameState === "playing" || gameState === "paused") && (
+          <div className="game-controls-bar">
+            {gameState === "playing"
+              ? <button className="game-btn pause" onClick={pauseGame}>⏸ Pause</button>
+              : <button className="game-btn pause" onClick={resumeGame}>▶ Resume</button>
+            }
+            <button className="game-btn secondary" onClick={quitGame}>✕ Quit</button>
+          </div>
+        )}
+
+        {gameState === "over" && (
+          <div style={{ textAlign: "center" }}>
+            <div style={{ marginBottom: "0.4rem" }}>
+              Hits: {score} × {diffRef.current.multiplier} = <strong>{weighted}</strong>
+            </div>
+            <div style={{ fontSize: "0.85rem", color: "var(--text-muted)", marginBottom: "0.5rem" }}>
+              Accuracy: {accuracy}%
+            </div>
+            {weighted >= bestScore && bestScore > 0 && <div className="new-best">🏆 New Best!</div>}
+            <div className="game-result-actions">
+              <button className="game-btn" onClick={startGame}>Play Again</button>
+              {onShareResult && (
+                <button
+                  className="game-share-btn"
+                  onClick={() => onShareResult({
+                    game: "Target Practice",
+                    score: weighted,
+                    extra: `${accuracy}% accuracy`,
+                    difficulty: diffRef.current.label,
+                  })}
+                >
+                  📢 Share
+                </button>
+              )}
+              <button className="game-btn secondary" onClick={quitGame}>Menu</button>
+            </div>
+          </div>
+        )}
+
+        {gameState === "idle" && (
+          <button className="game-btn" onClick={startGame}>Start Game</button>
+        )}
+      </div>
     </div>
   );
 }

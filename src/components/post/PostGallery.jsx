@@ -44,6 +44,7 @@ const PostGallery = memo(function PostGallery({
     images,
     userImages,
     addPost,
+    editPost,
     getReactions,
     toggleReaction,
     getUserReaction,
@@ -59,6 +60,7 @@ const PostGallery = memo(function PostGallery({
   const [isOpen, setIsOpen] = useState(false);
   const [shareImage, setShareImage] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingPost, setEditingPost] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [imageNotFound, setImageNotFound] = useState(false);
@@ -299,10 +301,9 @@ const PostGallery = memo(function PostGallery({
   const handleEditPost = useCallback(
     (image) => {
       if (!requireAuth("edit a post")) return;
-      // Open the post modal in edit mode
-      handleImageClick(image);
+      setEditingPost(image);
     },
-    [requireAuth, handleImageClick],
+    [requireAuth],
   );
 
   const handlePrevImage = useCallback(() => {
@@ -580,6 +581,24 @@ const PostGallery = memo(function PostGallery({
         <AddPostModal
           onClose={() => setShowAddModal(false)}
           onSubmit={handleAddPost}
+        />
+      )}
+
+      {editingPost && (
+        <AddPostModal
+          onClose={() => setEditingPost(null)}
+          onSubmit={handleAddPost}
+          editMode
+          editPostData={editingPost}
+          editPost={(updateData) => {
+            const toastId = toast.loading("Saving...");
+            editPost(editingPost.id, updateData)
+              .then(() => {
+                toast.success("Post updated!", { id: toastId });
+                setEditingPost(null);
+              })
+              .catch((err) => toast.error(err.message || "Failed to update", { id: toastId }));
+          }}
         />
       )}
 

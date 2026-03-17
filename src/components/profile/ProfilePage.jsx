@@ -521,7 +521,6 @@ export default function ProfilePage() {
 
           {/* ── About ── */}
           <div className="profile-section">
-            <h4 className="profile-section-title">About</h4>
             <div className="profile-details-grid">
               <div className="profile-detail-row">
                 <span className="profile-detail-label">🎵 Favorite Song</span>
@@ -593,7 +592,6 @@ export default function ProfilePage() {
 
           {/* ── Socials ── */}
           <div className="profile-section">
-            <h4 className="profile-section-title">Socials</h4>
             <div className="profile-socials-icons">
               <a
                 href={getSocialUrl("facebook", publicProfile.facebook)}
@@ -661,7 +659,6 @@ export default function ProfilePage() {
           {/* ── Wallet ── */}
           {publicProfile.solana && (
             <div className="profile-section">
-              <h4 className="profile-section-title">💎 Wallet</h4>
               <div className="profile-solana-row">
                 <span className="profile-solana-address">
                   {publicProfile.solana}
@@ -683,7 +680,6 @@ export default function ProfilePage() {
         </div>
 
         <div className="profile-gallery-section">
-          <h3 className="profile-gallery-title">Posts by {displayName}</h3>
           <PostGallery
             filterByUsername={usernameForFilter}
             showHeader={false}

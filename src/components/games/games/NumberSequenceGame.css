@@ -1,0 +1,62 @@
+.numseq-grid {
+  display: grid;
+  gap: 8px;
+  user-select: none;
+}
+
+.numseq-cell {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 2px solid var(--color-primary-20);
+  background: linear-gradient(135deg, #1f2937, #111827);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: border-color 0.1s, background 0.1s, transform 0.1s;
+  color: var(--text-base);
+  min-width: 0;
+}
+
+.numseq-cell:hover {
+  border-color: var(--color-primary-50);
+  transform: scale(1.05);
+}
+
+.numseq-cell.done {
+  background: linear-gradient(135deg, #14532d, #064e3b);
+  border-color: var(--color-success);
+  color: #6ee7b7;
+  cursor: default;
+  transform: none;
+}
+
+.numseq-cell.wrong {
+  border-color: #ef4444;
+  background: linear-gradient(135deg, #7f1d1d, #991b1b);
+  animation: numseqShake 0.25s ease;
+}
+
+@keyframes numseqShake {
+  0%, 100% { transform: translateX(0); }
+  25%       { transform: translateX(-5px); }
+  75%       { transform: translateX(5px); }
+}
+
+.numseq-next-badge {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--color-primary);
+  background: var(--color-primary-5);
+  border: 2px solid var(--color-primary-20);
+  border-radius: 12px;
+  padding: 0.3rem 1.2rem;
+  min-width: 80px;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .numseq-cell { font-size: 1rem; border-radius: 8px; gap: 6px; }
+}

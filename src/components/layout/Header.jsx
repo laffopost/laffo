@@ -409,13 +409,6 @@ const Header = memo(function Header() {
             {navDropdownOpen && (
               <div className="dropdown-menu">
                 <Link
-                  to="/dashboard"
-                  className="dropdown-item"
-                  onClick={() => setNavDropdownOpen(false)}
-                >
-                  Dashboard
-                </Link>
-                <Link
                   to="/stocks"
                   className="dropdown-item"
                   onClick={() => setNavDropdownOpen(false)}
@@ -423,18 +416,11 @@ const Header = memo(function Header() {
                   Stocks
                 </Link>
                 <Link
-                  to="/buy"
+                  to="/trade"
                   className="dropdown-item"
                   onClick={() => setNavDropdownOpen(false)}
                 >
-                  Buy
-                </Link>
-                <Link
-                  to="/chart"
-                  className="dropdown-item"
-                  onClick={() => setNavDropdownOpen(false)}
-                >
-                  Chart
+                  Trade / Chart
                 </Link>
                 <Link
                   to="/dao"

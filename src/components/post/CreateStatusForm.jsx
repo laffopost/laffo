@@ -47,12 +47,13 @@ const DURATION_MS = {
   "7d": 604800000,
 };
 
-export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
+export default function CreateStatusForm({ onSubmit, onClose, onBack, initialData = null, onSave = null }) {
   const { userProfile, firebaseUser } = useAuth();
-  const [status, setStatus] = useState("");
+  const isEditMode = !!onSave;
+  const [status, setStatus] = useState(initialData?.status || "");
   const [error, setError] = useState("");
-  const [bgColor, setBgColor] = useState("#ffffff");
-  const [textColor, setTextColor] = useState("#000000");
+  const [bgColor, setBgColor] = useState(initialData?.bgColor || "#ffffff");
+  const [textColor, setTextColor] = useState(initialData?.textColor || "#000000");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [author] = useState(
@@ -67,13 +68,24 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
       return;
     }
 
+    if (isEditMode) {
+      onSave({
+        status: status.trim(),
+        bgColor,
+        textColor,
+        title: status.trim(),
+        description: status.trim(),
+      });
+      onClose();
+      return;
+    }
+
     const finalAuthor = postAsAnonymous ? "Anonymous" : author;
     const finalAvatar = postAsAnonymous ? null : authorAvatar;
     const endsAt = DURATION_MS[duration]
       ? Date.now() + DURATION_MS[duration]
       : null;
 
-    // Don't generate base64 image, just send the data
     onSubmit({
       type: "status",
       status: status.trim(),
@@ -84,7 +96,7 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
       author: finalAuthor,
       authorAvatar: finalAvatar,
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },
-      image: null, // No image needed
+      image: null,
       endsAt,
     });
     onClose();
@@ -92,7 +104,7 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
 
   return (
     <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>✨ Post a Status</h3>
+      <h3>{isEditMode ? "✏️ Edit Status" : "✨ Post a Status"}</h3>
 
       <div className="form-group">
         <label>Status *</label>
@@ -107,24 +119,26 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
         <span className="char-counter">{status.length}/200</span>
       </div>
 
-      <div className="form-group">
-        <label htmlFor="author">Posting as</label>
-        <input
-          type="text"
-          id="author"
-          value={postAsAnonymous ? "Anonymous" : author}
-          disabled
-          className="author-display-input"
-        />
-        <label className="checkbox-label">
+      {!isEditMode && (
+        <div className="form-group">
+          <label htmlFor="author">Posting as</label>
           <input
-            type="checkbox"
-            checked={postAsAnonymous}
-            onChange={() => setPostAsAnonymous((v) => !v)}
+            type="text"
+            id="author"
+            value={postAsAnonymous ? "Anonymous" : author}
+            disabled
+            className="author-display-input"
           />
-          <span>Post as Anonymous</span>
-        </label>
-      </div>
+          <label className="checkbox-label">
+            <input
+              type="checkbox"
+              checked={postAsAnonymous}
+              onChange={() => setPostAsAnonymous((v) => !v)}
+            />
+            <span>Post as Anonymous</span>
+          </label>
+        </div>
+      )}
 
       <div className="form-group">
         <label>Background Color</label>
@@ -168,21 +182,23 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
         </div>
       </div>
 
-      <div className="form-group">
-        <label>Post Duration</label>
-        <div className="poll-duration-row">
-          {DURATIONS.map((d) => (
-            <button
-              key={d.value}
-              type="button"
-              className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
-              onClick={() => setDuration(d.value)}
-            >
-              {d.label}
-            </button>
-          ))}
+      {!isEditMode && (
+        <div className="form-group">
+          <label>Post Duration</label>
+          <div className="poll-duration-row">
+            {DURATIONS.map((d) => (
+              <button
+                key={d.value}
+                type="button"
+                className={`poll-duration-btn${duration === d.value ? " active" : ""}`}
+                onClick={() => setDuration(d.value)}
+              >
+                {d.label}
+              </button>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       {error && <div className="form-error">{error}</div>}
 
@@ -191,7 +207,7 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack }) {
           ← Back
         </button>
         <button type="submit" className="btn-submit">
-          Post Status ✨
+          {isEditMode ? "Save Changes ✓" : "Post Status ✨"}
         </button>
       </div>
     </form>

@@ -1,0 +1,102 @@
+.scramble-word {
+  font-size: 2.4rem;
+  font-weight: 800;
+  letter-spacing: 0.25em;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  font-family: monospace;
+  background: var(--color-primary-5);
+  border: 2px solid var(--color-primary-20);
+  border-radius: 12px;
+  padding: 0.75rem 1.5rem;
+  min-width: 200px;
+  text-align: center;
+}
+
+.scramble-input-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  width: 100%;
+  max-width: 360px;
+}
+
+.scramble-input {
+  flex: 1;
+  padding: 0.7rem 1rem;
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-primary-30);
+  background: var(--color-primary-5);
+  color: var(--text-base);
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-align: center;
+  font-family: monospace;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.scramble-input:focus {
+  border-color: var(--color-primary);
+}
+
+.scramble-input.correct {
+  border-color: var(--color-success);
+  background: var(--color-success-10);
+  color: #6ee7b7;
+}
+
+.scramble-input.wrong {
+  border-color: var(--color-danger);
+  background: var(--color-danger-10);
+  color: #fca5a5;
+}
+
+.scramble-timer-bar {
+  width: 100%;
+  max-width: 360px;
+  height: 6px;
+  background: var(--color-primary-10);
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.scramble-timer-fill {
+  height: 100%;
+  border-radius: 99px;
+  transition: width 1s linear, background 0.3s;
+}
+
+.scramble-history {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  max-width: 360px;
+}
+
+.scramble-history-chip {
+  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: var(--radius-sm);
+  font-weight: 600;
+  border: 1px solid;
+}
+
+.scramble-history-chip.correct {
+  background: var(--color-success-10);
+  border-color: var(--color-success);
+  color: #6ee7b7;
+}
+
+.scramble-history-chip.wrong {
+  background: var(--color-danger-10);
+  border-color: var(--color-danger);
+  color: #fca5a5;
+}
+
+.scramble-history-chip.timeout {
+  background: var(--color-primary-10);
+  border-color: var(--color-primary-30);
+  color: var(--text-muted);
+}

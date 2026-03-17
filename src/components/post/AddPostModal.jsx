@@ -5,14 +5,29 @@ import CreatePollForm from "./CreatePollForm";
 import CreateMediaForm from "./CreateMediaForm";
 import "./AddPostModal.css";
 
-export default function AddPostModal({ onClose, onSubmit }) {
-  const [selectedType, setSelectedType] = useState(null);
+export default function AddPostModal({
+  onClose,
+  onSubmit,
+  editMode = false,
+  editPost = null,
+  editPostData = null,
+  // share mode: jump straight to a type with pre-filled text
+  shareType = null,
+  shareInitialData = null,
+}) {
+  const [selectedType, setSelectedType] = useState(
+    editMode && editPostData ? editPostData.type : shareType,
+  );
 
   const handleBack = () => {
+    if (editMode) { onClose(); return; }
     setSelectedType(null);
   };
 
-  if (!selectedType) {
+  // In edit mode, resolve "image"-type posts (stored as non-status/poll/media types)
+  const resolvedType = selectedType === "image" || (editMode && selectedType && selectedType !== "status" && selectedType !== "poll" && selectedType !== "media") ? "image" : selectedType;
+
+  if (!resolvedType) {
     return (
       <div className="add-post-modal-overlay" onClick={onClose}>
         <div className="add-post-modal" onClick={(e) => e.stopPropagation()}>
@@ -68,32 +83,40 @@ export default function AddPostModal({ onClose, onSubmit }) {
   return (
     <div className="add-post-modal-overlay" onClick={onClose}>
       <div className="add-post-modal" onClick={(e) => e.stopPropagation()}>
-        {selectedType === "image" && (
+        {(resolvedType === "image") && (
           <CreatePostForm
             onSubmit={onSubmit}
             onClose={onClose}
             onBack={handleBack}
+            initialData={editMode ? editPostData : null}
+            onSave={editMode ? editPost : null}
           />
         )}
-        {selectedType === "status" && (
+        {resolvedType === "status" && (
           <CreateStatusForm
             onSubmit={onSubmit}
             onClose={onClose}
             onBack={handleBack}
+            initialData={editMode ? editPostData : shareInitialData}
+            onSave={editMode ? editPost : null}
           />
         )}
-        {selectedType === "poll" && (
+        {resolvedType === "poll" && (
           <CreatePollForm
             onSubmit={onSubmit}
             onClose={onClose}
             onBack={handleBack}
+            initialData={editMode ? editPostData : null}
+            onSave={editMode ? editPost : null}
           />
         )}
-        {selectedType === "media" && (
+        {resolvedType === "media" && (
           <CreateMediaForm
             onSubmit={onSubmit}
             onClose={onClose}
             onBack={handleBack}
+            initialData={editMode ? editPostData : null}
+            onSave={editMode ? editPost : null}
           />
         )}
       </div>

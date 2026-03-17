@@ -22,12 +22,10 @@ import "./App.css";
 
 // Lazy load pages to reduce initial bundle
 const Home = lazy(() => import("./pages/Home"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Sports = lazy(() => import("./pages/Sports"));
 const Stocks = lazy(() => import("./pages/Stocks"));
 const Weather = lazy(() => import("./pages/Weather"));
-const Buy = lazy(() => import("./pages/Buy"));
-const Chart = lazy(() => import("./pages/Chart"));
+const Trade = lazy(() => import("./pages/Trade"));
 const Dao = lazy(() => import("./pages/Dao"));
 const Profile = lazy(() => import("./components/profile/Profile"));
 const ProfilePage = lazy(() => import("./components/profile/ProfilePage"));
@@ -65,14 +63,6 @@ function AppRoutes() {
           element={
             <ErrorBoundary name="Home">
               <Home />
-            </ErrorBoundary>
-          }
-        />
-        <Route
-          path="/dashboard"
-          element={
-            <ErrorBoundary name="Dashboard">
-              <Dashboard />
             </ErrorBoundary>
           }
         />
@@ -117,21 +107,16 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/buy"
+          path="/trade"
           element={
-            <ErrorBoundary name="Buy">
-              <Buy />
+            <ErrorBoundary name="Trade">
+              <Trade />
             </ErrorBoundary>
           }
         />
-        <Route
-          path="/chart"
-          element={
-            <ErrorBoundary name="Chart">
-              <Chart />
-            </ErrorBoundary>
-          }
-        />
+        {/* Legacy redirects */}
+        <Route path="/buy" element={<ErrorBoundary name="Trade"><Trade /></ErrorBoundary>} />
+        <Route path="/chart" element={<ErrorBoundary name="Trade"><Trade /></ErrorBoundary>} />
         <Route
           path="/dao"
           element={
