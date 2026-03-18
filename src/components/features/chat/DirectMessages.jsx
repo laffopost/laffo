@@ -1,10 +1,12 @@
 import { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom";
 import { useConversations } from "../../../hooks/useConversations";
 import { useUnreadMessageCount } from "../../../hooks/useUnreadMessageCount";
 import ChatUI from "./ChatUI";
 import "./DirectMessages.css";
 
 export default function DirectMessages() {
+  const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const unreadMessageCount = useUnreadMessageCount();
 
@@ -24,6 +26,11 @@ export default function DirectMessages() {
     window.addEventListener("openDM", handler);
     return () => window.removeEventListener("openDM", handler);
   }, [chat.currentUser, chat.startConversation]);
+
+  // Don't render the FAB/overlay on the full Messages page — it also mounts
+  // useConversations, and two simultaneous listeners on the same Firestore
+  // query corrupt the watch-stream state.
+  if (pathname === "/messages") return null;
 
   if (!chat.currentUser) return null;
 

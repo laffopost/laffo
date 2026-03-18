@@ -120,9 +120,6 @@ function AppRoutes() {
             </ErrorBoundary>
           }
         />
-        {/* Legacy redirects */}
-        <Route path="/buy" element={<ErrorBoundary name="Trade"><Trade /></ErrorBoundary>} />
-        <Route path="/chart" element={<ErrorBoundary name="Trade"><Trade /></ErrorBoundary>} />
         <Route
           path="/dao"
           element={

@@ -1,7 +1,10 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { EmojiPicker } from "../utilities";
 import { formatTime } from "../../../utils/formatters";
 import "./ChatUI.css";
+
+const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
 
 /**
  * ChatUI — unified two-pane chat layout (sidebar + chat area).
@@ -33,9 +36,11 @@ export default function ChatUI({
   // callbacks
   handleSend,
   handleSearchUsers,
+  handleReaction,
   handleEditMessage,
   handleDeleteMessage,
   deleteConversation,
+  openConversation,
   startConversation,
   startEditing,
   cancelEditing,
@@ -124,22 +129,21 @@ export default function ChatUI({
                 <button
                   key={convo.id}
                   className={`chat-convo-item${activeConvo?.id === convo.id ? " active" : ""}${isUnread ? " unread" : ""}`}
-                  onClick={() => setActiveConvo(convo)}
+                  onClick={() => openConversation(convo)}
                 >
-                  {other.avatar ? (
-                    <img
-                      src={other.avatar}
-                      alt=""
-                      className="chat-avatar-img"
-                    />
-                  ) : (
-                    <span className="chat-avatar-placeholder">
-                      {other.name?.[0]?.toUpperCase() || "U"}
-                    </span>
-                  )}
+                  <div className="chat-avatar-wrap">
+                    {other.avatar ? (
+                      <img src={other.avatar} alt="" className="chat-avatar-img" />
+                    ) : (
+                      <span className="chat-avatar-placeholder">
+                        {other.name?.[0]?.toUpperCase() || "U"}
+                      </span>
+                    )}
+                    {isUnread && <span className="chat-avatar-badge" />}
+                  </div>
                   <div className="chat-convo-info">
                     <span className="chat-convo-name">{other.name}</span>
-                    <span className="chat-convo-preview">
+                    <span className={`chat-convo-preview${isUnread ? " unread" : ""}`}>
                       {convo.lastMessage || "No messages yet"}
                     </span>
                   </div>
@@ -216,84 +220,20 @@ export default function ChatUI({
                 </div>
               ) : (
                 messages.map((msg) => (
-                  <div
+                  <MessageBubble
                     key={msg.id}
-                    className={`chat-msg${msg.senderId === currentUser.uid ? " own" : ""}`}
-                  >
-                    <div className="chat-bubble">
-                      {editingMessage === msg.id ? (
-                        <div className="chat-edit-form">
-                          <input
-                            value={editText}
-                            onChange={(e) => setEditText(e.target.value)}
-                            className="chat-edit-input"
-                            autoFocus
-                            maxLength={500}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter") {
-                                e.preventDefault();
-                                handleEditMessage(msg.id, editText);
-                              } else if (e.key === "Escape") {
-                                cancelEditing();
-                              }
-                            }}
-                          />
-                          <div className="chat-edit-actions">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                handleEditMessage(msg.id, editText)
-                              }
-                              className="chat-edit-save"
-                            >
-                              ✓
-                            </button>
-                            <button
-                              type="button"
-                              onClick={cancelEditing}
-                              className="chat-edit-cancel"
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <>
-                          <p>
-                            {msg.text}
-                            {msg.edited && (
-                              <span className="chat-edited"> (edited)</span>
-                            )}
-                          </p>
-                          {msg.senderId === currentUser.uid && (
-                            <div className="chat-msg-actions">
-                              <button
-                                onClick={() => startEditing(msg)}
-                                className="chat-action-btn"
-                                title="Edit message"
-                              >
-                                ✏️
-                              </button>
-                              <button
-                                onClick={() => {
-                                  if (window.confirm("Delete this message?")) {
-                                    handleDeleteMessage(msg.id);
-                                  }
-                                }}
-                                className="chat-action-btn"
-                                title="Delete message"
-                              >
-                                🗑️
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                      <span className="chat-msg-time">
-                        {formatTime(msg.timestamp)}
-                      </span>
-                    </div>
-                  </div>
+                    msg={msg}
+                    isOwn={msg.senderId === currentUser.uid}
+                    currentUid={currentUser.uid}
+                    editingMessage={editingMessage}
+                    editText={editText}
+                    setEditText={setEditText}
+                    handleEditMessage={handleEditMessage}
+                    cancelEditing={cancelEditing}
+                    startEditing={startEditing}
+                    handleDeleteMessage={handleDeleteMessage}
+                    handleReaction={handleReaction}
+                  />
                 ))
               )}
               <div ref={messagesEndRef} />
@@ -343,6 +283,111 @@ export default function ChatUI({
         onClose={() => setShowEmojiPicker(false)}
         onEmojiSelect={handleEmojiSelect}
       />
+    </div>
+  );
+}
+
+function MessageBubble({
+  msg,
+  isOwn,
+  currentUid,
+  editingMessage,
+  editText,
+  setEditText,
+  handleEditMessage,
+  cancelEditing,
+  startEditing,
+  handleDeleteMessage,
+  handleReaction,
+}) {
+  const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const reactions = msg.reactions ?? {};
+  const reactionEntries = Object.entries(reactions).filter(([, uids]) => uids.length > 0);
+
+  return (
+    <div className={`chat-msg${isOwn ? " own" : ""}`}>
+      <div
+        className="chat-bubble"
+        onMouseLeave={() => setShowReactionPicker(false)}
+      >
+        {editingMessage === msg.id ? (
+          <div className="chat-edit-form">
+            <input
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+              className="chat-edit-input"
+              autoFocus
+              maxLength={500}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleEditMessage(msg.id, editText);
+                } else if (e.key === "Escape") {
+                  cancelEditing();
+                }
+              }}
+            />
+            <div className="chat-edit-actions">
+              <button type="button" onClick={() => handleEditMessage(msg.id, editText)} className="chat-edit-save">✓</button>
+              <button type="button" onClick={cancelEditing} className="chat-edit-cancel">✕</button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <p>
+              {msg.text}
+              {msg.edited && <span className="chat-edited"> (edited)</span>}
+            </p>
+            <div className="chat-msg-actions">
+              <button
+                className="chat-action-btn chat-react-btn"
+                title="React"
+                onClick={() => setShowReactionPicker((v) => !v)}
+              >
+                😊
+              </button>
+              {isOwn && (
+                <>
+                  <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit">✏️</button>
+                  <button
+                    onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
+                    className="chat-action-btn"
+                    title="Delete"
+                  >🗑️</button>
+                </>
+              )}
+            </div>
+            {showReactionPicker && (
+              <div className={`chat-reaction-picker${isOwn ? " own" : ""}`}>
+                {QUICK_REACTIONS.map((emoji) => (
+                  <button
+                    key={emoji}
+                    className="chat-reaction-option"
+                    onClick={() => { handleReaction(msg.id, emoji); setShowReactionPicker(false); }}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+        <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>
+      </div>
+      {reactionEntries.length > 0 && (
+        <div className={`chat-reactions${isOwn ? " own" : ""}`}>
+          {reactionEntries.map(([emoji, uids]) => (
+            <button
+              key={emoji}
+              className={`chat-reaction-pill${uids.includes(currentUid) ? " active" : ""}`}
+              onClick={() => handleReaction(msg.id, emoji)}
+              title={`${uids.length} reaction${uids.length !== 1 ? "s" : ""}`}
+            >
+              {emoji} {uids.length}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

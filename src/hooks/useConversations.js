@@ -14,6 +14,8 @@ import {
   setDoc,
   getDoc,
   deleteDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
 import { useAuth } from "../context/AuthContext";
@@ -62,55 +64,80 @@ export function useConversations({ onConversationStarted } = {}) {
   }, [firebaseUser, userProfile]);
 
   // ── Conversations subscription ────────────────────────────────────
+  const currentUid = currentUser?.uid ?? null;
   useEffect(() => {
-    if (!currentUser) return;
+    if (!currentUid) return;
     const q = query(
       collection(db, "conversations"),
-      where("participants", "array-contains", currentUser.uid),
+      where("participants", "array-contains", currentUid),
       orderBy("lastMessageAt", "desc"),
       limit(30),
     );
+    let cancelled = false;
     const unsub = onSnapshot(q, (snap) => {
+      if (cancelled) return;
       const convos = [];
       snap.forEach((d) => convos.push({ id: d.id, ...d.data() }));
       setConversations(convos);
     });
-    return () => unsub();
-  }, [currentUser]);
-
-  // Conversations are only marked read when actively opened (see setActiveConvo usage below)
+    return () => {
+      cancelled = true;
+      // Defer unsub by one tick to avoid Firestore watch-stream race condition
+      // (React StrictMode tears down and re-mounts synchronously, which can
+      //  corrupt Firestore's internal target state if unsub fires mid-stream)
+      setTimeout(() => { try { unsub(); } catch {} }, 0);
+    };
+  }, [currentUid]);
 
   // ── Messages subscription ─────────────────────────────────────────
+  const activeConvoId = activeConvo?.id ?? null;
   useEffect(() => {
-    if (!activeConvo) {
+    if (!activeConvoId) {
       setMessages([]);
       return;
     }
     const q = query(
-      collection(db, "conversations", activeConvo.id, "messages"),
+      collection(db, "conversations", activeConvoId, "messages"),
       orderBy("timestamp", "asc"),
       limit(200),
     );
+    let cancelled = false;
     const unsub = onSnapshot(q, (snap) => {
+      if (cancelled) return;
       const msgs = [];
       snap.forEach((d) => msgs.push({ id: d.id, ...d.data() }));
       setMessages(msgs);
     });
-
-    // Mark as read when opening a conversation
-    if (activeConvo.lastSenderId !== currentUser?.uid) {
-      updateDoc(doc(db, "conversations", activeConvo.id), {
-        [`read_${currentUser.uid}`]: true,
-      }).catch(() => {});
-    }
-
-    return () => unsub();
-  }, [activeConvo, currentUser]);
+    return () => {
+      cancelled = true;
+      setTimeout(() => { try { unsub(); } catch {} }, 0);
+    };
+  }, [activeConvoId, currentUid]);
 
   // ── Auto-scroll ───────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // ── openConversation — select a convo and immediately mark it read ─
+  const openConversation = useCallback(
+    (convo) => {
+      setActiveConvo(convo);
+      if (!convo || !currentUid) return;
+      // Optimistically clear the unread dot so the UI feels instant
+      if (convo.lastSenderId !== currentUid && !convo[`read_${currentUid}`]) {
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === convo.id ? { ...c, [`read_${currentUid}`]: true } : c,
+          ),
+        );
+        updateDoc(doc(db, "conversations", convo.id), {
+          [`read_${currentUid}`]: true,
+        }).catch(() => {});
+      }
+    },
+    [currentUid],
+  );
 
   // ── startConversation ─────────────────────────────────────────────
   const startConversation = useCallback(
@@ -245,34 +272,62 @@ export function useConversations({ onConversationStarted } = {}) {
     [newMessage, activeConvo, currentUser, firebaseUser],
   );
 
-  // ── handleSearchUsers ─────────────────────────────────────────────
+  // ── handleSearchUsers (debounced 300 ms) ─────────────────────────
+  const searchDebounceRef = useRef(null);
   const handleSearchUsers = useCallback(
-    async (q) => {
+    (q) => {
       setSearchQuery(q);
+      clearTimeout(searchDebounceRef.current);
       if (q.trim().length < 2) {
         setSearchResults([]);
+        setSearching(false);
         return;
       }
       setSearching(true);
-      try {
-        const snap = await getDocs(collection(db, "users"));
-        const results = [];
-        snap.forEach((d) => {
-          const data = d.data();
-          if (
-            d.id !== currentUser?.uid &&
-            data.username?.toLowerCase().includes(q.toLowerCase())
-          ) {
-            results.push({ uid: d.id, ...data });
-          }
-        });
-        setSearchResults(results.slice(0, 10));
-      } catch {
-        toast.error("Search failed");
-      }
-      setSearching(false);
+      searchDebounceRef.current = setTimeout(async () => {
+        try {
+          const snap = await getDocs(collection(db, "users"));
+          const results = [];
+          snap.forEach((d) => {
+            const data = d.data();
+            if (
+              d.id !== currentUser?.uid &&
+              data.username?.toLowerCase().includes(q.toLowerCase())
+            ) {
+              results.push({ uid: d.id, ...data });
+            }
+          });
+          setSearchResults(results.slice(0, 10));
+        } catch {
+          toast.error("Search failed");
+        }
+        setSearching(false);
+      }, 300);
     },
     [currentUser],
+  );
+
+  // ── handleReaction ────────────────────────────────────────────────
+  const handleReaction = useCallback(
+    async (messageId, emoji) => {
+      if (!activeConvo || !currentUser) return;
+      const msgRef = doc(
+        db,
+        "conversations",
+        activeConvo.id,
+        "messages",
+        messageId,
+      );
+      const msg = messages.find((m) => m.id === messageId);
+      const current = msg?.reactions?.[emoji] ?? [];
+      const alreadyReacted = current.includes(currentUser.uid);
+      await updateDoc(msgRef, {
+        [`reactions.${emoji}`]: alreadyReacted
+          ? arrayRemove(currentUser.uid)
+          : arrayUnion(currentUser.uid),
+      }).catch(() => {});
+    },
+    [activeConvo, currentUser, messages],
   );
 
   // ── handleEditMessage ─────────────────────────────────────────────
@@ -394,9 +449,11 @@ export function useConversations({ onConversationStarted } = {}) {
     messagesEndRef,
     inputRef,
     // actions
+    openConversation,
     startConversation,
     handleSend,
     handleSearchUsers,
+    handleReaction,
     handleEditMessage,
     handleDeleteMessage,
     deleteConversation,
