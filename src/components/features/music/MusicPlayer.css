@@ -238,14 +238,14 @@
 }
 
 .mini-hdr-btn.close {
-  background: rgba(239, 68, 68, 0.12);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
-  font-size: 10px;
+  background: rgba(239, 68, 68, 0.82);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ffffff;
 }
 
 .mini-hdr-btn.close:hover {
-  background: rgba(239, 68, 68, 0.35);
+  background: #dc2626;
+  border-color: #ef4444;
 }
 
 /* ── Mini media area ─────────────────────────────────────────────────────── */
@@ -701,13 +701,15 @@
 }
 
 .header-btns .close-btn {
-  background: rgba(239, 68, 68, 0.15);
-  border-color: rgba(239, 68, 68, 0.3);
-  color: #f87171;
+  background: rgba(239, 68, 68, 0.82);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ffffff;
 }
 
 .header-btns .close-btn:hover {
-  background: rgba(239, 68, 68, 0.35);
+  background: #dc2626;
+  border-color: #ef4444;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
 }
 
 /* ── Content ─────────────────────────────────────────────────────────────── */

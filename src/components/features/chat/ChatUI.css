@@ -45,8 +45,8 @@
   gap: 6px;
 }
 
-.chat-new-btn,
-.chat-close-btn {
+
+.chat-new-btn {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-sm);
@@ -61,8 +61,7 @@
   transition: all 0.15s;
 }
 
-.chat-new-btn:hover,
-.chat-close-btn:hover {
+.chat-new-btn:hover {
   background: var(--color-primary-25);
   border-color: var(--color-primary-40);
 }

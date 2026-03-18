@@ -28,11 +28,11 @@ export default function ProfileImageModal({
         onClick={(e) => e.stopPropagation()}
       >
         <button
-          className="profile-image-modal-close"
+          className="profile-image-modal-close close-btn"
           onClick={onClose}
           title="Close (ESC)"
         >
-          <CloseIcon size={24} />
+          <CloseIcon size={18} />
         </button>
 
         <img

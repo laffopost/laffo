@@ -71,28 +71,7 @@
   position: absolute;
   top: 12px;
   right: 12px;
-  width: 40px;
-  height: 40px;
-  border: none;
-  background: rgba(0, 0, 0, 0.6);
-  color: white;
-  border-radius: var(--radius-full);
-  font-size: 24px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: var(--transition-fast);
   z-index: 10;
-}
-
-.profile-image-modal-close:hover {
-  background: var(--bg-overlay);
-  transform: rotate(90deg);
-}
-
-.profile-image-modal-close:active {
-  transform: rotate(90deg) scale(0.9);
 }
 
 /* Mobile responsive */
@@ -107,9 +86,4 @@
     max-height: 80vh;
   }
 
-  .profile-image-modal-close {
-    width: 36px;
-    height: 36px;
-    font-size: 20px;
-  }
 }

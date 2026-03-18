@@ -447,56 +447,37 @@
   box-shadow: 0 2px 4px var(--bg-dark-30);
 }
 
-/* ── Inline action buttons (delete / random) in the tabs header ──────────── */
+/* ── Inline action buttons in the toolbar ────────────────────────────────── */
 .postmodal-action-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: var(--radius-sm);
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: none;
-  font-size: 14px;
+  background: none;
   cursor: pointer;
   flex-shrink: 0;
-  transition:
-    transform 0.15s,
-    box-shadow 0.15s,
-    opacity 0.15s;
+  transition: color 0.2s, background 0.2s, transform 0.2s;
+  padding: 0;
 }
 
-.postmodal-action-btn--delete {
-  background: var(--color-danger-10);
-  color: #f87171;
-  border: 1px solid var(--color-danger-border);
-}
-
-.postmodal-action-btn--delete:hover {
-  background: rgba(239, 68, 68, 0.28);
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.25);
-}
-
-.postmodal-action-btn--edit {
-  background: rgba(34, 197, 94, 0.15);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.3);
-}
-
-.postmodal-action-btn--edit:hover {
-  background: rgba(34, 197, 94, 0.28);
-  transform: scale(1.1);
-  box-shadow: 0 4px 12px rgba(34, 197, 94, 0.25);
-}
-
+.postmodal-action-btn--edit,
+.postmodal-action-btn--delete,
 .postmodal-action-btn--random {
-  background: rgba(236, 72, 153, 0.15);
-  color: #f9a8d4;
-  border: 1px solid var(--color-pink-30);
+  color: var(--color-primary);
+}
+
+.postmodal-action-btn--edit:hover,
+.postmodal-action-btn--delete:hover {
+  color: var(--color-warning);
+  background: var(--color-primary-8);
+  transform: scale(1.12);
 }
 
 .postmodal-action-btn--random:hover {
-  background: rgba(236, 72, 153, 0.28);
-  transform: scale(1.1) rotate(15deg);
-  box-shadow: 0 4px 12px rgba(236, 72, 153, 0.25);
+  color: var(--color-warning);
+  background: var(--color-primary-8);
+  transform: scale(1.12) rotate(20deg);
 }

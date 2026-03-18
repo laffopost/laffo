@@ -123,7 +123,6 @@ export default function LiveFeed() {
                 key={`live-feed-${activity.id}`} // Changed to ensure uniqueness
                 className="feed-item"
               >
-                <span className="feed-emoji">{activity.emoji}</span>
                 <div className="feed-item-content">
                   <div className="feed-item-text">
                     <span

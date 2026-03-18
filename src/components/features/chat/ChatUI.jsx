@@ -66,7 +66,7 @@ export default function ChatUI({
           <h3>Messages</h3>
           {variant === "overlay" && (
             <button
-              className="chat-close-btn"
+              className="close-btn"
               onClick={onClose}
               title="Close"
             >

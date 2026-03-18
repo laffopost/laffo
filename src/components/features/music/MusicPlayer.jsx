@@ -905,7 +905,7 @@ export default function MusicPlayer() {
                   <span>–</span>
                 </button>
                 <button className="close-btn" onClick={handleClose} title="Close">
-                  <span>✕</span>
+                  <CloseIcon size={18} />
                 </button>
               </div>
             </div>

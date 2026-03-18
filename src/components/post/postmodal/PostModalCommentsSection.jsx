@@ -12,7 +12,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon } from "../../../utils/icons";
+import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon } from "../../../utils/icons";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
   image,
@@ -280,7 +280,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                           }}
                           title={`DM ${comment.author}`}
                         >
-                          <Mail size={13} />
+                          <MessageIcon size={14} />
                         </button>
                       )}
                     <span className="comment-time" style={{ marginLeft: 8 }}>

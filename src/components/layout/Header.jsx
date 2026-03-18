@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { useUnreadMessageCount } from "../../hooks/useUnreadMessageCount";
 import { NotificationBell } from "../features/utilities";
-import { ThemeToggle } from "../common";
+import { ThemeToggle, Dropdown } from "../common";
 import { VolumeUpIcon, VolumeMuteIcon } from "../../utils/icons";
 import laughLogo from "../../assets/laugh.png";
 import "./Header.css";
@@ -69,15 +69,11 @@ const Header = memo(function Header() {
     const stored = localStorage.getItem(SOUND_KEY);
     return stored === null ? true : stored === "true";
   });
-  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
-  const [navDropdownOpen, setNavDropdownOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   // Close mobile menu on route change
   useEffect(() => {
     setMobileMenuOpen(false);
-    setUserDropdownOpen(false);
-    setNavDropdownOpen(false);
   }, [location.pathname]);
 
   useEffect(() => {
@@ -97,36 +93,18 @@ const Header = memo(function Header() {
     };
   }, [mobileMenuOpen]);
 
-  // Close user dropdown on outside click
-  useEffect(() => {
-    if (!userDropdownOpen) return;
-    const handler = (e) => {
-      // Only close if click is outside BOTH the button and the dropdown
-      if (
-        !e.target.closest(".header-user-btn") &&
-        !e.target.closest(".header-user-dropdown")
-      ) {
-        setUserDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, [userDropdownOpen]);
 
   // Helper for profile navigation
   const goToProfile = () => {
-    // Always use username if present
     if (userProfile?.username) {
       navigate(`/profile/${userProfile.username}`);
     } else {
       navigate("/profile");
     }
-    setUserDropdownOpen(false);
   };
 
   // Log out handler
   const handleLogout = async () => {
-    setUserDropdownOpen(false);
     try {
       await signOut(auth);
       navigate("/profile", { replace: true });
@@ -139,129 +117,73 @@ const Header = memo(function Header() {
   let userSection = null;
   if (firebaseUser && !firebaseUser.isAnonymous) {
     const avatar = userProfile?.avatar || firebaseUser.photoURL || null;
-    // Always use username if present
     const username = userProfile?.username;
-    userSection = (
-      <div style={{ position: "relative" }}>
-        <button
-          className="header-user-btn"
-          onClick={() => setUserDropdownOpen((v) => !v)}
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: "0 8px",
-          }}
-          title="User menu"
-        >
-          {avatar ? (
-            <img
-              src={avatar}
-              alt="avatar"
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                objectFit: "cover",
-                border: "2px solid #8b5cf6",
-                background: "#23234a",
-              }}
-            />
-          ) : (
-            <span
-              style={{
-                width: 32,
-                height: 32,
-                borderRadius: "50%",
-                background: "#23234a",
-                color: "#fff",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                fontWeight: 600,
-                fontSize: 18,
-                border: "2px solid #8b5cf6",
-              }}
-            >
-              {(username && username[0]?.toUpperCase()) || "U"}
-            </span>
-          )}
+
+    const userLabel = (
+      <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+        {avatar ? (
+          <img
+            src={avatar}
+            alt="avatar"
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
+              objectFit: "cover",
+              border: "2px solid #8b5cf6",
+              background: "#23234a",
+            }}
+          />
+        ) : (
           <span
             style={{
-              color: "#fff",
-              fontWeight: 500,
-              fontSize: 15,
-              maxWidth: 120,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {username || "User"}
-          </span>
-          <span style={{ color: "#fff", fontSize: 18, marginLeft: 2 }}>▼</span>
-        </button>
-        {userDropdownOpen && (
-          <div
-            className="header-user-dropdown"
-            style={{
-              position: "absolute",
-              right: 0,
-              top: 40,
+              width: 32,
+              height: 32,
+              borderRadius: "50%",
               background: "#23234a",
-              borderRadius: 10,
-              boxShadow: "0 4px 16px #23234a44",
-              minWidth: 140,
-              zIndex: 100,
-              padding: "8px 0",
-              border: "1px solid #8b5cf6",
+              color: "#fff",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontWeight: 600,
+              fontSize: 18,
+              border: "2px solid #8b5cf6",
             }}
           >
-            <button
-              className="header-user-dropdown-item"
-              style={{
-                width: "100%",
-                background: "none",
-                border: "none",
-                color: "#fff",
-                padding: "10px 18px",
-                textAlign: "left",
-                fontSize: 15,
-                cursor: "pointer",
-              }}
-              onClick={goToProfile}
-            >
-              Profile
-            </button>
-            <button
-              className="header-user-dropdown-item"
-              style={{
-                width: "100%",
-                background: "none",
-                border: "none",
-                color: "#fff",
-                padding: "10px 18px",
-                textAlign: "left",
-                fontSize: 15,
-                cursor: "pointer",
-              }}
-              onClick={handleLogout}
-            >
-              Log out
-            </button>
-          </div>
+            {(username && username[0]?.toUpperCase()) || "U"}
+          </span>
         )}
-      </div>
+        <span
+          style={{
+            color: "#fff",
+            fontWeight: 500,
+            fontSize: 15,
+            maxWidth: 120,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+        >
+          {username || "User"}
+        </span>
+      </span>
+    );
+
+    userSection = (
+      <Dropdown
+        label={userLabel}
+        variant="user"
+        items={[
+          { label: "Profile", onClick: goToProfile },
+          { label: "Log out", onClick: handleLogout, isDanger: true },
+        ]}
+      />
     );
   } else {
     userSection = (
       <button
         className="header-login-btn"
         onClick={() => {
-          // Always go to /profile or /profile/{username} if available
           if (userProfile?.username) {
             navigate(`/profile/${userProfile.username}`);
           } else {
@@ -392,43 +314,14 @@ const Header = memo(function Header() {
           </Link>
 
           {/* Dropdown Menu */}
-          <div
-            className="dropdown"
-            onMouseLeave={() => setNavDropdownOpen(false)}
-          >
-            <button
-              className="dropdown-toggle"
-              onMouseEnter={() => setNavDropdownOpen(true)}
-              onClick={() => setNavDropdownOpen(!navDropdownOpen)}
-            >
-              More ▼
-            </button>
-            {navDropdownOpen && (
-              <div className="dropdown-menu">
-                <Link
-                  to="/stocks"
-                  className="dropdown-item"
-                  onClick={() => setNavDropdownOpen(false)}
-                >
-                  Stocks
-                </Link>
-                <Link
-                  to="/trade"
-                  className="dropdown-item"
-                  onClick={() => setNavDropdownOpen(false)}
-                >
-                  Trade / Chart
-                </Link>
-                <Link
-                  to="/sponsors"
-                  className="dropdown-item"
-                  onClick={() => setNavDropdownOpen(false)}
-                >
-                  Sponsors
-                </Link>
-              </div>
-            )}
-          </div>
+          <Dropdown
+            label="More"
+            items={[
+              { label: "Stocks", onClick: () => navigate("/stocks") },
+              { label: "Trade / Chart", onClick: () => navigate("/trade") },
+              { label: "Sponsors", onClick: () => navigate("/sponsors") },
+            ]}
+          />
           {/* --- User section at the end of nav --- */}
           <div className="nav-desktop-only">
             {firebaseUser && <NotificationBell />}

@@ -78,8 +78,8 @@ export default function EditPostModal({ post, onClose, onSave }) {
             <EditIcon size={20} style={{color: '#8b5cf6'}} />
             <h2 style={{margin: 0}}>Edit Post</h2>
           </div>
-          <button className="edit-post-close-btn" onClick={onClose} title="Close">
-            <CloseIcon size={18} />
+          <button className="close-btn" onClick={onClose} title="Close">
+            <CloseIcon size={20} />
           </button>
         </div>
 

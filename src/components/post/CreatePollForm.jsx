@@ -121,20 +121,8 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
         <button
           type="button"
           onClick={onClose}
-          style={{
-            background: 'transparent',
-            border: 'none',
-            color: 'var(--text-base)',
-            cursor: 'pointer',
-            padding: '0.4rem',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            transition: 'all 0.2s',
-          }}
+          className="close-btn"
           title="Close"
-          onMouseEnter={(e) => e.target.style.background = 'var(--bg-surface-hover)'}
-          onMouseLeave={(e) => e.target.style.background = 'transparent'}
         >
           <CloseIcon size={20} />
         </button>

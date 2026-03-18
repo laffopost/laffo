@@ -316,7 +316,7 @@ export default function PostModalImageSection({
               onClick={onEditRequest}
               title="Edit post"
             >
-              <EditIcon size={14} />
+              <EditIcon size={15} />
             </button>
           )}
           {canDelete && onDeleteRequest && (
@@ -325,16 +325,16 @@ export default function PostModalImageSection({
               onClick={onDeleteRequest}
               title="Delete post"
             >
-              <DeleteIcon size={14} />
+              <DeleteIcon size={15} />
             </button>
           )}
           {onRandom && (
             <button
-              className="image-modal-random"
+              className="postmodal-action-btn postmodal-action-btn--random"
               onClick={onRandom}
               title="Random post"
             >
-              <ShuffleIcon size={14} />
+              <ShuffleIcon size={15} />
             </button>
           )}
         </div>

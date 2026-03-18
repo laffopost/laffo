@@ -86,12 +86,6 @@
   transform: translateX(2px);
 }
 
-.feed-emoji {
-  font-size: 1.3rem;
-  flex-shrink: 0;
-  line-height: 1;
-}
-
 .feed-item-content {
   flex: 1;
   min-width: 0;
@@ -175,10 +169,6 @@
   .feed-item {
     min-height: 52px;
     padding: 6px 10px;
-  }
-
-  .feed-emoji {
-    font-size: 1.1rem;
   }
 
   .feed-item-text {

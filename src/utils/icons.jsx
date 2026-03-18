@@ -201,6 +201,7 @@ export const ListIcon = Icons.list;
 export const GridIcon = Icons.grid;
 export const ChevronLeftIcon = Icons.chevronLeft;
 export const ChevronRightIcon = Icons.chevronRight;
+export const ChevronDownIcon = Icons.chevronDown;
 export const ShuffleIcon = Icons.shuffle;
 export const MessageIcon = Icons.message;
 export const CalendarIcon = Icons.calendar;
