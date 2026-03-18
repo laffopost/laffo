@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
 import { useAuth } from "../context/AuthContext";
-import { NotificationIcon, HeartIcon, ChatIcon } from "../utils/icons";
+import { NotificationIcon, HeartIcon, ChatIcon, UserIcon, AddIcon } from "../utils/icons";
 import "./NotificationsPage.css";
 
 export default function NotificationsPage() {
@@ -27,7 +27,11 @@ export default function NotificationsPage() {
     if (!notification.read) {
       await markAsRead(notification.id);
     }
-    navigate(`/image/${notification.postId}`);
+    if (notification.type === "follow") {
+      navigate(`/profile/${notification.fromUsername}`);
+    } else {
+      navigate(`/image/${notification.postId}`);
+    }
   };
 
   const formatTimestamp = (createdAt) => {
@@ -59,6 +63,10 @@ export default function NotificationsPage() {
         return <HeartIcon size={20} />;
       case "comment":
         return <ChatIcon size={20} />;
+      case "follow":
+        return <UserIcon size={20} />;
+      case "new_post":
+        return <AddIcon size={20} />;
       default:
         return <NotificationIcon size={20} />;
     }

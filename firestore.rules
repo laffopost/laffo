@@ -142,9 +142,9 @@ service cloud.firestore {
     // Notifications collection
     match /notifications/{notificationId} {
       // Allow authenticated users to create notifications for other users
-      allow create: if request.auth != null 
-                   && request.resource.data.keys().hasAll(['userId', 'fromUserId', 'fromUsername', 'type', 'postId', 'message', 'read', 'createdAt'])
-                   && request.resource.data.type in ['like', 'comment']
+      allow create: if request.auth != null
+                   && request.resource.data.keys().hasAll(['userId', 'fromUserId', 'fromUsername', 'type', 'message', 'read', 'createdAt'])
+                   && request.resource.data.type in ['like', 'comment', 'follow', 'new_post']
                    && request.resource.data.read == false
                    && request.auth.uid == request.resource.data.fromUserId;
       
@@ -160,6 +160,19 @@ service cloud.firestore {
       // Allow users to delete their own notifications
       allow delete: if request.auth != null 
                    && request.auth.uid == resource.data.userId;
+    }
+
+    // Follows collection (doc ID = `${followerId}_${followingId}`)
+    match /follows/{followId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                   && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                   && request.resource.data.keys().hasAll(['followerId', 'followingId', 'createdAt'])
+                   && request.auth.uid == request.resource.data.followerId
+                   && request.auth.uid != request.resource.data.followingId;
+      allow delete: if request.auth != null
+                   && request.auth.uid == resource.data.followerId;
+      allow update: if false;
     }
 
     // Game scores collection

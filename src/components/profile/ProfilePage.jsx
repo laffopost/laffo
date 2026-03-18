@@ -9,12 +9,16 @@ import { useNavigate, useParams } from "react-router-dom";
 import {
   doc,
   getDocs,
+  deleteDoc,
+  setDoc,
   collection,
   query,
   where,
-  setDoc,
+  onSnapshot,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase/config";
+import { useNotifications } from "../../context/NotificationContext";
 import TikTokLogo from "../../assets/tiktok.png";
 import TwitterLogo from "../../assets/twitter.png";
 import TelegramLogo from "../../assets/telegram.png";
@@ -25,7 +29,8 @@ import ProfileEditForm from "./ProfileEditForm";
 import AddPostModal from "../post/AddPostModal";
 import CreatePostButton from "../post/CreatePostButton";
 import ProfileImageModal from "./ProfileImageModal";
-import { EditIcon, MessageIcon } from "../../utils/icons";
+import FollowListModal from "./FollowListModal";
+import { EditIcon, MessageIcon, ChevronRightIcon } from "../../utils/icons";
 import "./ProfilePage.css";
 
 export default function ProfilePage() {
@@ -43,8 +48,14 @@ export default function ProfilePage() {
   const [notification, setNotification] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [followListMode, setFollowListMode] = useState(null); // "followers" | "following" | null
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
   const navigate = useNavigate();
   const { username: routeUsername } = useParams();
+  const { createFollowNotification } = useNotifications();
 
   // Format Firestore timestamp to readable date
   function formatTimestamp(ts) {
@@ -138,6 +149,70 @@ export default function ProfilePage() {
       isMounted = false;
     };
   }, [routeUsername, userProfile]);
+
+  // Subscribe to followers count (people following this profile)
+  useEffect(() => {
+    if (!publicProfile?.uid) return;
+    const q = query(
+      collection(db, "follows"),
+      where("followingId", "==", publicProfile.uid),
+    );
+    const unsub = onSnapshot(q, (snap) => setFollowersCount(snap.size));
+    return () => unsub();
+  }, [publicProfile?.uid]);
+
+  // Subscribe to following count (people this profile follows)
+  useEffect(() => {
+    if (!publicProfile?.uid) return;
+    const q = query(
+      collection(db, "follows"),
+      where("followerId", "==", publicProfile.uid),
+    );
+    const unsub = onSnapshot(q, (snap) => setFollowingCount(snap.size));
+    return () => unsub();
+  }, [publicProfile?.uid]);
+
+  // Check if current user follows this profile
+  useEffect(() => {
+    if (!firebaseUser?.uid || !publicProfile?.uid || firebaseUser.uid === publicProfile.uid) {
+      setIsFollowing(false);
+      return;
+    }
+    const docId = `${firebaseUser.uid}_${publicProfile.uid}`;
+    const unsub = onSnapshot(doc(db, "follows", docId), (snap) => {
+      setIsFollowing(snap.exists());
+    });
+    return () => unsub();
+  }, [firebaseUser?.uid, publicProfile?.uid]);
+
+  // Follow / unfollow handler
+  const handleFollowToggle = useCallback(async () => {
+    if (!firebaseUser?.uid || !publicProfile?.uid || followLoading) return;
+    if (firebaseUser.isAnonymous) return;
+
+    const docId = `${firebaseUser.uid}_${publicProfile.uid}`;
+    const followRef = doc(db, "follows", docId);
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await deleteDoc(followRef);
+        setNotification({ message: `Unfollowed ${publicProfile.username}`, type: "info" });
+      } else {
+        await setDoc(followRef, {
+          followerId: firebaseUser.uid,
+          followingId: publicProfile.uid,
+          createdAt: serverTimestamp(),
+        });
+        createFollowNotification(publicProfile.uid);
+        setNotification({ message: `Following ${publicProfile.username}!`, type: "success" });
+      }
+    } catch (err) {
+      setNotification({ message: "Failed to update follow status", type: "error" });
+    } finally {
+      setFollowLoading(false);
+    }
+  }, [firebaseUser, publicProfile, isFollowing, followLoading, createFollowNotification]);
 
   const handlePostDelete = useCallback((error) => {
     setTimeout(() => {
@@ -426,6 +501,13 @@ export default function ProfilePage() {
         onClose={() => setShowImageModal(false)}
       />
 
+      <FollowListModal
+        isOpen={!!followListMode}
+        onClose={() => setFollowListMode(null)}
+        userId={publicProfile?.uid}
+        mode={followListMode}
+      />
+
       <div className="profile-page">
         <div className="profile-main-card">
           {/* ── Hero Banner ── */}
@@ -445,6 +527,40 @@ export default function ProfilePage() {
                 </button>
               </div>
             )}
+            {!isOwnProfile &&
+              firebaseUser &&
+              !firebaseUser.isAnonymous &&
+              publicProfile?.uid && (
+                <div className="profile-hero-actions">
+                  <button
+                    className={`profile-hero-follow-btn ${isFollowing ? "profile-hero-follow-btn--following" : ""}`}
+                    onClick={handleFollowToggle}
+                    disabled={followLoading}
+                  >
+                    {followLoading
+                      ? "..."
+                      : isFollowing
+                        ? "Following"
+                        : "Follow"}
+                  </button>
+                  <button
+                    className="profile-hero-dm-btn"
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent("openDM", {
+                          detail: {
+                            uid: publicProfile.uid,
+                            username: publicProfile.username || routeUsername,
+                            avatar: publicProfile.avatar || null,
+                          },
+                        }),
+                      );
+                    }}
+                  >
+                    <MessageIcon size={14} /> Message
+                  </button>
+                </div>
+              )}
           </div>
 
           {/* ── Identity Row ── */}
@@ -478,27 +594,6 @@ export default function ProfilePage() {
               {publicProfile.status && (
                 <p className="profile-status-text">{publicProfile.status}</p>
               )}
-              {!isOwnProfile &&
-                firebaseUser &&
-                !firebaseUser.isAnonymous &&
-                publicProfile?.uid && (
-                  <button
-                    className="profile-dm-btn"
-                    onClick={() => {
-                      window.dispatchEvent(
-                        new CustomEvent("openDM", {
-                          detail: {
-                            uid: publicProfile.uid,
-                            username: publicProfile.username || routeUsername,
-                            avatar: publicProfile.avatar || null,
-                          },
-                        }),
-                      );
-                    }}
-                  >
-                    <MessageIcon size={14} /> Send Message
-                  </button>
-                )}
             </div>
           </div>
 
@@ -517,6 +612,26 @@ export default function ProfilePage() {
             <div className="profile-stat">
               <span className="profile-stat-value">{totalComments}</span>
               <span className="profile-stat-label">Comments</span>
+            </div>
+          </div>
+          <div className="profile-stats-section profile-stats-follow-row">
+            <div
+              className="profile-stat profile-stat--clickable"
+              onClick={() => setFollowListMode("followers")}
+            >
+              <span className="profile-stat-value">{followersCount}</span>
+              <span className="profile-stat-label">
+                Followers <ChevronRightIcon size={18} className="profile-stat-arrow" />
+              </span>
+            </div>
+            <div
+              className="profile-stat profile-stat--clickable"
+              onClick={() => setFollowListMode("following")}
+            >
+              <span className="profile-stat-value">{followingCount}</span>
+              <span className="profile-stat-label">
+                Following <ChevronRightIcon size={18} className="profile-stat-arrow" />
+              </span>
             </div>
           </div>
 

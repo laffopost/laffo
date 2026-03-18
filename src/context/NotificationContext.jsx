@@ -150,6 +150,34 @@ export function NotificationProvider({ children }) {
     [userId, userProfile],
   );
 
+  // Create notification when someone follows a user
+  const createFollowNotification = useCallback(
+    async (targetUserId) => {
+      if (!userId || !userProfile?.username || userId === targetUserId) {
+        return;
+      }
+
+      try {
+        const message = `${userProfile.username} started following you`;
+
+        await addDoc(collection(db, "notifications"), {
+          userId: targetUserId,
+          fromUserId: userId,
+          fromUsername: userProfile.username,
+          type: "follow",
+          message,
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+
+        logger.log("Follow notification created");
+      } catch (error) {
+        logger.error("Error creating follow notification:", error);
+      }
+    },
+    [userId, userProfile],
+  );
+
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId) => {
     try {
@@ -210,6 +238,7 @@ export function NotificationProvider({ children }) {
       loading,
       createLikeNotification,
       createCommentNotification,
+      createFollowNotification,
       markAsRead,
       markAllAsRead,
       clearAllNotifications,
@@ -220,6 +249,7 @@ export function NotificationProvider({ children }) {
       loading,
       createLikeNotification,
       createCommentNotification,
+      createFollowNotification,
       markAsRead,
       markAllAsRead,
       clearAllNotifications,

@@ -184,33 +184,6 @@
   line-height: 1.45;
 }
 
-.profile-dm-btn {
-  margin-top: 10px;
-  padding: 9px 20px;
-  border-radius: 10px;
-  border: 1px solid rgba(34, 197, 94, 0.4);
-  background: linear-gradient(
-    135deg,
-    rgba(34, 197, 94, 0.15),
-    rgba(22, 163, 74, 0.15)
-  );
-  color: #4ade80;
-  font-size: 0.85rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.25s;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  width: fit-content;
-}
-.profile-dm-btn:hover {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: #fff;
-  border-color: #22c55e;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(34, 197, 94, 0.4);
-}
 
 /* ─── Buttons ─── */
 .profile-edit-btn,
@@ -261,12 +234,85 @@
   transform: translateY(-1px);
 }
 
+/* ─── Hero banner follow + DM buttons (same style as edit/logout) ─── */
+.profile-hero-follow-btn,
+.profile-hero-dm-btn {
+  padding: 7px 14px;
+  border-radius: 9px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  border: none;
+  white-space: nowrap;
+  min-width: 80px;
+  text-align: center;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  gap: 4px;
+}
+
+.profile-hero-follow-btn {
+  background: linear-gradient(135deg, #7c3aed, #6d28d9);
+  color: #fff;
+  border: 1.5px solid rgba(139, 92, 246, 0.5);
+}
+
+.profile-hero-follow-btn:hover {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  border-color: #8b5cf6;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(139, 92, 246, 0.4);
+}
+
+.profile-hero-follow-btn--following {
+  background: var(--color-primary-22);
+  color: #c4b5fd;
+  border: 1.5px solid var(--color-primary-40);
+}
+
+.profile-hero-follow-btn--following:hover {
+  background: rgba(239, 68, 68, 0.22);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #fca5a5;
+  box-shadow: none;
+}
+
+.profile-hero-follow-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.profile-hero-dm-btn {
+  background: rgba(34, 197, 94, 0.18);
+  color: #4ade80;
+  border: 1.5px solid rgba(34, 197, 94, 0.35);
+}
+
+.profile-hero-dm-btn:hover {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #fff;
+  border-color: #22c55e;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
+}
+
 /* ─── Stats ─── */
 .profile-stats-section {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  padding: 0 18px 16px;
+  padding: 0 18px 8px;
+}
+
+.profile-stats-follow-row {
+  grid-template-columns: repeat(2, 1fr);
+  padding-bottom: 16px;
 }
 
 .profile-stat {
@@ -275,13 +321,32 @@
   border-radius: var(--radius-md);
   padding: 10px 8px;
   text-align: center;
-  transition: all 0.22s;
   cursor: default;
 }
 
-.profile-stat:hover {
-  background: var(--color-primary-15);
-  border-color: rgba(139, 92, 246, 0.42);
+.profile-stat--clickable {
+  cursor: pointer;
+  border-style: dashed;
+  transition: all 0.22s;
+}
+
+.profile-stat-arrow {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 2px;
+  opacity: 0.55;
+  transition: transform 0.2s, opacity 0.2s;
+}
+
+.profile-stat--clickable:hover .profile-stat-arrow {
+  opacity: 1;
+  transform: translateX(2px);
+}
+
+.profile-stat--clickable:hover {
+  border-style: solid;
+  border-color: var(--color-primary);
+  background: var(--color-primary-22);
   transform: translateY(-2px);
   box-shadow: 0 6px 20px var(--color-primary-20);
 }
@@ -742,9 +807,12 @@
     gap: 6px;
   }
   .profile-edit-btn,
-  .profile-logout-btn {
+  .profile-logout-btn,
+  .profile-hero-follow-btn,
+  .profile-hero-dm-btn {
     padding: 5px 9px;
     font-size: 0.7rem;
+    min-width: 60px;
   }
   .profile-solana-address {
     max-width: 140px;

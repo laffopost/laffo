@@ -1,15 +1,27 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import toast from "react-hot-toast";
 import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
-import { doc, getDoc } from "firebase/firestore";
+import { useNotifications } from "../../../context/NotificationContext";
+import {
+  doc,
+  getDoc,
+  setDoc,
+  deleteDoc,
+  collection,
+  query,
+  where,
+  onSnapshot,
+  serverTimestamp,
+} from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import "./PostModalImageSection.css";
 import MediaPlayer from "../MediaPlayer";
 import StatusRenderer from "../StatusRenderer";
 import PollRenderer from "../PollRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon, UserProfileIcon } from "../../../utils/icons";
+import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon, UserProfileIcon, ChevronRightIcon } from "../../../utils/icons";
+import FollowListModal from "../../profile/FollowListModal";
 
 export default function PostModalImageSection({
   image,
@@ -40,7 +52,15 @@ export default function PostModalImageSection({
   const reactionPickerRef = useRef(null);
 
   const { firebaseUser } = useAuth();
+  const { createFollowNotification } = useNotifications();
   const { requireAuth } = useRequireAuth();
+
+  // Follow state for the user tab
+  const [isFollowing, setIsFollowing] = useState(false);
+  const [followLoading, setFollowLoading] = useState(false);
+  const [followersCount, setFollowersCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+  const [followListMode, setFollowListMode] = useState(null);
 
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
   const reactions = getReactions(image.id);
@@ -108,6 +128,68 @@ export default function PostModalImageSection({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Follow: subscribe to followers count
+  useEffect(() => {
+    if (!image.uploadedBy) return;
+    const q = query(
+      collection(db, "follows"),
+      where("followingId", "==", image.uploadedBy),
+    );
+    const unsub = onSnapshot(q, (snap) => setFollowersCount(snap.size));
+    return () => unsub();
+  }, [image.uploadedBy]);
+
+  // Follow: subscribe to following count
+  useEffect(() => {
+    if (!image.uploadedBy) return;
+    const q = query(
+      collection(db, "follows"),
+      where("followerId", "==", image.uploadedBy),
+    );
+    const unsub = onSnapshot(q, (snap) => setFollowingCount(snap.size));
+    return () => unsub();
+  }, [image.uploadedBy]);
+
+  // Follow: check if current user follows this post's author
+  useEffect(() => {
+    if (!firebaseUser?.uid || !image.uploadedBy || firebaseUser.uid === image.uploadedBy) {
+      setIsFollowing(false);
+      return;
+    }
+    const docId = `${firebaseUser.uid}_${image.uploadedBy}`;
+    const unsub = onSnapshot(doc(db, "follows", docId), (snap) => {
+      setIsFollowing(snap.exists());
+    });
+    return () => unsub();
+  }, [firebaseUser?.uid, image.uploadedBy]);
+
+  // Follow / unfollow handler
+  const handleFollowToggle = useCallback(async () => {
+    if (!firebaseUser?.uid || !image.uploadedBy || followLoading) return;
+    if (firebaseUser.isAnonymous) return;
+
+    const docId = `${firebaseUser.uid}_${image.uploadedBy}`;
+    const followRef = doc(db, "follows", docId);
+
+    setFollowLoading(true);
+    try {
+      if (isFollowing) {
+        await deleteDoc(followRef);
+      } else {
+        await setDoc(followRef, {
+          followerId: firebaseUser.uid,
+          followingId: image.uploadedBy,
+          createdAt: serverTimestamp(),
+        });
+        createFollowNotification(image.uploadedBy);
+      }
+    } catch (_err) {
+      // silently fail
+    } finally {
+      setFollowLoading(false);
+    }
+  }, [firebaseUser, image.uploadedBy, isFollowing, followLoading, createFollowNotification]);
 
   useEffect(() => {
     let ignore = false;
@@ -208,6 +290,26 @@ export default function PostModalImageSection({
               <span className="postmodal-stat-label">Comments</span>
             </div>
           </div>
+          <div className="postmodal-user-stats postmodal-user-stats--2col">
+            <div
+              className="postmodal-stat-card postmodal-stat-card--clickable"
+              onClick={() => setFollowListMode("followers")}
+            >
+              <span className="postmodal-stat-value">{followersCount}</span>
+              <span className="postmodal-stat-label">
+                Followers <ChevronRightIcon size={10} className="postmodal-stat-arrow" />
+              </span>
+            </div>
+            <div
+              className="postmodal-stat-card postmodal-stat-card--clickable"
+              onClick={() => setFollowListMode("following")}
+            >
+              <span className="postmodal-stat-value">{followingCount}</span>
+              <span className="postmodal-stat-label">
+                Following <ChevronRightIcon size={10} className="postmodal-stat-arrow" />
+              </span>
+            </div>
+          </div>
 
           {hasInfo && (
             <div className="postmodal-user-details">
@@ -238,32 +340,50 @@ export default function PostModalImageSection({
                 )
               }
             >
-              <UserProfileIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> View Profile
+              <UserProfileIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> Profile
             </button>
             {firebaseUser &&
               !firebaseUser.isAnonymous &&
               image.uploadedBy &&
               image.uploadedBy !== firebaseUser.uid && (
-                <button
-                  className="postmodal-user-dm-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.dispatchEvent(
-                      new CustomEvent("openDM", {
-                        detail: {
-                          uid: image.uploadedBy,
-                          username: profile.username || image.author,
-                          avatar: profile.avatar || image.authorAvatar || null,
-                        },
-                      }),
-                    );
-                  }}
-                >
-                  <MessageIcon size={14} /> Send DM
-                </button>
+                <>
+                  <button
+                    className={`postmodal-user-follow-btn ${isFollowing ? "postmodal-user-follow-btn--following" : ""}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleFollowToggle();
+                    }}
+                    disabled={followLoading}
+                  >
+                    {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+                  </button>
+                  <button
+                    className="postmodal-user-dm-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.dispatchEvent(
+                        new CustomEvent("openDM", {
+                          detail: {
+                            uid: image.uploadedBy,
+                            username: profile.username || image.author,
+                            avatar: profile.avatar || image.authorAvatar || null,
+                          },
+                        }),
+                      );
+                    }}
+                  >
+                    <MessageIcon size={14} /> DM
+                  </button>
+                </>
               )}
           </div>
         </div>
+        <FollowListModal
+          isOpen={!!followListMode}
+          onClose={() => setFollowListMode(null)}
+          userId={image.uploadedBy}
+          mode={followListMode}
+        />
       </div>
     );
   };

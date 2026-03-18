@@ -33,7 +33,10 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
-import { createNotificationForPost } from "../utils/notificationUtils";
+import {
+  createNotificationForPost,
+  notifyFollowersOfNewPost,
+} from "../utils/notificationUtils";
 import { getPostExpiryService } from "../utils/postExpiry";
 
 
@@ -475,6 +478,14 @@ export const ImageProvider = ({ children }) => {
         lastPostTimeRef.current = Date.now();
         setImages((prev) => [newPostWithId, ...prev]);
         setUserImages((prev) => [newPostWithId, ...prev]);
+
+        // Notify followers about the new post (fire and forget)
+        notifyFollowersOfNewPost({
+          authorId: firebaseUser.uid,
+          authorUsername: username,
+          postId: docRef.id,
+          postTitle: newPost.title || newPost.question || "New post",
+        });
 
         return docRef.id;
       } catch (err) {

@@ -1,6 +1,55 @@
 import { db } from "../firebase/config";
 
 import logger from "./logger";
+
+// Notify all followers when a user creates a new post
+export const notifyFollowersOfNewPost = async ({
+  authorId,
+  authorUsername,
+  postId,
+  postTitle,
+}) => {
+  if (!authorId) return;
+
+  try {
+    const { getDocs, addDoc, collection, query, where, serverTimestamp } =
+      await import("firebase/firestore");
+
+    // Get all users who follow this author
+    const followsQuery = query(
+      collection(db, "follows"),
+      where("followingId", "==", authorId),
+    );
+    const followsSnap = await getDocs(followsQuery);
+
+    if (followsSnap.empty) return;
+
+    const message = `${authorUsername || "Someone"} published a new post`;
+
+    const promises = followsSnap.docs.map((followDoc) => {
+      const followerId = followDoc.data().followerId;
+      return addDoc(collection(db, "notifications"), {
+        userId: followerId,
+        fromUserId: authorId,
+        fromUsername: authorUsername || "Anonymous",
+        type: "new_post",
+        postId,
+        postTitle: postTitle || "Untitled Post",
+        message,
+        read: false,
+        createdAt: serverTimestamp(),
+      });
+    });
+
+    await Promise.all(promises);
+    logger.log(
+      `✅ Notified ${followsSnap.size} followers about new post ${postId}`,
+    );
+  } catch (error) {
+    logger.error("❌ Error notifying followers of new post:", error);
+  }
+};
+
 // Utility to create notifications outside of React context
 export const createNotificationForPost = async (notificationData) => {
   const {
