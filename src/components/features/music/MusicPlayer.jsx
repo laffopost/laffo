@@ -4,7 +4,7 @@ import { usePostActions } from "../../../context/PostContext";
 import toast from "react-hot-toast";
 import FirebaseChat from "../chat/FirebaseChat";
 import AddPostModal from "../../post/AddPostModal";
-import { PlayIcon, PauseIcon, CloseIcon, VolumeUpIcon, VolumeMuteIcon, MusicIcon, UploadIcon, ChevronLeftIcon, ChevronRightIcon } from "../../../utils/icons";
+import { PlayIcon, PauseIcon, CloseIcon, VolumeUpIcon, VolumeMuteIcon, MusicIcon, UploadIcon, ChevronLeftIcon, ChevronRightIcon, ShuffleIcon } from "../../../utils/icons";
 import "./MusicPlayer.css";
 
 const GENRES = [
