@@ -147,6 +147,13 @@ export const Icons = {
   // Music & Media
   music: Music,
   upload: Upload,
+
+  // Post Types & Content
+  image: Image,
+  eye: Eye,
+  sparkle: Star,
+  trending: TrendingUp,
+  diamond: Star,
 };
 
 /**
@@ -205,3 +212,8 @@ export const PlayIcon = Icons.play;
 export const PauseIcon = Icons.pause;
 export const MusicIcon = Icons.music;
 export const UploadIcon = Icons.upload;
+export const ImageIcon = Icons.image;
+export const EyeIcon = Icons.eye;
+export const SparkleIcon = Icons.sparkle;
+export const TrendingIcon = Icons.trending;
+export const DiamondIcon = Icons.diamond;

@@ -74,8 +74,11 @@ export default function EditPostModal({ post, onClose, onSave }) {
     <div className="edit-post-modal-overlay" onClick={onClose}>
       <div className="edit-post-modal" onClick={(e) => e.stopPropagation()}>
         <div className="edit-post-modal-header">
-          <h2><EditIcon size={16} /> Edit Post</h2>
-          <button className="edit-post-close-btn" onClick={onClose}>
+          <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+            <EditIcon size={20} style={{color: '#8b5cf6'}} />
+            <h2 style={{margin: 0}}>Edit Post</h2>
+          </div>
+          <button className="edit-post-close-btn" onClick={onClose} title="Close">
             <CloseIcon size={18} />
           </button>
         </div>

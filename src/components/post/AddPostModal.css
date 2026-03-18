@@ -89,6 +89,11 @@
   box-shadow: 0 8px 20px var(--color-primary-30);
 }
 
+.option-card:hover .option-icon {
+  background: rgba(139, 92, 246, 0.2);
+  transform: scale(1.1);
+}
+
 .option-card:last-child {
   grid-column: auto;
   max-width: 100%;
@@ -96,8 +101,15 @@
 }
 
 .option-icon {
-  font-size: 2.5rem;
-  margin-bottom: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(139, 92, 246, 0.1);
+  margin-bottom: 0.5rem;
+  transition: all 0.2s;
 }
 
 .option-label {

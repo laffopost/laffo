@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CloseIcon, MusicIcon } from "../../utils/icons";
+import { CloseIcon, MusicIcon, ImageIcon, EyeIcon, SparkleIcon } from "../../utils/icons";
 import CreatePostForm from "./CreatePostForm";
 import CreateStatusForm from "./CreateStatusForm";
 import CreatePollForm from "./CreatePollForm";
@@ -39,8 +39,11 @@ export default function AddPostModal({
       <div className="add-post-modal-overlay" onClick={onClose}>
         <div className="add-post-modal" onClick={(e) => e.stopPropagation()}>
           <div className="add-post-modal-header">
-            <h2>✨ Add New Post</h2>
-            <button className="close-btn" onClick={onClose}>
+            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+              <SparkleIcon size={24} style={{color: '#8b5cf6'}} />
+              <h2 style={{margin: 0}}>Add New Post</h2>
+            </div>
+            <button className="close-btn" onClick={onClose} title="Close">
               <CloseIcon size={18} />
             </button>
           </div>
@@ -50,7 +53,9 @@ export default function AddPostModal({
               className="option-card"
               onClick={() => setSelectedType("image")}
             >
-              <span className="option-icon">🖼️</span>
+              <div className="option-icon">
+                <ImageIcon size={32} style={{color: '#8b5cf6'}} />
+              </div>
               <h3 className="option-label">Image</h3>
               <p className="option-desc">Share photos and memes</p>
             </div>
@@ -59,7 +64,9 @@ export default function AddPostModal({
               className="option-card"
               onClick={() => setSelectedType("status")}
             >
-              <span className="option-icon">👀</span>
+              <div className="option-icon">
+                <EyeIcon size={32} style={{color: '#ec4899'}} />
+              </div>
               <h3 className="option-label">Status</h3>
               <p className="option-desc">Share your thoughts</p>
             </div>
@@ -68,7 +75,9 @@ export default function AddPostModal({
               className="option-card"
               onClick={() => setSelectedType("poll")}
             >
-              <span className="option-icon">🎮</span>
+              <div className="option-icon">
+                <SparkleIcon size={32} style={{color: '#f59e0b'}} />
+              </div>
               <h3 className="option-label">Poll</h3>
               <p className="option-desc">Ask the community</p>
             </div>
@@ -77,7 +86,9 @@ export default function AddPostModal({
               className="option-card"
               onClick={() => setSelectedType("media")}
             >
-              <MusicIcon size={24} className="option-icon" style={{display: 'block', margin: '0 auto'}} />
+              <div className="option-icon">
+                <MusicIcon size={32} style={{color: '#10b981'}} />
+              </div>
               <h3 className="option-label">Media</h3>
               <p className="option-desc">Share YouTube or Spotify</p>
             </div>
