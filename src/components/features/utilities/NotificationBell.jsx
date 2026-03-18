@@ -3,7 +3,7 @@ import { useNotifications } from "../../../context/NotificationContext";
 import { useUnreadMessageCount } from "../../../hooks/useUnreadMessageCount";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
-import { NotificationIcon, ChatIcon, HeartIconSmall, MessageIcon } from "../../../utils/icons";
+import { NotificationIcon, ChatIcon, HeartIconSmall, MessageIcon, UserIcon, AddIcon } from "../../../utils/icons";
 import logger from "../../../utils/logger";
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -46,8 +46,12 @@ export default function NotificationBell() {
       await markAsRead(notification.id);
     }
 
-    // Navigate to the post
-    navigate(`/image/${notification.postId}`);
+    // Navigate based on notification type
+    if (notification.type === "follow") {
+      navigate(`/profile/${notification.fromUsername}`);
+    } else {
+      navigate(`/image/${notification.postId}`);
+    }
     setIsOpen(false);
   };
 
@@ -76,6 +80,10 @@ export default function NotificationBell() {
         return <HeartIconSmall size={18} style={{ color: "#ec4899" }} />;
       case "comment":
         return <ChatIcon size={18} />;
+      case "follow":
+        return <UserIcon size={18} style={{ color: "#a78bfa" }} />;
+      case "new_post":
+        return <AddIcon size={18} style={{ color: "#4ade80" }} />;
       default:
         return <NotificationIcon size={18} />;
     }
