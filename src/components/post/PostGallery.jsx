@@ -11,6 +11,8 @@ import CreatePostButton from "./CreatePostButton";
 import { usePosts } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
 import useRequireAuth from "../../hooks/useRequireAuth";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../../firebase/config";
 import "./PostGallery.css";
 
 import logger from "../../utils/logger";
@@ -67,6 +69,7 @@ const PostGallery = memo(function PostGallery({
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [followingUids, setFollowingUids] = useState(null); // null = not loaded, [] = loaded but empty
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -151,6 +154,22 @@ const PostGallery = memo(function PostGallery({
     );
   }, [allImagesWithUser, filterByUsername]);
 
+  // Subscribe to current user's following list for the "Following" filter
+  useEffect(() => {
+    if (!firebaseUser?.uid) {
+      setFollowingUids(null);
+      return;
+    }
+    const q = query(
+      collection(db, "follows"),
+      where("followerId", "==", firebaseUser.uid),
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setFollowingUids(snap.docs.map((d) => d.data().followingId));
+    });
+    return () => unsub();
+  }, [firebaseUser?.uid]);
+
   const filteredImages = useMemo(() => {
     const baseImages = filterByUsername
       ? filteredImagesByUser || []
@@ -165,6 +184,12 @@ const PostGallery = memo(function PostGallery({
         const timeB = b.createdAt?.seconds || 0;
         return timeB - timeA;
       });
+    } else if (activeFilter === "following") {
+      if (!followingUids || followingUids.length === 0) {
+        imgs = [];
+      } else {
+        imgs = baseImages.filter((img) => followingUids.includes(img.uploadedBy));
+      }
     } else {
       imgs = baseImages.filter((img) => img.type === activeFilter);
     }
@@ -185,6 +210,7 @@ const PostGallery = memo(function PostGallery({
     allImagesWithUser,
     filteredImagesByUser,
     filterByUsername,
+    followingUids,
     search,
   ]);
 
@@ -477,10 +503,10 @@ const PostGallery = memo(function PostGallery({
                   key={filter.value}
                   className={`gallery-filter-btn${
                     activeFilter === filter.value ? " active" : ""
-                  }`}
+                  }${filter.value === "following" ? " gallery-filter-btn--following" : ""}`}
                   onClick={() => setActiveFilter(filter.value)}
                 >
-                  {filter.label}
+                  {filter.emoji} {filter.label}
                 </button>
               ))}
             </div>
