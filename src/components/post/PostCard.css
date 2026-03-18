@@ -214,13 +214,25 @@
 }
 
 .image-info-desc {
-  font-size: 0.72rem;
-  color: var(--text-description);
-  margin: 0;
-  line-height: 1.4;
+  font-size: 0.78rem;
+  color: var(--text-base);
+  opacity: 0.8;
+  margin: 2px 0 0;
+  line-height: 1.45;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.post-card-date {
+  font-size: 0.62rem;
+  color: var(--text-muted);
+  margin: 2px 0 0;
+  opacity: 0.7;
+}
+
+.post-card-date-edited {
+  opacity: 0.8;
 }
 
 .image-expiry-chip {

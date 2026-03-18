@@ -32,7 +32,6 @@ const Sports = lazy(() => import("./pages/Sports"));
 const Stocks = lazy(() => import("./pages/Stocks"));
 const Weather = lazy(() => import("./pages/Weather"));
 const Trade = lazy(() => import("./pages/Trade"));
-const Dao = lazy(() => import("./pages/Dao"));
 const Profile = lazy(() => import("./components/profile/Profile"));
 const ProfilePage = lazy(() => import("./components/profile/ProfilePage"));
 const Sponsors = lazy(() => import("./pages/Sponsors"));
@@ -117,14 +116,6 @@ function AppRoutes() {
           element={
             <ErrorBoundary name="Trade">
               <Trade />
-            </ErrorBoundary>
-          }
-        />
-        <Route
-          path="/dao"
-          element={
-            <ErrorBoundary name="DAO">
-              <Dao />
             </ErrorBoundary>
           }
         />

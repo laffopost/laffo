@@ -98,7 +98,12 @@ export default function PostModalInfoSection({ image }) {
         </div>
       </div>
       <div className="image-modal-timestamp">
-        📅 {formatDate(image.createdAt)}
+        📅 Posted {formatDate(image.createdAt)}
+        {image.edited && image.updatedAt && (
+          <span className="image-modal-edited">
+            {" · "}✏️ Edited {formatDate(image.updatedAt)}
+          </span>
+        )}
       </div>
       {(image.socials ||
         image.webpage ||

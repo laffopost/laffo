@@ -10,6 +10,13 @@ import PollRenderer from "./PollRenderer";
 
 const AVAILABLE_REACTIONS = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
+function formatCardDate(ts) {
+  if (!ts) return null;
+  let d = ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+  if (isNaN(d)) return null;
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
+
 const PostCard = memo(
   ({
     image,
@@ -27,7 +34,7 @@ const PostCard = memo(
     const allReactions = Object.entries(reactions || {}).sort(
       (a, b) => b[1] - a[1],
     );
-    const topReactions = allReactions.slice(0, 5);
+    const topReactions = allReactions.slice(0, 4);
 
     const [showMoreReactions, setShowMoreReactions] = useState(false);
     const moreBtnRef = useRef(null);
@@ -220,6 +227,14 @@ const PostCard = memo(
             </div>
             {image.type !== "user" && image.description && (
               <p className="image-info-desc">{image.description}</p>
+            )}
+            {formatCardDate(image.createdAt) && (
+              <p className="post-card-date">
+                📅 {formatCardDate(image.createdAt)}
+                {image.edited && formatCardDate(image.updatedAt) && (
+                  <span className="post-card-date-edited"> · ✏️ {formatCardDate(image.updatedAt)}</span>
+                )}
+              </p>
             )}
             {topReactions.length > 0 && (
               <div className="image-reactions-preview">

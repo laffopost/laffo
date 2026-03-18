@@ -563,6 +563,9 @@ export const ImageProvider = ({ children }) => {
     (imageId, emoji) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) return;
+      // Block reacting to own post
+      const ownPost = images.find((img) => img.id === imageId);
+      if (ownPost && (ownPost.uploadedBy === userId || ownPost.userId === userId)) return;
       log(`👍 Toggling reaction ${emoji} on ${imageId}`);
 
       // Use ref snapshot so this callback doesn't need userReactions in deps
@@ -642,7 +645,7 @@ export const ImageProvider = ({ children }) => {
       }, 2000);
     },
     // userReactions removed from deps — accessed via userReactionsRef.current
-    [db, userId, firebaseUser],
+    [db, userId, firebaseUser, images],
   );
 
   const votePoll = useCallback(
@@ -815,6 +818,56 @@ export const ImageProvider = ({ children }) => {
     [db, userId, firebaseUser],
   );
 
+  const deleteComment = useCallback(
+    async (imageId, commentId) => {
+      if (!userId) return;
+      const imageRef = doc(db, "images", imageId);
+      const docSnap = await getDoc(imageRef);
+      if (!docSnap.exists()) return;
+      const existing = docSnap.data().comments || [];
+      const comment = existing.find((c) => c.id === commentId);
+      if (!comment) return;
+      // Only allow the comment author or the post owner to delete
+      const postOwnerId = docSnap.data().uploadedBy || docSnap.data().userId;
+      if (comment.userId !== userId && postOwnerId !== userId) return;
+
+      // Optimistic update
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId
+            ? {
+                ...img,
+                comments: (img.comments || []).filter((c) => c.id !== commentId),
+                commentCount: Math.max(0, (img.commentCount || 0) - 1),
+              }
+            : img,
+        ),
+      );
+      try {
+        // Use filtered array instead of arrayRemove to avoid exact-object-match issues
+        const filtered = existing.filter((c) => c.id !== commentId);
+        await updateDoc(imageRef, {
+          comments: filtered,
+          commentCount: Math.max(0, filtered.length),
+        });
+      } catch {
+        // Rollback
+        setImages((prev) =>
+          prev.map((img) =>
+            img.id === imageId
+              ? {
+                  ...img,
+                  comments: [...(img.comments || []), comment],
+                  commentCount: (img.commentCount || 0) + 1,
+                }
+              : img,
+          ),
+        );
+      }
+    },
+    [db, userId],
+  );
+
   const toggleCommentReaction = useCallback(
     async (imageId, commentId, emoji) => {
       if (!userId) return;
@@ -828,6 +881,10 @@ export const ImageProvider = ({ children }) => {
         if (docSnap.exists()) {
           const imageData = docSnap.data();
           const comments = imageData.comments || [];
+
+          // Block reacting to own comment
+          const targetComment = comments.find((c) => c.id === commentId);
+          if (targetComment?.userId === userId) return;
 
           const updatedComments = comments.map((comment) => {
             if (comment.id === commentId) {
@@ -1030,6 +1087,7 @@ export const ImageProvider = ({ children }) => {
       toggleReaction,
       votePoll,
       addComment,
+      deleteComment,
       toggleCommentReaction,
       fetchImageById,
       loadMorePosts,
@@ -1041,6 +1099,7 @@ export const ImageProvider = ({ children }) => {
     toggleReaction,
     votePoll,
     addComment,
+    deleteComment,
     toggleCommentReaction,
     fetchImageById,
     loadMorePosts,

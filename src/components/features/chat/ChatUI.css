@@ -464,11 +464,54 @@
 .chat-msg-actions {
   position: absolute;
   top: -8px;
-  right: -8px;
+  right: -8px;        /* received: actions appear right of bubble */
   display: flex;
   gap: 4px;
   opacity: 0;
   transition: opacity 0.2s;
+}
+
+/* Own messages: flip actions to left so they stay in the chat area */
+.chat-msg.own .chat-bubble .chat-msg-actions {
+  right: auto;
+  left: -8px;
+}
+
+/* ── Per-message react trigger (sits beside the bubble) ─────────── */
+.chat-msg {
+  align-items: flex-end; /* align react btn with bubble bottom */
+  gap: 4px;
+}
+
+.chat-msg-react-wrap {
+  position: relative;
+  flex-shrink: 0;
+  order: -1; /* received: trigger left of bubble */
+}
+
+.chat-msg.own .chat-msg-react-wrap {
+  order: 1; /* own: trigger right of bubble */
+}
+
+.chat-msg-react-trigger {
+  background: none;
+  border: none;
+  font-size: 0.95rem;
+  cursor: pointer;
+  opacity: 0.25;
+  transition: opacity 0.15s, transform 0.15s;
+  padding: 2px;
+  line-height: 1;
+}
+
+.chat-msg:hover .chat-msg-react-trigger,
+.chat-msg-react-trigger:focus {
+  opacity: 0.8;
+}
+
+.chat-msg-react-trigger:hover {
+  opacity: 1;
+  transform: scale(1.2);
 }
 
 .chat-action-btn {
@@ -696,7 +739,7 @@
 .chat-reaction-picker {
   position: absolute;
   bottom: calc(100% + 6px);
-  left: 0;
+  left: 0;            /* received: picker opens rightward */
   display: flex;
   gap: 4px;
   background: var(--bg-overlay, rgba(20, 18, 48, 0.98));
@@ -706,8 +749,10 @@
   z-index: 10;
   backdrop-filter: blur(8px);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
 }
 
+/* Own messages: picker anchored to right edge so it doesn't overflow */
 .chat-reaction-picker.own {
   left: auto;
   right: 0;

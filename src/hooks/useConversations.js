@@ -307,25 +307,28 @@ export function useConversations({ onConversationStarted } = {}) {
     [currentUser],
   );
 
-  // ── handleReaction ────────────────────────────────────────────────
+  // ── handleReaction — one reaction per user per message ───────────
   const handleReaction = useCallback(
     async (messageId, emoji) => {
       if (!activeConvo || !currentUser) return;
-      const msgRef = doc(
-        db,
-        "conversations",
-        activeConvo.id,
-        "messages",
-        messageId,
-      );
+      const msgRef = doc(db, "conversations", activeConvo.id, "messages", messageId);
       const msg = messages.find((m) => m.id === messageId);
-      const current = msg?.reactions?.[emoji] ?? [];
-      const alreadyReacted = current.includes(currentUser.uid);
-      await updateDoc(msgRef, {
-        [`reactions.${emoji}`]: alreadyReacted
-          ? arrayRemove(currentUser.uid)
-          : arrayUnion(currentUser.uid),
-      }).catch(() => {});
+      const reactions = msg?.reactions ?? {};
+      const alreadyOnThis = (reactions[emoji] ?? []).includes(currentUser.uid);
+
+      // Build a single atomic update: remove user from every other emoji,
+      // then toggle (add or remove) the selected one.
+      const update = {};
+      for (const [e, uids] of Object.entries(reactions)) {
+        if (e !== emoji && uids.includes(currentUser.uid)) {
+          update[`reactions.${e}`] = arrayRemove(currentUser.uid);
+        }
+      }
+      update[`reactions.${emoji}`] = alreadyOnThis
+        ? arrayRemove(currentUser.uid)
+        : arrayUnion(currentUser.uid);
+
+      await updateDoc(msgRef, update).catch(() => {});
     },
     [activeConvo, currentUser, messages],
   );

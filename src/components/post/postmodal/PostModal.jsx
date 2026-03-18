@@ -40,6 +40,22 @@ const PostModal = memo(
       }
     }, [image]);
 
+    useEffect(() => {
+      const handleKeyDown = (e) => {
+        if (e.key === "Escape") {
+          if (showDeleteConfirm) {
+            setShowDeleteConfirm(false);
+          } else if (showEditModal) {
+            setShowEditModal(false);
+          } else {
+            onClose();
+          }
+        }
+      };
+      document.addEventListener("keydown", handleKeyDown);
+      return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [onClose, showDeleteConfirm, showEditModal]);
+
     const canDelete = useMemo(() => {
       if (!firebaseUser || !image) return false;
       return (

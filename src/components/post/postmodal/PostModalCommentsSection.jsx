@@ -1,4 +1,12 @@
 import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import toast from "react-hot-toast";
+
+function fmtDate(ts) {
+  if (!ts) return null;
+  const d = ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+  if (isNaN(d)) return null;
+  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+}
 import { usePosts } from "../../../context/PostContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
@@ -11,6 +19,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 }) {
   const {
     addComment,
+    deleteComment,
     getComments,
     toggleCommentReaction,
     getCommentReactions,
@@ -22,6 +31,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const [newComment, setNewComment] = useState("");
   const [showCommentReactionPicker, setShowCommentReactionPicker] =
     useState(null);
+  const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
   const [avatars, setAvatars] = useState({});
   const commentReactionPickerRef = useRef(null);
 
@@ -80,7 +90,10 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       // addComment will update Firestore and snapshot will refresh comments
 
       setNewComment("");
-      addComment(image.id, commentText, avatar);
+      addComment(image.id, commentText, avatar).catch((err) => {
+        setNewComment(commentText);
+        toast.error(err.message || "Failed to post comment");
+      });
     },
     [newComment, image.id, userProfile, firebaseUser, addComment, requireAuth],
   );
@@ -144,6 +157,14 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
               ⏱ {timeLeft.label}
             </span>
           )}
+          {fmtDate(image.createdAt) && (
+            <p className="comments-post-date">
+              📅 {fmtDate(image.createdAt)}
+              {image.edited && fmtDate(image.updatedAt) && (
+                <span> · ✏️ Edited {fmtDate(image.updatedAt)}</span>
+              )}
+            </p>
+          )}
         </div>
       )}
 
@@ -170,6 +191,13 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
               if (!isLoggedIn) requireAuth("comment on a post");
             }}
           />
+          {newComment.length > 0 && (
+            <span
+              className={`comment-char-counter${newComment.length >= 180 ? " warn" : ""}`}
+            >
+              {newComment.length}/200
+            </span>
+          )}
           <button
             type="submit"
             className="comment-submit"
@@ -258,6 +286,22 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                     <span className="comment-time" style={{ marginLeft: 8 }}>
                       {comment.timestamp || comment.time}
                     </span>
+                    {firebaseUser &&
+                      !firebaseUser.isAnonymous &&
+                      (comment.userId === firebaseUser.uid ||
+                        image.uploadedBy === firebaseUser.uid ||
+                        image.userId === firebaseUser.uid) && (
+                        <button
+                          className="comment-delete-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setConfirmDeleteCommentId(comment.id);
+                          }}
+                          title="Delete comment"
+                        >
+                          🗑️
+                        </button>
+                      )}
                   </div>
                   <p className="comment-text">{comment.text}</p>
                   <div className="comment-reactions-row">
@@ -285,6 +329,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                       </div>
                     )}
                     <div className="comment-reaction-picker-container">
+                      {(!firebaseUser || comment.userId !== firebaseUser.uid) && (
                       <button
                         className="comment-react-btn"
                         onClick={(e) => {
@@ -299,6 +344,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                       >
                         {userReaction ? "Change" : "React"}
                       </button>
+                      )}
                       {showCommentReactionPicker === comment.id && (
                         <div
                           className="comment-reaction-picker"
@@ -332,6 +378,38 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
           })
         )}
       </div>
+
+      {confirmDeleteCommentId && (
+        <div
+          className="delete-confirm-overlay"
+          onClick={() => setConfirmDeleteCommentId(null)}
+        >
+          <div
+            className="delete-confirm-modal"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>Delete Comment?</h3>
+            <p>This action cannot be undone.</p>
+            <div className="delete-confirm-actions">
+              <button
+                className="btn-cancel-delete"
+                onClick={() => setConfirmDeleteCommentId(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="btn-confirm-delete"
+                onClick={() => {
+                  deleteComment(image.id, confirmDeleteCommentId);
+                  setConfirmDeleteCommentId(null);
+                }}
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 });

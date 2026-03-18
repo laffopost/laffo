@@ -24,8 +24,6 @@ export default function ChatUI({
   searchQuery,
   searchResults,
   searching,
-  showNewChat,
-  setShowNewChat,
   editingMessage,
   editText,
   setEditText,
@@ -306,10 +304,32 @@ function MessageBubble({
 
   return (
     <div className={`chat-msg${isOwn ? " own" : ""}`}>
-      <div
-        className="chat-bubble"
-        onMouseLeave={() => setShowReactionPicker(false)}
-      >
+      {/* Reaction trigger — sits beside the bubble, always accessible */}
+      <div className="chat-msg-react-wrap">
+        <button
+          className="chat-msg-react-trigger"
+          title="React"
+          onClick={() => setShowReactionPicker((v) => !v)}
+        >
+          😊
+        </button>
+        {showReactionPicker && (
+          <div className={`chat-reaction-picker${isOwn ? " own" : ""}`}
+               onMouseLeave={() => setShowReactionPicker(false)}>
+            {QUICK_REACTIONS.map((emoji) => (
+              <button
+                key={emoji}
+                className="chat-reaction-option"
+                onClick={() => { handleReaction(msg.id, emoji); setShowReactionPicker(false); }}
+              >
+                {emoji}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="chat-bubble">
         {editingMessage === msg.id ? (
           <div className="chat-edit-form">
             <input
@@ -319,12 +339,8 @@ function MessageBubble({
               autoFocus
               maxLength={500}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleEditMessage(msg.id, editText);
-                } else if (e.key === "Escape") {
-                  cancelEditing();
-                }
+                if (e.key === "Enter") { e.preventDefault(); handleEditMessage(msg.id, editText); }
+                else if (e.key === "Escape") { cancelEditing(); }
               }}
             />
             <div className="chat-edit-actions">
@@ -338,42 +354,21 @@ function MessageBubble({
               {msg.text}
               {msg.edited && <span className="chat-edited"> (edited)</span>}
             </p>
-            <div className="chat-msg-actions">
-              <button
-                className="chat-action-btn chat-react-btn"
-                title="React"
-                onClick={() => setShowReactionPicker((v) => !v)}
-              >
-                😊
-              </button>
-              {isOwn && (
-                <>
-                  <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit">✏️</button>
-                  <button
-                    onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
-                    className="chat-action-btn"
-                    title="Delete"
-                  >🗑️</button>
-                </>
-              )}
-            </div>
-            {showReactionPicker && (
-              <div className={`chat-reaction-picker${isOwn ? " own" : ""}`}>
-                {QUICK_REACTIONS.map((emoji) => (
-                  <button
-                    key={emoji}
-                    className="chat-reaction-option"
-                    onClick={() => { handleReaction(msg.id, emoji); setShowReactionPicker(false); }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
+            {isOwn && (
+              <div className="chat-msg-actions">
+                <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit">✏️</button>
+                <button
+                  onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
+                  className="chat-action-btn"
+                  title="Delete"
+                >🗑️</button>
               </div>
             )}
           </>
         )}
         <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>
       </div>
+
       {reactionEntries.length > 0 && (
         <div className={`chat-reactions${isOwn ? " own" : ""}`}>
           {reactionEntries.map(([emoji, uids]) => (

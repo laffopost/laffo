@@ -68,8 +68,6 @@ const PostGallery = memo(function PostGallery({
   const [notification, setNotification] = useState(null);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
-  console.log("isLoadingMore", isLoadingMore);
-
   const navigate = useNavigate();
   const location = useLocation();
   const params = useParams();
@@ -330,15 +328,14 @@ const PostGallery = memo(function PostGallery({
     setIsOpen(false);
     setImageNotFound(false);
 
-    // Navigate back based on context
-    if (filterByUsername) {
-      // If we're on a profile page, go back to that profile
-      navigate(`/profile/${filterByUsername}`, { replace: true });
+    if (location.state?.background) {
+      navigate(-1);
+    } else if (filterByUsername) {
+      navigate(-1);
     } else {
-      // Otherwise go to home
       navigate("/", { replace: true });
     }
-  }, [navigate, filterByUsername]);
+  }, [navigate, filterByUsername, location]);
 
   const scrollSection = useCallback((ref, direction) => {
     if (ref.current) {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import EditImageForm from "./EditImageForm";
 import EditStatusForm from "./EditStatusForm";
 import EditPollForm from "./EditPollForm";
@@ -7,6 +7,12 @@ import "./EditPostModal.css";
 
 export default function EditPostModal({ post, onClose, onSave }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const handleKeyDown = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handleSave = async (updateData) => {
     if (isSubmitting) return;

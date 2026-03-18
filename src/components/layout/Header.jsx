@@ -423,13 +423,6 @@ const Header = memo(function Header() {
                   Trade / Chart
                 </Link>
                 <Link
-                  to="/dao"
-                  className="dropdown-item"
-                  onClick={() => setNavDropdownOpen(false)}
-                >
-                  DAO
-                </Link>
-                <Link
                   to="/sponsors"
                   className="dropdown-item"
                   onClick={() => setNavDropdownOpen(false)}

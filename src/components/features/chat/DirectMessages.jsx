@@ -1,14 +1,12 @@
 import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useConversations } from "../../../hooks/useConversations";
-import { useUnreadMessageCount } from "../../../hooks/useUnreadMessageCount";
 import ChatUI from "./ChatUI";
 import "./DirectMessages.css";
 
 export default function DirectMessages() {
   const { pathname } = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  const unreadMessageCount = useUnreadMessageCount();
 
   const chat = useConversations({
     onConversationStarted: () => setIsOpen(true),
@@ -31,8 +29,12 @@ export default function DirectMessages() {
   // useConversations, and two simultaneous listeners on the same Firestore
   // query corrupt the watch-stream state.
   if (pathname === "/messages") return null;
-
   if (!chat.currentUser) return null;
+
+  const uid = chat.currentUser.uid;
+  const unreadMessageCount = chat.conversations.filter(
+    (c) => c.lastSenderId !== uid && !c[`read_${uid}`] && c.lastMessage,
+  ).length;
 
   if (!isOpen) {
     return (

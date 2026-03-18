@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import CreatePostForm from "./CreatePostForm";
 import CreateStatusForm from "./CreateStatusForm";
 import CreatePollForm from "./CreatePollForm";
@@ -18,6 +18,12 @@ export default function AddPostModal({
   const [selectedType, setSelectedType] = useState(
     editMode && editPostData ? editPostData.type : shareType,
   );
+
+  useEffect(() => {
+    const handleKeyDown = (e) => { if (e.key === "Escape") onClose(); };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
 
   const handleBack = () => {
     if (editMode) { onClose(); return; }

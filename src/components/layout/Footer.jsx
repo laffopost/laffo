@@ -54,12 +54,6 @@ export default function Footer() {
               <Link to="/buy">Buy LAFFO</Link>
             </li>
             <li>
-              <Link to="/chart">Chart</Link>
-            </li>
-            <li>
-              <Link to="/dao">DAO</Link>
-            </li>
-            <li>
               <Link to="/messages">Messages</Link>
             </li>
             <li>
