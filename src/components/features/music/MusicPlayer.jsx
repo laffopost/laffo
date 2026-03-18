@@ -725,14 +725,16 @@ export default function MusicPlayer() {
     return () => window.removeEventListener("keydown", fn);
   }, [isOpen, isMinimized, handleTogglePlay]);
 
-  const volIcon =
-    isMuted || volume === 0
-      ? "🔇"
-      : volume < 40
-        ? "🔈"
-        : volume < 70
-          ? "🔉"
-          : "🔊";
+  // Get volume icon based on current level
+  const getVolumeIcon = () => {
+    if (isMuted || volume === 0) {
+      return <VolumeMuteIcon size={18} />;
+    } else if (volume < 40) {
+      return <VolumeMuteIcon size={18} />;
+    } else {
+      return <VolumeUpIcon size={18} />;
+    }
+  };
 
   // Determine which view is active
   const isClosed = !isOpen && !isMinimized;
@@ -752,7 +754,7 @@ export default function MusicPlayer() {
           onClick={() => setIsOpen(true)}
           title="Open Music Player"
         >
-          <MusicIcon size={20} className="music-open-icon" style={{color: '#8b5cf6'}} />
+          <MusicIcon size={20} className="music-open-icon" style={{color: '#ffffff'}} />
           <span className="music-open-pulse" />
         </button>
       )}
@@ -829,7 +831,7 @@ export default function MusicPlayer() {
               onClick={handleShuffle}
               title="Shuffle"
             >
-              🔀
+              <ShuffleIcon size={18} />
             </button>
             <button
               className="mini-ctrl-btn"
@@ -864,7 +866,7 @@ export default function MusicPlayer() {
                   }}
                   title="Volume"
                 >
-                  {volIcon}
+                  {getVolumeIcon()}
                 </button>
                 {showVolume && (
                   <div
@@ -963,7 +965,7 @@ export default function MusicPlayer() {
                       onClick={handleShuffle}
                       title="Shuffle"
                     >
-                      🔀
+                      <ShuffleIcon size={18} />
                     </button>
                     <button
                       className="transport-btn"
@@ -1007,7 +1009,7 @@ export default function MusicPlayer() {
                           onMouseEnter={() => setShowVolume(true)}
                           title={isMuted ? "Unmute" : "Mute"}
                         >
-                          {volIcon}
+                          {getVolumeIcon()}
                         </button>
                         <div
                           className={`volume-slider-wrap ${showVolume ? "visible" : ""}`}
