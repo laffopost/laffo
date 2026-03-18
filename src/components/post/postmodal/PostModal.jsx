@@ -4,7 +4,7 @@ import { usePosts } from "../../../context/PostContext";
 import PostModalImageSection from "./PostModalImageSection";
 import PostModalCommentsSection from "./PostModalCommentsSection";
 import PostModalHeader from "./PostModalHeader";
-import EditPostModal from "../EditPostModal";
+import AddPostModal from "../AddPostModal";
 import MediaPlayer from "../MediaPlayer";
 import toast from "react-hot-toast";
 import "./PostModal.css";
@@ -92,17 +92,19 @@ const PostModal = memo(
       }
     };
 
-    const handleEdit = async (postId, updateData) => {
-      try {
-        await editPost(postId, updateData);
-        toast.success("Post updated successfully!");
-        if (onEdit) {
-          onEdit();
-        }
-      } catch (error) {
-        toast.error("Failed to update post: " + error.message);
-        throw error;
-      }
+    const handleEditSubmit = (newPost) => {
+      const toastId = toast.loading("Saving post...");
+      editPost(image.id, newPost)
+        .then(() => {
+          toast.success("Post updated successfully!", { id: toastId });
+          setShowEditModal(false);
+          if (onEdit) {
+            onEdit();
+          }
+        })
+        .catch((err) => {
+          toast.error(err.message || "Failed to update post", { id: toastId });
+        });
     };
 
     return (
@@ -177,10 +179,12 @@ const PostModal = memo(
         )}
 
         {showEditModal && (
-          <EditPostModal
-            post={image}
+          <AddPostModal
             onClose={() => setShowEditModal(false)}
-            onSave={handleEdit}
+            onSubmit={handleEditSubmit}
+            editMode
+            editPostData={image}
+            editPost={handleEditSubmit}
           />
         )}
       </>
