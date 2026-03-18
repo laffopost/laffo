@@ -2,7 +2,7 @@ import { memo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import clickSound from "../../assets/click.mp3";
-import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, CalendarIcon } from "../../utils/icons";
+import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, CalendarIcon, MusicIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 
@@ -140,7 +140,7 @@ const PostCard = memo(
                 ) : image.mediaType === "spotify" ? (
                   // Show Spotify icon for audio
                   <div className="spotify-thumbnail">
-                    <span className="spotify-icon">🎵</span>
+                    <MusicIcon size={18} className="spotify-icon" style={{color: '#1DB954'}} />
                     <span className="spotify-label">Spotify</span>
                   </div>
                 ) : (
@@ -151,7 +151,7 @@ const PostCard = memo(
                 )}
                 {/* Media badge overlay */}
                 <div className="media-type-badge">
-                  {image.mediaType === "youtube" ? "▶️ YouTube" : "🎵 Spotify"}
+                  {image.mediaType === "youtube" ? "▶️ YouTube" : <><MusicIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> Spotify</>}
                 </div>
               </div>
             ) : (

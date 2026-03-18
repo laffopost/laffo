@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CloseIcon } from "../../utils/icons";
+import { CloseIcon, MusicIcon } from "../../utils/icons";
 import CreatePostForm from "./CreatePostForm";
 import CreateStatusForm from "./CreateStatusForm";
 import CreatePollForm from "./CreatePollForm";
@@ -77,7 +77,7 @@ export default function AddPostModal({
               className="option-card"
               onClick={() => setSelectedType("media")}
             >
-              <span className="option-icon">🎵</span>
+              <MusicIcon size={24} className="option-icon" style={{display: 'block', margin: '0 auto'}} />
               <h3 className="option-label">Media</h3>
               <p className="option-desc">Share YouTube or Spotify</p>
             </div>

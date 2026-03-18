@@ -4,7 +4,7 @@ import { usePostActions } from "../../../context/PostContext";
 import toast from "react-hot-toast";
 import FirebaseChat from "../chat/FirebaseChat";
 import AddPostModal from "../../post/AddPostModal";
-import { PlayIcon, PauseIcon, CloseIcon, VolumeUpIcon, VolumeMuteIcon } from "../../../utils/icons";
+import { PlayIcon, PauseIcon, CloseIcon, VolumeUpIcon, VolumeMuteIcon, MusicIcon, UploadIcon, ChevronLeftIcon, ChevronRightIcon } from "../../../utils/icons";
 import "./MusicPlayer.css";
 
 const GENRES = [
@@ -752,7 +752,7 @@ export default function MusicPlayer() {
           onClick={() => setIsOpen(true)}
           title="Open Music Player"
         >
-          <span className="music-open-icon">🎵</span>
+          <MusicIcon size={20} className="music-open-icon" style={{color: '#8b5cf6'}} />
           <span className="music-open-pulse" />
         </button>
       )}
@@ -836,7 +836,7 @@ export default function MusicPlayer() {
               onClick={handlePrevStation}
               title="Previous"
             >
-              ⏮
+              <ChevronLeftIcon size={18} />
             </button>
             <button
               className="mini-ctrl-btn play"
@@ -851,7 +851,7 @@ export default function MusicPlayer() {
               onClick={handleNextStation}
               title="Next"
             >
-              ⏭
+              <ChevronRightIcon size={18} />
             </button>
             {/* Volume only for audio streams — YouTube volume can't be controlled */}
             {!isEmbed && (
@@ -895,7 +895,7 @@ export default function MusicPlayer() {
           <div className="music-player" onClick={(e) => e.stopPropagation()}>
             <div className="music-header">
               <div className="music-header-left">
-                <span className="music-header-icon">🎵</span>
+                <MusicIcon size={20} className="music-header-icon" style={{color: '#8b5cf6'}} />
                 <h3>Music Player</h3>
               </div>
               <div className="header-btns">
@@ -970,7 +970,7 @@ export default function MusicPlayer() {
                       onClick={handlePrevStation}
                       title="Previous"
                     >
-                      ⏮
+                      <ChevronLeftIcon size={18} />
                     </button>
                     <button
                       className={`transport-btn play-main ${isPlaying ? "active" : ""}`}
@@ -985,7 +985,7 @@ export default function MusicPlayer() {
                       onClick={handleNextStation}
                       title="Next"
                     >
-                      ⏭
+                      <ChevronRightIcon size={18} />
                     </button>
                   </div>
                   <div className="transport-right">
@@ -995,7 +995,7 @@ export default function MusicPlayer() {
                         onClick={() => handleShareToPost(currentStation)}
                         title="Share to Post"
                       >
-                        📤
+                        <UploadIcon size={16} style={{display: 'inline', marginRight: '4px'}} />
                       </button>
                     )}
                     {/* Volume only for audio streams — YouTube volume can't be controlled */}
@@ -1159,7 +1159,7 @@ export default function MusicPlayer() {
                                   }}
                                   title="Share to Post"
                                 >
-                                  📤
+                                  <UploadIcon size={16} style={{display: 'inline', marginRight: '4px'}} />
                                 </button>
                                 <span
                                   className="station-badge"
@@ -1195,7 +1195,7 @@ export default function MusicPlayer() {
                                 onClick={(e) => { e.stopPropagation(); handleShareToPost(station); }}
                                 title="Share to Post"
                               >
-                                📤
+                                <UploadIcon size={16} style={{display: 'inline', marginRight: '4px'}} />
                               </button>
                             )}
                             <span

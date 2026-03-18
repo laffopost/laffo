@@ -57,6 +57,8 @@ import {
   TrendingUp,
   TrendingDown,
   RefreshCw,
+  Music,
+  Upload,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────
@@ -141,6 +143,10 @@ export const Icons = {
   // Layout
   list: MoreVertical,
   grid: Menu,
+
+  // Music & Media
+  music: Music,
+  upload: Upload,
 };
 
 /**
@@ -197,3 +203,5 @@ export const VolumeUpIcon = Icons.volumeUp;
 export const VolumeMuteIcon = Icons.volumeMute;
 export const PlayIcon = Icons.play;
 export const PauseIcon = Icons.pause;
+export const MusicIcon = Icons.music;
+export const UploadIcon = Icons.upload;
