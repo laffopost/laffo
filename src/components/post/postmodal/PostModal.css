@@ -1051,25 +1051,28 @@
 }
 
 .reaction-share-btn {
-  background: var(--color-success-15);
-  border: 1.5px solid var(--color-success);
-  color: white;
-  border-radius: 20px;
-  padding: 6px 14px;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  border-radius: 50%;
+  padding: 0;
+  width: 36px;
+  height: 36px;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: color 0.2s, background 0.2s, transform 0.2s;
   white-space: nowrap;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
 }
 
 .reaction-share-btn:hover {
-  background: var(--color-success);
-  color: white;
-  transform: scale(1.05);
+  color: var(--color-warning);
+  background: var(--color-primary-8);
+  transform: scale(1.12);
 }
 
 .reaction-share-btn .modal-btn-icon,
@@ -1230,24 +1233,27 @@
 }
 
 .add-reaction-btn {
-  background: var(--color-success-15);
-  border: 1.5px solid var(--color-success);
-  color: white;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  border-radius: 50%;
+  padding: 0;
+  width: 36px;
+  height: 36px;
   display: flex;
   align-items: center;
-  border-radius: 20px;
-  padding: 6px 14px;
+  justify-content: center;
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: var(--transition-fast);
+  transition: color 0.2s, background 0.2s, transform 0.2s;
   white-space: nowrap;
 }
 
 .add-reaction-btn:hover {
-  background: var(--color-success);
-  color: white;
-  transform: scale(1.05);
+  color: var(--color-warning);
+  background: var(--color-primary-8);
+  transform: scale(1.12);
 }
 
 .reaction-picker {

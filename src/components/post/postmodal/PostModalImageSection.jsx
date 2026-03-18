@@ -414,9 +414,9 @@ export default function PostModalImageSection({
                   onClick={toggleReactionPicker}
                   onMouseEnter={() => setShowReactionPicker(true)}
                   onMouseLeave={() => setShowReactionPicker(false)}
+                  title="React"
                 >
-                  <EmojiIcon size={14} />
-                  React
+                  <EmojiIcon size={16} />
                 </button>
                 {showReactionPicker && (
                   <div
@@ -455,9 +455,9 @@ export default function PostModalImageSection({
                     e.stopPropagation();
                     setShowShareMenu(!showShareMenu);
                   }}
+                  title="Share"
                 >
-                  <ShareIcon size={14} />
-                  Share
+                  <ShareIcon size={16} />
                 </button>
                 {showShareMenu && (
                   <div className="reaction-share-menu">
