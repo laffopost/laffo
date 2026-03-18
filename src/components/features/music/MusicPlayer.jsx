@@ -206,7 +206,6 @@ export default function MusicPlayer() {
   const [volume, setVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
   const [showVolume, setShowVolume] = useState(false);
-  const [hasAutoPlayed, setHasAutoPlayed] = useState(false);
 
   // Music search state
   const [searchQuery, setSearchQuery] = useState("");
@@ -356,7 +355,7 @@ export default function MusicPlayer() {
 
   // Play search result
   const playSearchResult = useCallback((result) => {
-    const youtubeUrl = `https://www.youtube.com/embed/${result.youtubeId}?autoplay=1&mute=0`;
+    const youtubeUrl = `https://www.youtube.com/embed/${result.youtubeId}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}`;
 
     if (audioRef.current) {
       audioRef.current.pause();
@@ -384,7 +383,7 @@ export default function MusicPlayer() {
         /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/,
       )?.[1];
       return videoId
-        ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0`
+        ? `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&enablejsapi=1&origin=${window.location.origin}`
         : null;
     }
     if (url.includes("spotify.com")) {
@@ -476,6 +475,18 @@ export default function MusicPlayer() {
     }
   };
 
+  // Send play/pause command to YouTube iframe via postMessage API
+  const postYouTubeCommand = useCallback((command) => {
+    const iframe = iframeRef.current;
+    if (!iframe?.contentWindow) return;
+    try {
+      iframe.contentWindow.postMessage(
+        JSON.stringify({ event: "command", func: command, args: [] }),
+        "*",
+      );
+    } catch { /* cross-origin — ignore */ }
+  }, []);
+
   const handleTogglePlay = useCallback(
     (e) => {
       if (e) e.stopPropagation();
@@ -488,10 +499,15 @@ export default function MusicPlayer() {
           setIsPlaying(true);
         }
       } else if (playerType === "embed") {
+        if (isPlaying) {
+          postYouTubeCommand("pauseVideo");
+        } else {
+          postYouTubeCommand("playVideo");
+        }
         setIsPlaying((p) => !p);
       }
     },
-    [playerType, isPlaying],
+    [playerType, isPlaying, postYouTubeCommand],
   );
 
   const getCurrentStations = useCallback(() => {
@@ -599,22 +615,29 @@ export default function MusicPlayer() {
     setShowVolume(false);
   };
   const handleClose = () => {
+    // Pause playback before closing
+    if (isPlaying) {
+      if (playerType === "audio" && audioRef.current) {
+        audioRef.current.pause();
+      } else if (playerType === "embed") {
+        postYouTubeCommand("pauseVideo");
+      }
+      setIsPlaying(false);
+    }
     setIsOpen(false);
     setIsMinimized(false);
-    setHasAutoPlayed(false);
     setShowVolume(false);
   };
 
-  // Auto-play first station when player opens
+  // Auto-play first station only on the very first open (no station selected yet)
   useEffect(() => {
-    if (isOpen && !hasAutoPlayed && !currentStation) {
+    if (isOpen && !currentStation) {
       const first = STATIONS[selectedGenre]?.[0];
       if (first) {
         handlePlayStation(first);
-        setHasAutoPlayed(true);
       }
     }
-  }, [isOpen, hasAutoPlayed, currentStation, selectedGenre, handlePlayStation]);
+  }, [isOpen, currentStation, selectedGenre, handlePlayStation]);
 
   // Audio element listeners
   useEffect(() => {
