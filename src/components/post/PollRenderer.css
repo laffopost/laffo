@@ -18,11 +18,12 @@
 }
 
 .poll-renderer__question {
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 800;
-  margin: 0;
-  line-height: 1.35;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
   word-break: break-word;
+  letter-spacing: -0.2px;
 }
 
 /* ── Compact (PostCard thumbnail) ───────────────────────────────────────── */
@@ -96,8 +97,8 @@
 
 /* ── Full (modal / form preview) ────────────────────────────────────────── */
 .poll-renderer--full {
-  padding: 1.4rem 1.4rem 1.1rem;
-  gap: 0.6rem;
+  padding: 1.5rem;
+  gap: 0.7rem;
   border-radius: var(--radius-xl);
 }
 
@@ -141,18 +142,18 @@
   position: relative;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.8rem 1rem;
-  border-radius: var(--radius-md);
+  gap: 0.5rem;
+  padding: 0.75rem 0.95rem;
+  border-radius: 10px;
   border: none;
   background: transparent;
   cursor: default;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 600;
   text-align: left;
   overflow: hidden;
   font-family: "Inter", Arial, sans-serif;
-  min-height: 3rem;
+  min-height: 2.75rem;
   transition: transform 0.12s;
   width: 100%;
 }
@@ -228,9 +229,12 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.76rem;
-  opacity: 0.5;
-  margin-top: 0.1rem;
+  font-size: 0.74rem;
+  opacity: 0.55;
+  margin-top: 0.3rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid currentColor;
+  border-top-opacity: 0.1;
 }
 
 .poll-renderer__footer-sep {
@@ -239,10 +243,13 @@
 
 /* ── Form preview ────────────────────────────────────────────────────────── */
 .poll-form-preview {
-  max-width: 380px;
+  max-width: 340px;
   margin: 0 auto;
-  box-shadow: var(--shadow-primary-sm);
-  transition: background-color 0.2s;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  transition: all 0.3s ease;
+  border-radius: var(--radius-xl) !important;
+  padding: 1.2rem !important;
+  gap: 0.75rem !important;
 }
 
 /* ── Modal override ─────────────────────────────────────────────────────── */

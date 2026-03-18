@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { CloseIcon } from "../../utils/icons";
 import "./AddPostModal.css";
+import "./CreateMediaForm.css";
 
 import logger from "../../utils/logger";
 const DURATIONS = [
@@ -202,8 +204,32 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
   };
 
   return (
-    <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>{isEditMode ? "✏️ Edit Media" : "✨ Share Media"}</h3>
+    <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isEditMode ? '1rem' : '0' }}>
+        <h3 style={{ margin: 0, fontSize: isEditMode ? '1.3rem' : '1.5rem' }}>
+          {isEditMode ? "Edit Media" : "Share Media"}
+        </h3>
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-base)',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.2rem',
+            }}
+            title="Close"
+          >
+            <CloseIcon size={20} />
+          </button>
+        )}
+      </div>
 
       {!isEditMode && (
         <div className="form-group">

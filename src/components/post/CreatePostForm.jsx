@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
+import { CloseIcon } from "../../utils/icons";
 import { compressImage } from "../../utils/imageCompression";
 import "./AddPostModal.css";
+import "./CreatePostForm.css";
 
 import logger from "../../utils/logger";
 const POST_TYPES = [
@@ -228,8 +230,32 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
   };
 
   return (
-    <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>{isEditMode ? "✏️ Edit Post" : "✨ Create an Image Post"}</h3>
+    <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isEditMode ? '1rem' : '0' }}>
+        <h3 style={{ margin: 0, fontSize: isEditMode ? '1.3rem' : '1.5rem' }}>
+          {isEditMode ? "Edit Post" : "Create an Image Post"}
+        </h3>
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-base)',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.2rem',
+            }}
+            title="Close"
+          >
+            <CloseIcon size={20} />
+          </button>
+        )}
+      </div>
 
       <div className="form-group">
         <label htmlFor="title">Title *</label>

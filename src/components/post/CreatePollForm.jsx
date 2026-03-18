@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
+import { AddIcon, RemoveIcon, CloseIcon } from "../../utils/icons";
 import "./AddPostModal.css";
+import "./CreatePollForm.css";
 import PollRenderer from "./PollRenderer";
 
 const BG_COLORS = [
@@ -111,8 +113,32 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
   };
 
   return (
-    <form className="add-image-form" onSubmit={handleSubmit}>
-      <h3>{isEditMode ? "✏️ Edit Poll" : "📊 Create a Poll"}</h3>
+    <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isEditMode ? '1rem' : '0' }}>
+        <h3 style={{ margin: 0, fontSize: isEditMode ? '1.3rem' : '1.5rem' }}>
+          {isEditMode ? "Edit Poll" : "Create a Poll"}
+        </h3>
+        {isEditMode && (
+          <button
+            type="button"
+            onClick={onClose}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              color: 'var(--text-base)',
+              cursor: 'pointer',
+              padding: '0.5rem',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '1.2rem',
+            }}
+            title="Close"
+          >
+            <CloseIcon size={20} />
+          </button>
+        )}
+      </div>
 
       <div className="form-group">
         <label>Question *</label>
@@ -182,7 +208,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
                   className="remove-option-btn"
                   title="Remove option"
                 >
-                  ×
+                  <RemoveIcon size={16} />
                 </button>
               )}
             </div>
@@ -190,7 +216,8 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
         </div>
         {options.length < 6 && (
           <button type="button" onClick={addOption} className="add-option-btn">
-            + Add Option
+            <AddIcon size={16} style={{ marginRight: '0.5rem' }} />
+            Add Option
           </button>
         )}
       </div>
