@@ -1,5 +1,22 @@
 /* Image Post Form Styling */
 
+.type-selector {
+  margin-top: 0.5rem !important;
+  gap: 0.5rem !important;
+}
+
+.image-preview {
+  margin-top: 0.75rem !important;
+  gap: 0.5rem !important;
+  padding: 1rem !important;
+}
+
+.image-preview label {
+  font-size: 0.8rem !important;
+  opacity: 0.75 !important;
+  margin-bottom: -0.2rem !important;
+}
+
 /* Edit mode - more compact */
 .add-image-form[data-edit-mode="true"] .form-group {
   gap: 0.35rem;

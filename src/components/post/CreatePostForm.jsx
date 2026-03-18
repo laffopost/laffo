@@ -231,30 +231,30 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
 
   return (
     <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isEditMode ? '1rem' : '0' }}>
-        <h3 style={{ margin: 0, fontSize: isEditMode ? '1.3rem' : '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
           {isEditMode ? "Edit Post" : "Create an Image Post"}
         </h3>
-        {isEditMode && (
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              color: 'var(--text-base)',
-              cursor: 'pointer',
-              padding: '0.5rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '1.2rem',
-            }}
-            title="Close"
-          >
-            <CloseIcon size={20} />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={onClose}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            color: 'var(--text-base)',
+            cursor: 'pointer',
+            padding: '0.4rem',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            transition: 'all 0.2s',
+          }}
+          title="Close"
+          onMouseEnter={(e) => e.target.style.background = 'var(--bg-surface-hover)'}
+          onMouseLeave={(e) => e.target.style.background = 'transparent'}
+        >
+          <CloseIcon size={20} />
+        </button>
       </div>
 
       <div className="form-group">
