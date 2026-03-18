@@ -2,7 +2,7 @@ import { memo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import clickSound from "../../assets/click.mp3";
-import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, CalendarIcon, MusicIcon } from "../../utils/icons";
+import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 
@@ -226,14 +226,7 @@ const PostCard = memo(
             {image.type !== "user" && image.description && (
               <p className="image-info-desc">{image.description}</p>
             )}
-            {formatCardDate(image.createdAt) && (
-              <p className="post-card-date">
-                <CalendarIcon size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}} /> {formatCardDate(image.createdAt)}
-                {image.edited && formatCardDate(image.updatedAt) && (
-                  <span className="post-card-date-edited"> · <EditIcon size={12} style={{display: 'inline', marginRight: '2px'}} /> {formatCardDate(image.updatedAt)}</span>
-                )}
-              </p>
-            )}
+
             {topReactions.length > 0 && (
               <div className="image-reactions-preview">
                 {topReactions.map(([emoji, count]) => (
@@ -248,7 +241,8 @@ const PostCard = memo(
                       onReactionClick(image.id, emoji);
                     }}
                   >
-                    {emoji} {count}
+                    <span className="reaction-emoji-char">{emoji}</span>
+                    <span className="reaction-count-char">{count}</span>
                   </button>
                 ))}
               </div>

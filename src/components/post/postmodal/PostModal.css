@@ -1180,9 +1180,10 @@
 
 .reactions-display {
   display: flex;
-  gap: 8px;
+  gap: 4px;
   flex-wrap: wrap;
   flex: 1;
+  align-items: center;
 }
 
 .no-reactions {
@@ -1192,37 +1193,40 @@
 }
 
 .reaction-bubble {
-  background: var(--color-primary-15);
-  border: 1.5px solid var(--border-primary);
+  background: none;
+  border: none;
   border-radius: 20px;
-  padding: 6px 12px;
+  padding: 0 8px;
+  height: 32px;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   cursor: pointer;
-  transition: var(--transition-fast);
+  color: var(--color-primary);
+  transition: color 0.2s, background 0.2s, transform 0.2s;
 }
 
 .reaction-bubble:hover {
-  background: var(--color-primary-25);
-  border-color: var(--color-primary-50);
-  transform: scale(1.05);
+  color: var(--color-warning);
+  background: var(--color-primary-8);
+  transform: scale(1.12);
 }
 
 .reaction-bubble.active {
-  background: var(--color-primary-30);
-  border-color: var(--color-primary);
-  box-shadow: 0 0 12px var(--color-primary-30);
+  color: var(--color-warning);
 }
 
 .reaction-emoji {
-  font-size: 1.1rem;
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 .reaction-count {
-  color: white;
-  font-size: 0.85rem;
-  font-weight: 600;
+  color: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
 }
 
 .more-icon-modal {
