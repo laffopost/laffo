@@ -106,8 +106,8 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
 
   return (
     <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-        <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
           {isEditMode ? "Edit Status" : "Post a Status"}
         </h3>
         <button
@@ -127,7 +127,7 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
           onChange={(e) => setStatus(e.target.value)}
           placeholder="What's on your mind?"
           maxLength={200}
-          rows={4}
+          rows={3}
           required
         />
         <span className="char-counter">{status.length}/200</span>
