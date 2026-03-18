@@ -2,7 +2,7 @@ import { memo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import clickSound from "../../assets/click.mp3";
-import { EditIcon, ChatIcon, ShareIcon, EmojiIcon } from "../../utils/icons";
+import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, CalendarIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 
@@ -228,7 +228,7 @@ const PostCard = memo(
             )}
             {formatCardDate(image.createdAt) && (
               <p className="post-card-date">
-                📅 {formatCardDate(image.createdAt)}
+                <CalendarIcon size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}} /> {formatCardDate(image.createdAt)}
                 {image.edited && formatCardDate(image.updatedAt) && (
                   <span className="post-card-date-edited"> · <EditIcon size={12} style={{display: 'inline', marginRight: '2px'}} /> {formatCardDate(image.updatedAt)}</span>
                 )}

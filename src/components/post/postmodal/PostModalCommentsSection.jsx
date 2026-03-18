@@ -12,7 +12,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { DeleteIcon, ChatIcon, EditIcon, SendIcon } from "../../../utils/icons";
+import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon } from "../../../utils/icons";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
   image,
@@ -159,7 +159,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
           )}
           {fmtDate(image.createdAt) && (
             <p className="comments-post-date">
-              📅 {fmtDate(image.createdAt)}
+              <CalendarIcon size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}} /> {fmtDate(image.createdAt)}
               {image.edited && fmtDate(image.updatedAt) && (
                 <span> · <EditIcon size={12} style={{display: 'inline', marginRight: '4px'}} /> Edited {fmtDate(image.updatedAt)}</span>
               )}
@@ -299,7 +299,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                           }}
                           title="Delete comment"
                         >
-                          <Trash2 size={13} />
+                          <DeleteIcon size={13} />
                         </button>
                       )}
                   </div>

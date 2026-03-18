@@ -2,6 +2,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { EmojiPicker } from "../utilities";
 import { formatTime } from "../../../utils/formatters";
+import {
+  DeleteIcon,
+  CloseIcon,
+  BackIcon,
+  SendIcon,
+  EmojiIcon,
+  EditIcon,
+  CheckIcon,
+  ChatIcon,
+} from "../../../utils/icons";
 import "./ChatUI.css";
 
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
@@ -60,7 +70,7 @@ export default function ChatUI({
               onClick={onClose}
               title="Close"
             >
-              ✕
+              <CloseIcon size={20} />
             </button>
           )}
         </div>
@@ -114,7 +124,7 @@ export default function ChatUI({
         <div className="chat-convo-list">
           {conversations.length === 0 ? (
             <div className="chat-empty-state">
-              <span>✉️</span>
+              <ChatIcon size={32} className="text-purple-500" />
               <p>No messages yet. Search for a user above to start chatting.</p>
             </div>
           ) : (
@@ -168,7 +178,7 @@ export default function ChatUI({
                 onClick={() => setActiveConvo(null)}
                 title="Back"
               >
-                ←
+                <BackIcon size={20} />
               </button>
               <div className="chat-header-user">
                 {(() => {
@@ -206,14 +216,14 @@ export default function ChatUI({
                 onClick={() => deleteConversation(activeConvo.id)}
                 title="Delete conversation"
               >
-                🗑️
+                <DeleteIcon size={20} />
               </button>
             </header>
 
             <div className="chat-messages">
               {messages.length === 0 ? (
                 <div className="chat-messages-empty">
-                  <span>👋</span>
+                  <span className="text-4xl">👋</span>
                   <p>Say hello!</p>
                 </div>
               ) : (
@@ -255,7 +265,7 @@ export default function ChatUI({
                   onClick={() => setShowEmojiPicker(true)}
                   title="Add emoji"
                 >
-                  😀
+                  <EmojiIcon size={20} />
                 </button>
               </div>
               <button
@@ -263,13 +273,13 @@ export default function ChatUI({
                 className="chat-send-btn"
                 disabled={!newMessage.trim()}
               >
-                ➤
+                <SendIcon size={20} />
               </button>
             </form>
           </>
         ) : (
           <div className="chat-empty-area">
-            <span>💬</span>
+            <ChatIcon size={48} className="text-purple-500" />
             <h4>Your Messages</h4>
             <p>Select or start a conversation.</p>
           </div>
@@ -311,7 +321,7 @@ function MessageBubble({
           title="React"
           onClick={() => setShowReactionPicker((v) => !v)}
         >
-          😊
+          <EmojiIcon size={18} />
         </button>
         {showReactionPicker && (
           <div className={`chat-reaction-picker${isOwn ? " own" : ""}`}
@@ -344,8 +354,8 @@ function MessageBubble({
               }}
             />
             <div className="chat-edit-actions">
-              <button type="button" onClick={() => handleEditMessage(msg.id, editText)} className="chat-edit-save">✓</button>
-              <button type="button" onClick={cancelEditing} className="chat-edit-cancel">✕</button>
+              <button type="button" onClick={() => handleEditMessage(msg.id, editText)} className="chat-edit-save"><CheckIcon size={18} /></button>
+              <button type="button" onClick={cancelEditing} className="chat-edit-cancel"><CloseIcon size={18} /></button>
             </div>
           </div>
         ) : (
@@ -356,12 +366,12 @@ function MessageBubble({
             </p>
             {isOwn && (
               <div className="chat-msg-actions">
-                <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit">✏️</button>
+                <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit"><EditIcon size={16} /></button>
                 <button
                   onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
                   className="chat-action-btn"
                   title="Delete"
-                >🗑️</button>
+                ><DeleteIcon size={16} /></button>
               </div>
             )}
           </>

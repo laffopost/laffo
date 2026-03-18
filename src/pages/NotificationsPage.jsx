@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
 import { useAuth } from "../context/AuthContext";
+import { NotificationIcon, HeartIcon, ChatIcon } from "../utils/icons";
 import "./NotificationsPage.css";
 
 export default function NotificationsPage() {
@@ -55,11 +56,11 @@ export default function NotificationsPage() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case "like":
-        return "❤️";
+        return <HeartIcon size={20} />;
       case "comment":
-        return "💬";
+        return <ChatIcon size={20} />;
       default:
-        return "🔔";
+        return <NotificationIcon size={20} />;
     }
   };
 
@@ -82,7 +83,7 @@ export default function NotificationsPage() {
       <div className="notifications-container">
         <div className="notifications-header">
           <div className="notifications-title-section">
-            <h1>🔔 Notifications</h1>
+            <h1><NotificationIcon size={28} style={{display: 'inline', marginRight: '8px'}} />Notifications</h1>
             <p className="notifications-subtitle">
               Stay updated with likes and comments on your posts
             </p>
@@ -119,7 +120,7 @@ export default function NotificationsPage() {
         <div className="notifications-content">
           {notifications.length === 0 ? (
             <div className="no-notifications-message">
-              <div className="no-notifications-icon">🔔</div>
+              <div className="no-notifications-icon"><NotificationIcon size={48} /></div>
               <h3>No notifications yet</h3>
               <p>
                 When someone likes or comments on your posts, you'll see

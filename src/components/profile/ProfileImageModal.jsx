@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { CloseIcon } from "../../utils/icons";
 import "./ProfileImageModal.css";
 
 export default function ProfileImageModal({
@@ -31,7 +32,7 @@ export default function ProfileImageModal({
           onClick={onClose}
           title="Close (ESC)"
         >
-          ✕
+          <CloseIcon size={24} />
         </button>
 
         <img

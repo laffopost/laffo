@@ -190,3 +190,5 @@ export const ChevronLeftIcon = Icons.chevronLeft;
 export const ChevronRightIcon = Icons.chevronRight;
 export const ShuffleIcon = Icons.shuffle;
 export const MessageIcon = Icons.message;
+export const CalendarIcon = Icons.calendar;
+export const UserProfileIcon = Icons.user;

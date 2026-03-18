@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import laughLogo from "../../assets/laugh.png";
 import solanaLogo from "../../assets/solanaLogo.png";
 import { SOCIAL_LINKS } from "../../constants/token";
+import { ChatIcon } from "../../utils/icons";
 import "./Footer.css";
 
 export default function Footer() {
@@ -30,16 +31,18 @@ export default function Footer() {
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Telegram"
+              style={{display: 'flex', alignItems: 'center'}}
             >
-              💬
+              <ChatIcon size={20} />
             </a>
             <a
               href={SOCIAL_LINKS.discord}
               target="_blank"
               rel="noopener noreferrer"
               aria-label="Discord"
+              style={{display: 'flex', alignItems: 'center'}}
             >
-              💭
+              <ChatIcon size={20} />
             </a>
           </div>
         </div>

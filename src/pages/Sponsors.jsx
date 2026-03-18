@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { TOKEN_CONTRACT } from "../constants/token";
 import toast from "react-hot-toast";
+import { CheckIcon } from "../utils/icons";
 import "./Sponsors.css";
 
 const SPONSOR_TIERS = [
@@ -155,7 +156,7 @@ export default function Sponsors() {
               <ul className="sponsors-tier-perks">
                 {tier.perks.map((perk, i) => (
                   <li key={i}>
-                    <span className="sponsors-perk-check">✓</span> {perk}
+                    <span className="sponsors-perk-check"><CheckIcon size={16} style={{display: 'inline'}} /></span> {perk}
                   </li>
                 ))}
               </ul>

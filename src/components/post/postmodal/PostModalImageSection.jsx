@@ -9,7 +9,7 @@ import MediaPlayer from "../MediaPlayer";
 import StatusRenderer from "../StatusRenderer";
 import PollRenderer from "../PollRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon } from "../../../utils/icons";
+import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon, UserProfileIcon } from "../../../utils/icons";
 
 export default function PostModalImageSection({
   image,
@@ -238,7 +238,7 @@ export default function PostModalImageSection({
                 )
               }
             >
-              👤 View Profile
+              <UserProfileIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> View Profile
             </button>
             {firebaseUser &&
               !firebaseUser.isAnonymous &&

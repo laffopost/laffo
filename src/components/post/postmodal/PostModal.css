@@ -1064,14 +1064,11 @@
   transform: scale(1.05);
 }
 
-.reaction-share-btn .modal-btn-icon {
-  filter: invert(1);
-}
-
+.reaction-share-btn .modal-btn-icon,
 .modal-btn-icon {
-  height: 16px;
-  width: 16px;
-  filter: invert(1);
+  display: flex;
+  align-items: center;
+  color: inherit;
 }
 
 .reaction-share-menu {
@@ -1218,12 +1215,9 @@
 }
 
 .more-icon-modal {
-  width: 18px;
-  height: 18px;
-  filter: invert(100%);
-  opacity: 0.8;
-  position: relative;
-  top: 1px;
+  display: flex;
+  align-items: center;
+  color: inherit;
   margin-right: 4px;
 }
 

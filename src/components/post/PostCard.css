@@ -374,10 +374,9 @@
 }
 
 .more-icon {
-  width: 14px;
-  height: 14px;
-  filter: invert(100%);
-  opacity: 0.8;
+  display: flex;
+  align-items: center;
+  color: inherit;
 }
 
 .image-actions-row {
@@ -481,11 +480,9 @@
 }
 
 .action-icon {
-  height: 18px;
-  width: 18px;
-  filter: invert(80%) sepia(39%) saturate(689%) hue-rotate(200deg)
-    brightness(102%) contrast(97%);
-  transition: filter 0.2s;
+  display: flex;
+  align-items: center;
+  color: inherit;
 }
 
 /* Vertical layout adjustments */

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 import { useConversations } from "../../../hooks/useConversations";
 import ChatUI from "./ChatUI";
+import { ChatIcon } from "../../../utils/icons";
 import "./DirectMessages.css";
 
 export default function DirectMessages() {
@@ -43,7 +44,7 @@ export default function DirectMessages() {
         onClick={() => setIsOpen(true)}
         title="Direct Messages"
       >
-        ✉️
+        <ChatIcon size={24} />
         {unreadMessageCount > 0 && (
           <span className="dm-fab-badge">{unreadMessageCount}</span>
         )}
