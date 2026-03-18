@@ -195,3 +195,5 @@ export const UserProfileIcon = Icons.user;
 export const HeartIconSmall = Icons.heart;
 export const VolumeUpIcon = Icons.volumeUp;
 export const VolumeMuteIcon = Icons.volumeMute;
+export const PlayIcon = Icons.play;
+export const PauseIcon = Icons.pause;

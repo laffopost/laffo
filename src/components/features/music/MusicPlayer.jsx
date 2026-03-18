@@ -4,6 +4,7 @@ import { usePostActions } from "../../../context/PostContext";
 import toast from "react-hot-toast";
 import FirebaseChat from "../chat/FirebaseChat";
 import AddPostModal from "../../post/AddPostModal";
+import { PlayIcon, PauseIcon, CloseIcon, VolumeUpIcon, VolumeMuteIcon } from "../../../utils/icons";
 import "./MusicPlayer.css";
 
 const GENRES = [
@@ -605,6 +606,7 @@ export default function MusicPlayer() {
   }, []);
 
   const handleMinimize = () => {
+    // Note: Music continues playing when minimized (user expects this)
     setIsMinimized(true);
     setIsOpen(false);
     setShowVolume(false);
@@ -763,7 +765,7 @@ export default function MusicPlayer() {
               <span
                 className={`mini-header-icon ${isPlaying ? "playing" : ""}`}
               >
-                {isPlaying ? "🎵" : "⏸️"}
+                {isPlaying ? <PlayIcon size={18} /> : <PauseIcon size={18} />}
               </span>
               <div className="mini-header-text">
                 <span className="mini-header-name">
@@ -781,6 +783,7 @@ export default function MusicPlayer() {
                 className="mini-hdr-btn expand"
                 onClick={handleRestore}
                 title="Maximize"
+                style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
               >
                 ⤢
               </button>
@@ -788,8 +791,9 @@ export default function MusicPlayer() {
                 className="mini-hdr-btn close"
                 onClick={handleClose}
                 title="Close"
+                style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
               >
-                ✕
+                <CloseIcon size={16} />
               </button>
             </div>
           </div>
@@ -806,7 +810,7 @@ export default function MusicPlayer() {
                       <div key={i} className="mini-vis-bar" />
                     ))
                   ) : (
-                    <div className="mini-vis-paused">🎧</div>
+                    <div className="mini-vis-paused" style={{fontSize: '24px'}}>🎧</div>
                   )}
                 </div>
                 {currentStation && (
@@ -838,8 +842,9 @@ export default function MusicPlayer() {
               className="mini-ctrl-btn play"
               onClick={handleTogglePlay}
               title={isPlaying ? "Pause" : "Play"}
+              style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
             >
-              {isPlaying ? "⏸" : "▶"}
+              {isPlaying ? <PauseIcon size={18} /> : <PlayIcon size={18} />}
             </button>
             <button
               className="mini-ctrl-btn"
@@ -971,8 +976,9 @@ export default function MusicPlayer() {
                       className={`transport-btn play-main ${isPlaying ? "active" : ""}`}
                       onClick={handleTogglePlay}
                       title={isPlaying ? "Pause" : "Play"}
+                      style={{display: 'inline-flex', alignItems: 'center', justifyContent: 'center'}}
                     >
-                      {isPlaying ? "⏸" : "▶"}
+                      {isPlaying ? <PauseIcon size={22} /> : <PlayIcon size={22} />}
                     </button>
                     <button
                       className="transport-btn"
