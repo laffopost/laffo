@@ -4,6 +4,7 @@ import { useAuth } from "../../context/AuthContext";
 import { useUnreadMessageCount } from "../../hooks/useUnreadMessageCount";
 import { NotificationBell } from "../features/utilities";
 import { ThemeToggle } from "../common";
+import { VolumeUpIcon, VolumeMuteIcon } from "../../utils/icons";
 import laughLogo from "../../assets/laugh.png";
 import "./Header.css";
 import { signOut } from "firebase/auth";
@@ -337,13 +338,9 @@ const Header = memo(function Header() {
               }
             >
               {soundOn ? (
-                <span role="img" aria-label="Sound on" className="sound-icon">
-                  🔊
-                </span>
+                <VolumeUpIcon size={20} className="sound-icon" title="Sound is ON" />
               ) : (
-                <span role="img" aria-label="Sound off" className="sound-icon">
-                  🔇
-                </span>
+                <VolumeMuteIcon size={20} className="sound-icon" title="Sound is OFF" />
               )}
             </button>
           </div>

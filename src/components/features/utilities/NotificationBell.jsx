@@ -3,7 +3,7 @@ import { useNotifications } from "../../../context/NotificationContext";
 import { useUnreadMessageCount } from "../../../hooks/useUnreadMessageCount";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
-
+import { NotificationIcon, ChatIcon, HeartIconSmall, MessageIcon } from "../../../utils/icons";
 import logger from "../../../utils/logger";
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
@@ -73,11 +73,11 @@ export default function NotificationBell() {
   const getNotificationIcon = (type) => {
     switch (type) {
       case "like":
-        return "❤️";
+        return <HeartIconSmall size={18} style={{ color: "#ec4899" }} />;
       case "comment":
-        return "💬";
+        return <ChatIcon size={18} />;
       default:
-        return "🔔";
+        return <NotificationIcon size={18} />;
     }
   };
 
@@ -88,7 +88,7 @@ export default function NotificationBell() {
         onClick={() => setIsOpen(!isOpen)}
         aria-label={`Notifications ${totalUnread > 0 ? `(${totalUnread} unread)` : ""}`}
       >
-        <span className="bell-icon">🔔</span>
+        <NotificationIcon size={20} className="bell-icon" style={{display: 'inline-block'}} />
         {totalUnread > 0 && (
           <span className="notification-badge">
             {totalUnread > 99 ? "99+" : totalUnread}
@@ -113,7 +113,7 @@ export default function NotificationBell() {
               onClick={() => { navigate("/messages"); setIsOpen(false); }}
               style={{ cursor: "pointer" }}
             >
-              <div className="notification-icon">✉️</div>
+              <div className="notification-icon"><MessageIcon size={18} /></div>
               <div className="notification-content">
                 <div className="notification-message">
                   {unreadMessageCount} unread message{unreadMessageCount > 1 ? "s" : ""}
@@ -127,7 +127,7 @@ export default function NotificationBell() {
           <div className="notification-list">
             {notifications.length === 0 && unreadMessageCount === 0 ? (
               <div className="no-notifications">
-                <span className="no-notifications-icon">🔔</span>
+                <NotificationIcon size={32} className="no-notifications-icon" style={{display: 'inline-block'}} />
                 <p>No notifications yet</p>
               </div>
             ) : notifications.length === 0 ? null : (
