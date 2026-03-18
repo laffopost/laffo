@@ -4,13 +4,12 @@ import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
-import shareIcon from "../../../assets/share.png";
-import moreIcon from "../../../assets/more.png";
 import "./PostModalImageSection.css";
 import MediaPlayer from "../MediaPlayer";
 import StatusRenderer from "../StatusRenderer";
 import PollRenderer from "../PollRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
+import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon } from "../../../utils/icons";
 
 export default function PostModalImageSection({
   image,
@@ -260,7 +259,7 @@ export default function PostModalImageSection({
                     );
                   }}
                 >
-                  ✉️ Send DM
+                  <MessageIcon size={14} /> Send DM
                 </button>
               )}
           </div>
@@ -317,7 +316,7 @@ export default function PostModalImageSection({
               onClick={onEditRequest}
               title="Edit post"
             >
-              ✏️
+              <EditIcon size={14} />
             </button>
           )}
           {canDelete && onDeleteRequest && (
@@ -326,7 +325,7 @@ export default function PostModalImageSection({
               onClick={onDeleteRequest}
               title="Delete post"
             >
-              🗑️
+              <DeleteIcon size={14} />
             </button>
           )}
           {onRandom && (
@@ -335,7 +334,7 @@ export default function PostModalImageSection({
               onClick={onRandom}
               title="Random post"
             >
-              🎲
+              <ShuffleIcon size={14} />
             </button>
           )}
         </div>
@@ -416,7 +415,7 @@ export default function PostModalImageSection({
                   onMouseEnter={() => setShowReactionPicker(true)}
                   onMouseLeave={() => setShowReactionPicker(false)}
                 >
-                  <img src={moreIcon} alt="React" className="more-icon-modal" />
+                  <EmojiIcon size={14} />
                   React
                 </button>
                 {showReactionPicker && (
@@ -457,7 +456,7 @@ export default function PostModalImageSection({
                     setShowShareMenu(!showShareMenu);
                   }}
                 >
-                  <img src={shareIcon} alt="Share" className="modal-btn-icon" />
+                  <ShareIcon size={14} />
                   Share
                 </button>
                 {showShareMenu && (

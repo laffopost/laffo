@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CloseIcon } from "../../utils/icons";
 import CreatePostForm from "./CreatePostForm";
 import CreateStatusForm from "./CreateStatusForm";
 import CreatePollForm from "./CreatePollForm";
@@ -40,7 +41,7 @@ export default function AddPostModal({
           <div className="add-post-modal-header">
             <h2>✨ Add New Post</h2>
             <button className="close-btn" onClick={onClose}>
-              ×
+              <CloseIcon size={18} />
             </button>
           </div>
 

@@ -2,9 +2,7 @@ import { memo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import clickSound from "../../assets/click.mp3";
-import commentIcon from "../../assets/comment.png";
-import shareIcon from "../../assets/share.png";
-import moreIcon from "../../assets/more.png";
+import { EditIcon, ChatIcon, ShareIcon, EmojiIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 
@@ -232,7 +230,7 @@ const PostCard = memo(
               <p className="post-card-date">
                 📅 {formatCardDate(image.createdAt)}
                 {image.edited && formatCardDate(image.updatedAt) && (
-                  <span className="post-card-date-edited"> · ✏️ {formatCardDate(image.updatedAt)}</span>
+                  <span className="post-card-date-edited"> · <EditIcon size={12} style={{display: 'inline', marginRight: '2px'}} /> {formatCardDate(image.updatedAt)}</span>
                 )}
               </p>
             )}
@@ -266,7 +264,7 @@ const PostCard = memo(
                     onEdit(image);
                   }}
                 >
-                  ✏️
+                  <EditIcon size={13} />
                 </button>
               )}
 
@@ -278,7 +276,7 @@ const PostCard = memo(
                   onComment(image);
                 }}
               >
-                <img src={commentIcon} alt="Comment" className="action-icon" />
+                <ChatIcon size={15} />
                 <span className="comment-count">{image.commentCount || 0}</span>
               </button>
 
@@ -294,7 +292,7 @@ const PostCard = memo(
                   onClick={handlePopoverToggle}
                   type="button"
                 >
-                  <img src={moreIcon} alt="More" className="more-icon" />
+                  <EmojiIcon size={14} />
                 </button>
                 {showMoreReactions && (
                   <div
@@ -333,7 +331,7 @@ const PostCard = memo(
                     onShare(image);
                   }}
                 >
-                  <img src={shareIcon} alt="Share" className="action-icon" />
+                  <ShareIcon size={15} />
                 </button>
               </div>
             </div>

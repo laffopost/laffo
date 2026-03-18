@@ -5,6 +5,7 @@ import { formatTimeAgo } from "../../utils/gameUtils";
 import "./Leaderboard.css";
 
 import logger from "../../utils/logger";
+import { MessageIcon } from "../../utils/icons";
 
 export default function Leaderboard({ gameKey }) {
   const [scores, setScores]     = useState([]);
@@ -95,7 +96,7 @@ export default function Leaderboard({ gameKey }) {
                       }}
                       title={`DM ${score.username}`}
                     >
-                      ✉️
+                      <MessageIcon size={14} />
                     </button>
                   )}
                 </li>

@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { CloseIcon, EditIcon } from "../../utils/icons";
 import EditImageForm from "./EditImageForm";
 import EditStatusForm from "./EditStatusForm";
 import EditPollForm from "./EditPollForm";
@@ -73,9 +74,9 @@ export default function EditPostModal({ post, onClose, onSave }) {
     <div className="edit-post-modal-overlay" onClick={onClose}>
       <div className="edit-post-modal" onClick={(e) => e.stopPropagation()}>
         <div className="edit-post-modal-header">
-          <h2>✏️ Edit Post</h2>
+          <h2><EditIcon size={16} /> Edit Post</h2>
           <button className="edit-post-close-btn" onClick={onClose}>
-            ×
+            <CloseIcon size={18} />
           </button>
         </div>
 

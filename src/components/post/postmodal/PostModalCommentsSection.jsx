@@ -10,9 +10,9 @@ function fmtDate(ts) {
 import { usePosts } from "../../../context/PostContext";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase/config";
-import sendIcon from "../../../assets/send.png";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
+import { DeleteIcon, ChatIcon, EditIcon, SendIcon } from "../../../utils/icons";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
   image,
@@ -161,7 +161,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
             <p className="comments-post-date">
               📅 {fmtDate(image.createdAt)}
               {image.edited && fmtDate(image.updatedAt) && (
-                <span> · ✏️ Edited {fmtDate(image.updatedAt)}</span>
+                <span> · <EditIcon size={12} style={{display: 'inline', marginRight: '4px'}} /> Edited {fmtDate(image.updatedAt)}</span>
               )}
             </p>
           )}
@@ -204,14 +204,14 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
             disabled={!newComment.trim()}
             onClick={handleInputClick}
           >
-            <img src={sendIcon} alt="Send" className="modal-btn-icon" />
+            <SendIcon size={16} />
           </button>
         </div>
       </form>
       <div className="comments-list">
         {comments.length === 0 ? (
           <div className="no-comments">
-            <p>No comments yet. Be the first to comment! 💬</p>
+            <p>No comments yet. Be the first to comment! <ChatIcon size={16} style={{display: 'inline', marginLeft: '4px'}} /></p>
           </div>
         ) : (
           comments.map((comment) => {
@@ -280,7 +280,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                           }}
                           title={`DM ${comment.author}`}
                         >
-                          ✉️
+                          <Mail size={13} />
                         </button>
                       )}
                     <span className="comment-time" style={{ marginLeft: 8 }}>
@@ -299,7 +299,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                           }}
                           title="Delete comment"
                         >
-                          🗑️
+                          <Trash2 size={13} />
                         </button>
                       )}
                   </div>

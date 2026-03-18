@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ListIcon, GridIcon, ChevronLeftIcon, ChevronRightIcon } from "../../utils/icons";
 import "./GallerySection.css";
 
 export default function GallerySection({
@@ -68,7 +69,7 @@ export default function GallerySection({
                   currentLayout === "horizontal" ? "grid" : "carousel"
                 } view`}
               >
-                {currentLayout === "horizontal" ? "📋" : "📊"}
+                {currentLayout === "horizontal" ? <ListIcon size={16} /> : <GridIcon size={16} />}
               </button>
             )}
             {currentLayout === "horizontal" && (
@@ -78,14 +79,14 @@ export default function GallerySection({
                   onClick={() => onScroll(scrollRef, "left")}
                   aria-label="Scroll left"
                 >
-                  ‹
+                  <ChevronLeftIcon size={20} />
                 </button>
                 <button
                   className="gallery-nav-btn"
                   onClick={() => onScroll(scrollRef, "right")}
                   aria-label="Scroll right"
                 >
-                  ›
+                  <ChevronRightIcon size={20} />
                 </button>
               </div>
             )}

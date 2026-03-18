@@ -25,6 +25,7 @@ import ProfileEditForm from "./ProfileEditForm";
 import AddPostModal from "../post/AddPostModal";
 import CreatePostButton from "../post/CreatePostButton";
 import ProfileImageModal from "./ProfileImageModal";
+import { EditIcon, MessageIcon } from "../../utils/icons";
 import "./ProfilePage.css";
 
 export default function ProfilePage() {
@@ -433,7 +434,7 @@ export default function ProfilePage() {
               <div className="profile-hero-actions">
                 <CreatePostButton onClick={() => setShowAddModal(true)} />
                 <button className="profile-edit-btn" onClick={openEdit}>
-                  ✏️ Edit
+                  <EditIcon size={14} /> Edit
                 </button>
                 <button
                   className="profile-logout-btn"
@@ -495,7 +496,7 @@ export default function ProfilePage() {
                       );
                     }}
                   >
-                    ✉️ Send Message
+                    <MessageIcon size={14} /> Send Message
                   </button>
                 )}
             </div>
