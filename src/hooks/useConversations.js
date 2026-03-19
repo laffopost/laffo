@@ -50,6 +50,7 @@ export function useConversations({ onConversationStarted } = {}) {
   const [editText, setEditText] = useState("");
 
   const messagesEndRef = useRef(null);
+  const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const cooldownRef = useRef(0);
   const typingTimeoutRef = useRef(null);
@@ -129,7 +130,10 @@ export function useConversations({ onConversationStarted } = {}) {
 
   // ── Auto-scroll ───────────────────────────────────────────────────
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+    }
   }, [messages]);
 
   // ── Typing indicator — detect other user typing ─────────────────
@@ -509,6 +513,7 @@ export function useConversations({ onConversationStarted } = {}) {
     setEditText,
     // refs
     messagesEndRef,
+    messagesContainerRef,
     inputRef,
     // actions
     openConversation,

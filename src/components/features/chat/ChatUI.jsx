@@ -41,6 +41,7 @@ export default function ChatUI({
   showEmojiPicker,
   setShowEmojiPicker,
   messagesEndRef,
+  messagesContainerRef,
   inputRef,
   // callbacks
   handleSend,
@@ -223,7 +224,7 @@ export default function ChatUI({
               </button>
             </header>
 
-            <div className="chat-messages">
+            <div className="chat-messages" ref={messagesContainerRef}>
               {messages.length === 0 ? (
                 <div className="chat-messages-empty">
                   <span className="text-4xl">👋</span>
