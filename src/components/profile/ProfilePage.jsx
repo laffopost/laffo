@@ -4,7 +4,7 @@ import PostGallery from "../post/PostGallery";
 import { Notification } from "../common";
 import { signOut, updateProfile } from "firebase/auth";
 import { auth } from "../../firebase/config";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   doc,
@@ -150,40 +150,37 @@ export default function ProfilePage() {
     };
   }, [routeUsername, userProfile]);
 
-  // Subscribe to followers count (people following this profile)
+  // Single consolidated follow listener — followers, following, isFollowing
   useEffect(() => {
     if (!publicProfile?.uid) return;
-    const q = query(
+    const unsubs = [];
+
+    // Followers count
+    const followersQ = query(
       collection(db, "follows"),
       where("followingId", "==", publicProfile.uid),
     );
-    const unsub = onSnapshot(q, (snap) => setFollowersCount(snap.size));
-    return () => unsub();
-  }, [publicProfile?.uid]);
+    unsubs.push(onSnapshot(followersQ, (snap) => setFollowersCount(snap.size)));
 
-  // Subscribe to following count (people this profile follows)
-  useEffect(() => {
-    if (!publicProfile?.uid) return;
-    const q = query(
+    // Following count
+    const followingQ = query(
       collection(db, "follows"),
       where("followerId", "==", publicProfile.uid),
     );
-    const unsub = onSnapshot(q, (snap) => setFollowingCount(snap.size));
-    return () => unsub();
-  }, [publicProfile?.uid]);
+    unsubs.push(onSnapshot(followingQ, (snap) => setFollowingCount(snap.size)));
 
-  // Check if current user follows this profile
-  useEffect(() => {
-    if (!firebaseUser?.uid || !publicProfile?.uid || firebaseUser.uid === publicProfile.uid) {
+    // Is current user following this profile?
+    if (firebaseUser?.uid && firebaseUser.uid !== publicProfile.uid) {
+      const docId = `${firebaseUser.uid}_${publicProfile.uid}`;
+      unsubs.push(
+        onSnapshot(doc(db, "follows", docId), (snap) => setIsFollowing(snap.exists())),
+      );
+    } else {
       setIsFollowing(false);
-      return;
     }
-    const docId = `${firebaseUser.uid}_${publicProfile.uid}`;
-    const unsub = onSnapshot(doc(db, "follows", docId), (snap) => {
-      setIsFollowing(snap.exists());
-    });
-    return () => unsub();
-  }, [firebaseUser?.uid, publicProfile?.uid]);
+
+    return () => unsubs.forEach((unsub) => unsub());
+  }, [publicProfile?.uid, firebaseUser?.uid]);
 
   // Follow / unfollow handler
   const handleFollowToggle = useCallback(async () => {
@@ -238,6 +235,28 @@ export default function ProfilePage() {
       type: "success",
     });
   };
+
+  // User's posts and stats (memoized to avoid O(n) filter + reduce on every render)
+  // Must be above early returns to satisfy Rules of Hooks
+  const { totalPosts, totalReactions, totalComments } = useMemo(() => {
+    if (!publicProfile) return { totalPosts: 0, totalReactions: 0, totalComments: 0 };
+    // Exclude anonymous posts from profile stats
+    const userPosts = posts.filter(
+      (p) =>
+        !p.isAnonymousPost &&
+        (p.author?.toLowerCase() === publicProfile.username?.toLowerCase() ||
+         p.uploadedBy === publicProfile.uid),
+    );
+    const reactions = userPosts.reduce((sum, p) => {
+      const r = getReactions(p.id);
+      return sum + Object.values(r).reduce((a, b) => a + b, 0);
+    }, 0);
+    const comments = userPosts.reduce(
+      (sum, p) => sum + (p.commentCount || 0),
+      0,
+    );
+    return { totalPosts: userPosts.length, totalReactions: reactions, totalComments: comments };
+  }, [posts, publicProfile, getReactions]);
 
   if (profileLoading) {
     return (
@@ -310,22 +329,6 @@ export default function ProfilePage() {
 
   // Use user ID for filtering instead of username to handle username changes
   const usernameForFilter = publicProfile?.uid;
-
-  // User's posts and stats
-  const userPosts = posts.filter(
-    (img) =>
-      img.author?.toLowerCase() === publicProfile.username?.toLowerCase() ||
-      img.uploadedBy === publicProfile.uid,
-  );
-  const totalPosts = userPosts.length;
-  const totalReactions = userPosts.reduce((sum, post) => {
-    const reactions = getReactions(post.id);
-    return sum + Object.values(reactions).reduce((a, b) => a + b, 0);
-  }, 0);
-  const totalComments = userPosts.reduce(
-    (sum, post) => sum + (post.commentCount || 0),
-    0,
-  );
 
   // Only show logout if this is the logged-in user's profile
   const isOwnProfile =

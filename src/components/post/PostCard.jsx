@@ -63,7 +63,8 @@ const PostCard = memo(
 
     const handleAuthorClick = (e) => {
       e.stopPropagation();
-      if (post.author) {
+      // Don't navigate to profile for anonymous posts
+      if (post.author && !post.isAnonymousPost) {
         navigate(`/profile/${encodeURIComponent(post.author.toLowerCase())}`);
       }
     };
@@ -160,10 +161,10 @@ const PostCard = memo(
               )}
               <div className="image-meta-overlay">
                 <span
-                  className="image-author-overlay clickable-author"
-                  onClick={handleAuthorClick}
-                  title="View profile"
-                  style={{ display: "flex", alignItems: "center" }}
+                  className={`image-author-overlay${post.isAnonymousPost ? "" : " clickable-author"}`}
+                  onClick={post.isAnonymousPost ? undefined : handleAuthorClick}
+                  title={post.isAnonymousPost ? "Anonymous post" : "View profile"}
+                  style={{ display: "flex", alignItems: "center", cursor: post.isAnonymousPost ? "default" : "pointer" }}
                 >
                   {authorAvatar && (
                     <img

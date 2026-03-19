@@ -225,6 +225,7 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
       type: formData.type,
       reactions: initialReactions,
       endsAt,
+      isAnonymousPost: postAsAnonymous,
     });
     onClose();
   };

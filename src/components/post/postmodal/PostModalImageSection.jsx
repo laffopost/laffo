@@ -210,15 +210,17 @@ export default function PostModalImageSection({
     };
   }, [post.uploadedBy]);
 
-  // Tabs UI
-  const showTabs = post.type === "user-profile" || !!userData;
+  // Tabs UI — hide user tab for anonymous posts
+  const showTabs = !post.isAnonymousPost && (post.type === "user-profile" || !!userData);
 
   // Calculate user stats (memoized to avoid O(n²) on every render)
   const { totalPosts, totalReactions, totalComments } = useMemo(() => {
+    // Exclude anonymous posts from author stats
     const authorPosts = posts.filter(
       (p) =>
-        p.author?.toLowerCase() === post.author?.toLowerCase() ||
-        p.uploadedBy === post.uploadedBy,
+        !p.isAnonymousPost &&
+        (p.author?.toLowerCase() === post.author?.toLowerCase() ||
+         p.uploadedBy === post.uploadedBy),
     );
     const reactions = authorPosts.reduce((sum, p) => {
       const r = p.reactions;
@@ -390,13 +392,14 @@ export default function PostModalImageSection({
     );
   };
 
-  const displayUsername = userData?.username || post.author || "User";
-  const displayAvatar =
-    userData?.avatar ||
-    post.authorAvatar ||
-    `https://ui-avatars.com/api/?name=${encodeURIComponent(
-      displayUsername,
-    )}&background=8b5cf6&color=fff&size=64`;
+  const displayUsername = post.isAnonymousPost ? "Anonymous" : (userData?.username || post.author || "User");
+  const displayAvatar = post.isAnonymousPost
+    ? `https://ui-avatars.com/api/?name=A&background=666&color=fff&size=64`
+    : (userData?.avatar ||
+       post.authorAvatar ||
+       `https://ui-avatars.com/api/?name=${encodeURIComponent(
+         displayUsername,
+       )}&background=8b5cf6&color=fff&size=64`);
 
   // Single unified render — toolbar always visible below content
   return (

@@ -194,6 +194,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
       reactions: initialReactions,
       image: thumbnailImage,
       endsAt,
+      isAnonymousPost: postAsAnonymous,
     };
 
     logger.log("📤 CreateMediaForm - Submitting post data:", postData);

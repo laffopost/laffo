@@ -100,6 +100,7 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },
       image: null,
       endsAt,
+      isAnonymousPost: postAsAnonymous,
     });
     onClose();
   };

@@ -108,6 +108,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       author: finalAuthor,
       authorAvatar: finalAvatar,
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },
+      isAnonymousPost: postAsAnonymous,
     });
     onClose();
   };

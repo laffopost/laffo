@@ -77,7 +77,7 @@ service cloud.firestore {
       allow update: if isRealUser()
                     && (request.auth.uid == resource.data.uploadedBy
                         || request.resource.data.diff(resource.data).affectedKeys()
-                               .hasOnly(['reactions', 'commentCount']));
+                               .hasOnly(['reactions', 'commentCount', 'voteCounts', 'votes']));
       allow delete: if isSignedIn()
                     && (request.auth.uid == resource.data.uploadedBy
                         || (resource.data.endsAt != null && request.time.toMillis() > resource.data.endsAt));

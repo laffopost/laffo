@@ -37,7 +37,6 @@ import {
   createNotificationForPost,
   notifyFollowersOfNewPost,
 } from "../utils/notificationUtils";
-import { getPostExpiryService } from "../utils/postExpiry";
 
 
 // Two separate contexts:
@@ -98,7 +97,6 @@ export const PostProvider = ({ children }) => {
   const mountedRef = useRef(true);
   const lastPostTimeRef = useRef(0);
   const lastCommentTimeRef = useRef(0);
-  const expiryServiceRef = useRef(null);
   const lastDocSnapshotRef = useRef(null); // Cursor for pagination
   const hasMoreRef = useRef(true);
 
@@ -112,21 +110,6 @@ export const PostProvider = ({ children }) => {
   userProfileRef.current = userProfile;
   const userNameRef = useRef(userName);
   userNameRef.current = userName;
-
-  // Initialize expiry service
-  useEffect(() => {
-    if (db && !expiryServiceRef.current) {
-      expiryServiceRef.current = getPostExpiryService(db);
-      // Start automatic cleanup with 5-minute intervals
-      expiryServiceRef.current.startCleanup(300000);
-    }
-
-    return () => {
-      if (expiryServiceRef.current) {
-        expiryServiceRef.current.stopCleanup();
-      }
-    };
-  }, [db]);
 
   // Helper function to filter out expired posts
   const filterExpiredPosts = useCallback((posts) => {
@@ -389,7 +372,6 @@ export const PostProvider = ({ children }) => {
         let imageUrl = null;
         if (postData.type !== "status" && postData.type !== "poll") {
           if (postData.imageFile instanceof File) {
-            // Convert file to base64 via the already-compressed previewUrl
             imageUrl = postData.image || null;
             log("✅ Using compressed base64 image, size:", imageUrl?.length);
           } else if (postData.image) {
@@ -398,11 +380,14 @@ export const PostProvider = ({ children }) => {
           }
         }
 
+        const isAnon = !!postData.isAnonymousPost;
+
+        // ── Build the post document ────────────────────────────────
         const newPost = {
           title: postData.title || "",
           description: postData.description || "",
-          author: postData.author || username,
-          authorAvatar: postData.authorAvatar || null,
+          author: isAnon ? "Anonymous" : (postData.author || username),
+          authorAvatar: isAnon ? null : (postData.authorAvatar || null),
           image: imageUrl,
           type: postData.type || "user",
           uploadedBy: firebaseUser.uid,
@@ -410,6 +395,7 @@ export const PostProvider = ({ children }) => {
           reactions: postData.reactions || DEFAULT_REACTIONS,
           commentCount: 0,
           endsAt: postData.endsAt || null,
+          isAnonymousPost: isAnon,
         };
 
         if (postData.type === "user-profile" || postData.type === "user") {
@@ -419,20 +405,17 @@ export const PostProvider = ({ children }) => {
         }
 
         if (postData.type === "media") {
-          log("🎥 PostContext - Adding media fields");
           newPost.mediaType = postData.mediaType;
           newPost.embedUrl = postData.embedUrl;
         }
 
         if (postData.type === "status") {
-          log("👀 PostContext - Adding status fields");
           newPost.status = postData.status;
           newPost.bgColor = postData.bgColor;
           newPost.textColor = postData.textColor;
         }
 
         if (postData.type === "poll") {
-          log("🎮 PostContext - Adding poll fields");
           newPost.question = postData.question;
           newPost.options = postData.options;
           newPost.bgColor = postData.bgColor || "#1a1a2e";
@@ -450,24 +433,20 @@ export const PostProvider = ({ children }) => {
 
         log("✅ PostContext - Post saved successfully with ID:", docRef.id);
 
-        if (newPost.endsAt && expiryServiceRef.current) {
-          expiryServiceRef.current.schedulePostDeletion(
-            docRef.id,
-            newPost.endsAt,
-          );
-        }
-
         lastPostTimeRef.current = Date.now();
         setPosts((prev) => [newPostWithId, ...prev]);
-        setUserPosts((prev) => [newPostWithId, ...prev]);
 
-        // Notify followers about the new post (fire and forget)
-        notifyFollowersOfNewPost({
-          authorId: firebaseUser.uid,
-          authorUsername: username,
-          postId: docRef.id,
-          postTitle: newPost.title || newPost.question || "New post",
-        });
+        if (!isAnon) {
+          setUserPosts((prev) => [newPostWithId, ...prev]);
+
+          // Notify followers about the new post (fire and forget)
+          notifyFollowersOfNewPost({
+            authorId: firebaseUser.uid,
+            authorUsername: username,
+            postId: docRef.id,
+            postTitle: newPost.title || newPost.question || "New post",
+          });
+        }
 
         return docRef.id;
       } catch (err) {
@@ -482,16 +461,17 @@ export const PostProvider = ({ children }) => {
     async (postId) => {
       log(`🗑️ Deleting post ${postId}`);
       try {
-        // Ownership check: only the post author can delete
         const postRef = doc(db, "posts", postId);
         const postDoc = await getDoc(postRef);
         if (!postDoc.exists()) {
           throw new Error("Post not found");
         }
+
         if (postDoc.data().uploadedBy !== userId) {
           throw new Error("You can only delete your own posts");
         }
         await deleteDoc(postRef);
+
         setPosts((prev) => prev.filter((img) => img.id !== postId));
         setUserPosts((prev) => prev.filter((img) => img.id !== postId));
         return true;
@@ -888,9 +868,16 @@ export const PostProvider = ({ children }) => {
   const stats = useMemo(() => {
     log("📊 Calculating stats");
     const totalPosts = posts.length;
-    const totalUsers = new Set(
-      posts.map((p) => (p.author || "Anonymous").trim()).filter(Boolean),
-    ).size;
+    // Count unique real authors — anonymous posts use uploadedBy for uniqueness
+    const userSet = new Set();
+    posts.forEach((p) => {
+      if (p.isAnonymousPost) {
+        userSet.add(p.uploadedBy); // still count the person, just not as "Anonymous"
+      } else {
+        userSet.add((p.author || "").trim().toLowerCase() || p.uploadedBy);
+      }
+    });
+    const totalUsers = userSet.size;
     const totalReacts = posts.reduce((sum, p) => {
       if (!p.reactions) return sum;
       return sum + Object.values(p.reactions).reduce((a, b) => a + b, 0);

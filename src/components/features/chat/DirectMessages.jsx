@@ -26,21 +26,23 @@ export default function DirectMessages() {
     return () => window.removeEventListener("openDM", handler);
   }, [chat.currentUser, chat.startConversation]);
 
-  // Don't render the FAB/overlay on the full Messages page — it also mounts
-  // useConversations, and two simultaneous listeners on the same Firestore
-  // query corrupt the watch-stream state.
-  if (pathname === "/messages") return null;
-  if (!chat.currentUser) return null;
-
-  const uid = chat.currentUser.uid;
-  const unreadMessageCount = chat.conversations.filter(
-    (c) => c.lastSenderId !== uid && !c[`read_${uid}`] && c.lastMessage,
-  ).length;
+  const uid = chat.currentUser?.uid;
+  const unreadMessageCount = uid
+    ? chat.conversations.filter(
+        (c) => c.lastSenderId !== uid && !c[`read_${uid}`] && c.lastMessage,
+      ).length
+    : 0;
 
   // Broadcast unread count to Header so it doesn't need its own Firestore listener
   useEffect(() => {
     window.dispatchEvent(new CustomEvent("dm-unread-count", { detail: unreadMessageCount }));
   }, [unreadMessageCount]);
+
+  // Don't render the FAB/overlay on the full Messages page — it also mounts
+  // useConversations, and two simultaneous listeners on the same Firestore
+  // query corrupt the watch-stream state.
+  if (pathname === "/messages") return null;
+  if (!chat.currentUser) return null;
 
   if (!isOpen) {
     return (

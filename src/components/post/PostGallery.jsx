@@ -132,7 +132,8 @@ const PostGallery = memo(function PostGallery({
 
   const filteredPostsByUser = useMemo(() => {
     if (!filterByUsername) return null;
-    return allPosts.filter((p) => p.uploadedBy === filterByUsername);
+    // Exclude anonymous posts from profile views
+    return allPosts.filter((p) => p.uploadedBy === filterByUsername && !p.isAnonymousPost);
   }, [allPosts, filterByUsername]);
 
   // Subscribe to following list for "Following" filter

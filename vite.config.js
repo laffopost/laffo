@@ -9,9 +9,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          // Code splitting for smaller bundles
           react: ["react", "react-dom", "react-router-dom"],
-          firebase: ["firebase"],
           ui: ["react-hot-toast"],
         },
       },
@@ -23,6 +21,6 @@ export default defineConfig({
   },
   // Optimize dependencies
   optimizeDeps: {
-    include: ["react", "react-dom", "react-router-dom", "firebase"],
+    include: ["react", "react-dom", "react-router-dom"],
   },
 });
