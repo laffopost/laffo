@@ -148,7 +148,12 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
             <input
               type="checkbox"
               checked={postAsAnonymous}
-              onChange={() => setPostAsAnonymous((v) => !v)}
+              onChange={() => {
+                setPostAsAnonymous((v) => {
+                  if (!v && duration === "never") setDuration("2d");
+                  return !v;
+                });
+              }}
             />
             <span>Post as Anonymous</span>
           </label>
@@ -200,8 +205,9 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
       {!isEditMode && (
         <div className="form-group">
           <label>Post Duration</label>
+          {postAsAnonymous && <span className="anon-duration-hint">Anonymous posts require a duration</span>}
           <div className="poll-duration-row">
-            {DURATIONS.map((d) => (
+            {DURATIONS.filter((d) => !postAsAnonymous || d.value !== "never").map((d) => (
               <button
                 key={d.value}
                 type="button"

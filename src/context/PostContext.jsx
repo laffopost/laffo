@@ -120,16 +120,19 @@ export const PostProvider = ({ children }) => {
     });
   }, []);
 
-  // Client-side expiry cleanup at a relaxed pace.
-  // Server-side expiry service (5-min intervals) handles actual deletion.
-  // This just removes visually-expired posts from UI state.
+  // Client-side expiry cleanup: filters UI state and deletes expired posts from Firestore.
   const hasExpiringPosts = posts.some((p) => p.endsAt);
   useEffect(() => {
-    if (!hasExpiringPosts) return;
+    if (!hasExpiringPosts || !db) return;
 
-    const cleanupInterval = setInterval(() => {
+    const cleanupExpired = () => {
       const now = Date.now();
       setPosts((prev) => {
+        const expired = prev.filter((p) => p.endsAt && p.endsAt <= now);
+        // Delete expired posts from Firestore (fire and forget)
+        expired.forEach((p) => {
+          deleteDoc(doc(db, "posts", p.id)).catch(() => {});
+        });
         const filtered = prev.filter((p) => !p.endsAt || p.endsAt > now);
         return filtered.length !== prev.length ? filtered : prev;
       });
@@ -137,10 +140,14 @@ export const PostProvider = ({ children }) => {
         const filtered = prev.filter((p) => !p.endsAt || p.endsAt > now);
         return filtered.length !== prev.length ? filtered : prev;
       });
-    }, 300000); // Every 5 minutes (aligned with server cleanup)
+    };
+
+    // Run immediately on mount, then every 5 minutes
+    cleanupExpired();
+    const cleanupInterval = setInterval(cleanupExpired, 300000);
 
     return () => clearInterval(cleanupInterval);
-  }, [hasExpiringPosts]);
+  }, [hasExpiringPosts, db]);
 
   useEffect(() => {
     if (!userId) return;
@@ -263,7 +270,13 @@ export const PostProvider = ({ children }) => {
             }
           });
 
-          // Filter out expired posts
+          // Filter out expired posts and delete them from Firestore
+          const now = Date.now();
+          const expiredDocs = allDocs.filter((p) => p.endsAt && p.endsAt <= now);
+          expiredDocs.forEach((p) => {
+            deleteDoc(doc(db, "posts", p.id)).catch(() => {});
+          });
+
           const filteredAllDocs = filterExpiredPosts(allDocs);
           const filteredUserDocs = filterExpiredPosts(userDocs);
 
