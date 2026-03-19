@@ -35,6 +35,7 @@ import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
 import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon } from "../../../utils/icons";
+import ConfirmModal from "../../common/ConfirmModal";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
   post,
@@ -427,35 +428,12 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       </div>
 
       {confirmDeleteCommentId && (
-        <div
-          className="delete-confirm-overlay"
-          onClick={() => setConfirmDeleteCommentId(null)}
-        >
-          <div
-            className="delete-confirm-modal"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3>Delete Comment?</h3>
-            <p>This action cannot be undone.</p>
-            <div className="delete-confirm-actions">
-              <button
-                className="btn-cancel-delete"
-                onClick={() => setConfirmDeleteCommentId(null)}
-              >
-                Cancel
-              </button>
-              <button
-                className="btn-confirm-delete"
-                onClick={() => {
-                  deleteComment(post.id, confirmDeleteCommentId);
-                  setConfirmDeleteCommentId(null);
-                }}
-              >
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
+        <ConfirmModal
+          title="Delete Comment?"
+          message="This action cannot be undone."
+          onConfirm={() => { deleteComment(post.id, confirmDeleteCommentId); setConfirmDeleteCommentId(null); }}
+          onCancel={() => setConfirmDeleteCommentId(null)}
+        />
       )}
     </div>
   );

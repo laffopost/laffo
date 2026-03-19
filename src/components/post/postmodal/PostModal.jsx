@@ -7,6 +7,7 @@ import PostModalHeader from "./PostModalHeader";
 import AddPostModal from "../AddPostModal";
 import toast from "react-hot-toast";
 import "./PostModal.css";
+import ConfirmModal from "../../common/ConfirmModal";
 
 import logger from "../../../utils/logger";
 const PostModal = memo(
@@ -144,37 +145,13 @@ const PostModal = memo(
         </div>
 
         {showDeleteConfirm && (
-          <div
-            className="delete-confirm-overlay"
-            onClick={() => setShowDeleteConfirm(false)}
-          >
-            <div
-              className="delete-confirm-modal"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <h3>Delete Post?</h3>
-              <p>
-                Are you sure you want to delete this post? This action cannot be
-                undone.
-              </p>
-              <div className="delete-confirm-actions">
-                <button
-                  className="btn-cancel-delete"
-                  onClick={() => setShowDeleteConfirm(false)}
-                  disabled={isDeleting}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="btn-confirm-delete"
-                  onClick={handleDelete}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Deleting..." : "Delete"}
-                </button>
-              </div>
-            </div>
-          </div>
+          <ConfirmModal
+            title="Delete Post?"
+            message="Are you sure you want to delete this post? This action cannot be undone."
+            onConfirm={handleDelete}
+            onCancel={() => setShowDeleteConfirm(false)}
+            isLoading={isDeleting}
+          />
         )}
 
         {showEditModal && (

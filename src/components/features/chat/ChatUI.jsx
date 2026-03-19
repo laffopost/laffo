@@ -13,30 +13,10 @@ import {
   ChatIcon,
 } from "../../../utils/icons";
 import LinkPreview from "../../common/LinkPreview";
+import ConfirmModal from "../../common/ConfirmModal";
 import "./ChatUI.css";
 
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
-
-/**
- * ChatUI — unified two-pane chat layout (sidebar + chat area).
- *
- * variant="overlay" — rendered inside the FAB popup (DirectMessages)
- * variant="page"    — rendered as the full Messages page
- */
-function ConfirmModal({ title, message, onConfirm, onCancel, confirmLabel = "Delete" }) {
-  return (
-    <div className="delete-confirm-overlay" onClick={onCancel}>
-      <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
-        <h3>{title}</h3>
-        <p>{message}</p>
-        <div className="delete-confirm-actions">
-          <button className="btn-cancel-delete" onClick={onCancel}>Cancel</button>
-          <button className="btn-confirm-delete" onClick={onConfirm}>{confirmLabel}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 export default function ChatUI({
   // data

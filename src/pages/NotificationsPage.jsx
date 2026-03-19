@@ -1,9 +1,10 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useNotifications } from "../context/NotificationContext";
 import { useAuth } from "../context/AuthContext";
 import { NotificationIcon, HeartIcon, ChatIcon, UserIcon, AddIcon } from "../utils/icons";
 import "./NotificationsPage.css";
+import ConfirmModal from "../components/common/ConfirmModal";
 
 export default function NotificationsPage() {
   const {
@@ -14,6 +15,7 @@ export default function NotificationsPage() {
     clearAllNotifications,
   } = useNotifications();
   const { firebaseUser } = useAuth();
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
   const navigate = useNavigate();
 
   // Redirect if not logged in
@@ -109,15 +111,7 @@ export default function NotificationsPage() {
               )}
               <button
                 className="action-btn clear-all-btn"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      "Are you sure you want to clear all notifications? This action cannot be undone.",
-                    )
-                  ) {
-                    clearAllNotifications();
-                  }
-                }}
+                onClick={() => setShowClearConfirm(true)}
               >
                 Clear all
               </button>
@@ -219,6 +213,15 @@ export default function NotificationsPage() {
           )}
         </div>
       </div>
+      {showClearConfirm && (
+        <ConfirmModal
+          title="Clear All Notifications?"
+          message="This action cannot be undone."
+          confirmLabel="Clear all"
+          onConfirm={() => { clearAllNotifications(); setShowClearConfirm(false); }}
+          onCancel={() => setShowClearConfirm(false)}
+        />
+      )}
     </div>
   );
 }
