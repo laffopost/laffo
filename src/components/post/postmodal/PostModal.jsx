@@ -5,7 +5,6 @@ import PostModalImageSection from "./PostModalImageSection";
 import PostModalCommentsSection from "./PostModalCommentsSection";
 import PostModalHeader from "./PostModalHeader";
 import AddPostModal from "../AddPostModal";
-import MediaPlayer from "../MediaPlayer";
 import toast from "react-hot-toast";
 import "./PostModal.css";
 

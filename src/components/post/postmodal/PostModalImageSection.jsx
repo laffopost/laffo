@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import toast from "react-hot-toast";
 import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
@@ -65,8 +65,10 @@ export default function PostModalImageSection({
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
   const reactions = getReactions(post.id);
   const userReaction = getUserReaction(post.id);
-  const allReactions = Object.entries(reactions).sort((a, b) => b[1] - a[1]);
-  const displayedReactions = allReactions.slice(0, 5);
+  const displayedReactions = useMemo(
+    () => Object.entries(reactions).sort((a, b) => b[1] - a[1]).slice(0, 5),
+    [reactions],
+  );
 
   const toggleReactionPicker = (e) => {
     e.stopPropagation();
@@ -129,40 +131,37 @@ export default function PostModalImageSection({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Follow: subscribe to followers count
+  // Single consolidated follow listener — replaces 3 separate listeners
   useEffect(() => {
     if (!post.uploadedBy) return;
-    const q = query(
+    const unsubs = [];
+
+    // Followers count
+    const followersQ = query(
       collection(db, "follows"),
       where("followingId", "==", post.uploadedBy),
     );
-    const unsub = onSnapshot(q, (snap) => setFollowersCount(snap.size));
-    return () => unsub();
-  }, [post.uploadedBy]);
+    unsubs.push(onSnapshot(followersQ, (snap) => setFollowersCount(snap.size)));
 
-  // Follow: subscribe to following count
-  useEffect(() => {
-    if (!post.uploadedBy) return;
-    const q = query(
+    // Following count
+    const followingQ = query(
       collection(db, "follows"),
       where("followerId", "==", post.uploadedBy),
     );
-    const unsub = onSnapshot(q, (snap) => setFollowingCount(snap.size));
-    return () => unsub();
-  }, [post.uploadedBy]);
+    unsubs.push(onSnapshot(followingQ, (snap) => setFollowingCount(snap.size)));
 
-  // Follow: check if current user follows this post's author
-  useEffect(() => {
-    if (!firebaseUser?.uid || !post.uploadedBy || firebaseUser.uid === post.uploadedBy) {
+    // Is current user following this author?
+    if (firebaseUser?.uid && firebaseUser.uid !== post.uploadedBy) {
+      const docId = `${firebaseUser.uid}_${post.uploadedBy}`;
+      unsubs.push(
+        onSnapshot(doc(db, "follows", docId), (snap) => setIsFollowing(snap.exists())),
+      );
+    } else {
       setIsFollowing(false);
-      return;
     }
-    const docId = `${firebaseUser.uid}_${post.uploadedBy}`;
-    const unsub = onSnapshot(doc(db, "follows", docId), (snap) => {
-      setIsFollowing(snap.exists());
-    });
-    return () => unsub();
-  }, [firebaseUser?.uid, post.uploadedBy]);
+
+    return () => unsubs.forEach((unsub) => unsub());
+  }, [post.uploadedBy, firebaseUser?.uid]);
 
   // Follow / unfollow handler
   const handleFollowToggle = useCallback(async () => {
@@ -214,21 +213,24 @@ export default function PostModalImageSection({
   // Tabs UI
   const showTabs = post.type === "user-profile" || !!userData;
 
-  // Calculate user stats
-  const userPosts = posts.filter(
-    (img) =>
-      img.author?.toLowerCase() === post.author?.toLowerCase() ||
-      img.uploadedBy === post.uploadedBy,
-  );
-  const totalPosts = userPosts.length;
-  const totalReactions = userPosts.reduce((sum, post) => {
-    const reactions = getReactions(post.id);
-    return sum + Object.values(reactions).reduce((a, b) => a + b, 0);
-  }, 0);
-  const totalComments = userPosts.reduce(
-    (sum, post) => sum + (post.commentCount || 0),
-    0,
-  );
+  // Calculate user stats (memoized to avoid O(n²) on every render)
+  const { totalPosts, totalReactions, totalComments } = useMemo(() => {
+    const authorPosts = posts.filter(
+      (p) =>
+        p.author?.toLowerCase() === post.author?.toLowerCase() ||
+        p.uploadedBy === post.uploadedBy,
+    );
+    const reactions = authorPosts.reduce((sum, p) => {
+      const r = p.reactions;
+      if (!r) return sum;
+      return sum + Object.values(r).reduce((a, b) => a + b, 0);
+    }, 0);
+    const comments = authorPosts.reduce(
+      (sum, p) => sum + (p.commentCount || 0),
+      0,
+    );
+    return { totalPosts: authorPosts.length, totalReactions: reactions, totalComments: comments };
+  }, [posts, post.author, post.uploadedBy]);
 
   const formatTimestamp = (ts) => {
     if (!ts) return null;

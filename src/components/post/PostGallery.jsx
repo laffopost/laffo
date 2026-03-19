@@ -13,7 +13,7 @@ import { usePosts } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
 import useRequireAuth from "../../hooks/useRequireAuth";
 import { useBookmarks } from "../../hooks/useBookmarks";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, query, where, onSnapshot, limit } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import "./PostGallery.css";
 
@@ -141,6 +141,7 @@ const PostGallery = memo(function PostGallery({
     const q = query(
       collection(db, "follows"),
       where("followerId", "==", firebaseUser.uid),
+      limit(500),
     );
     const unsub = onSnapshot(q, (snap) => {
       setFollowingUids(snap.docs.map((d) => d.data().followingId));

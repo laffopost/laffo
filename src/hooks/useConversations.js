@@ -329,18 +329,21 @@ export function useConversations({ onConversationStarted } = {}) {
         try {
           const cache = usersCacheRef.current;
           const now = Date.now();
-          // Re-fetch at most every 30 seconds
-          if (!cache.data || now - cache.fetchedAt > 30000) {
-            const snap = await getDocs(collection(db, "users"));
+          // Re-fetch at most every 60 seconds, limited to 200 users
+          if (!cache.data || now - cache.fetchedAt > 60000) {
+            const snap = await getDocs(
+              query(collection(db, "users"), limit(200)),
+            );
             const users = [];
             snap.forEach((d) => users.push({ uid: d.id, ...d.data() }));
             cache.data = users;
             cache.fetchedAt = now;
           }
+          const lower = q.toLowerCase();
           const results = cache.data.filter(
             (u) =>
               u.uid !== currentUser?.uid &&
-              u.username?.toLowerCase().includes(q.toLowerCase()),
+              u.username?.toLowerCase().includes(lower),
           );
           setSearchResults(results.slice(0, 10));
         } catch {

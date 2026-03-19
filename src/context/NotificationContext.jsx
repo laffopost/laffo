@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
 } from "react";
 import {
   collection,
@@ -39,6 +40,8 @@ export function NotificationProvider({ children }) {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const notificationsRef = useRef(notifications);
+  notificationsRef.current = notifications;
 
   const { firebaseUser, userProfile } = useAuth();
   const userId = firebaseUser?.uid;
@@ -185,20 +188,17 @@ export function NotificationProvider({ children }) {
     }
   }, []);
 
-  // Mark all notifications as read
+  // Mark all notifications as read — uses ref to avoid re-creating on every snapshot
   const markAllAsRead = useCallback(async () => {
     if (!userId) return;
 
     try {
-      const unreadNotifications = notifications.filter((n) => !n.read);
-
-      if (unreadNotifications.length === 0) return;
+      const unread = notificationsRef.current.filter((n) => !n.read);
+      if (unread.length === 0) return;
 
       const batch = writeBatch(db);
-
-      unreadNotifications.forEach((notification) => {
-        const notificationRef = doc(db, "notifications", notification.id);
-        batch.update(notificationRef, { read: true });
+      unread.forEach((n) => {
+        batch.update(doc(db, "notifications", n.id), { read: true });
       });
 
       await batch.commit();
@@ -206,18 +206,16 @@ export function NotificationProvider({ children }) {
     } catch (error) {
       logger.error("Error marking all notifications as read:", error);
     }
-  }, [userId, notifications]);
+  }, [userId]);
 
-  // Clear all notifications
+  // Clear all notifications — uses ref to avoid re-creating on every snapshot
   const clearAllNotifications = useCallback(async () => {
     if (!userId) return;
 
     try {
       const batch = writeBatch(db);
-
-      notifications.forEach((notification) => {
-        const notificationRef = doc(db, "notifications", notification.id);
-        batch.delete(notificationRef);
+      notificationsRef.current.forEach((n) => {
+        batch.delete(doc(db, "notifications", n.id));
       });
 
       await batch.commit();
@@ -225,7 +223,7 @@ export function NotificationProvider({ children }) {
     } catch (error) {
       logger.error("Error clearing notifications:", error);
     }
-  }, [userId, notifications]);
+  }, [userId]);
 
   const value = useMemo(
     () => ({

@@ -38,7 +38,13 @@ export function useBookmarks() {
     const unsub = onSnapshot(q, (snap) => {
       const ids = new Set();
       snap.forEach((d) => ids.add(d.data().postId));
-      setBookmarkedIds(ids);
+      // Only update state if the set actually changed (avoid new Set identity on every snapshot)
+      setBookmarkedIds((prev) => {
+        if (prev.size === ids.size && [...prev].every((id) => ids.has(id))) {
+          return prev;
+        }
+        return ids;
+      });
     });
 
     return () => unsub();

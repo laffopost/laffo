@@ -137,28 +137,27 @@ export const PostProvider = ({ children }) => {
     });
   }, []);
 
-  // Periodic client-side cleanup of expired posts from UI state
+  // Client-side expiry cleanup at a relaxed pace.
+  // Server-side expiry service (5-min intervals) handles actual deletion.
+  // This just removes visually-expired posts from UI state.
+  const hasExpiringPosts = posts.some((p) => p.endsAt);
   useEffect(() => {
+    if (!hasExpiringPosts) return;
+
     const cleanupInterval = setInterval(() => {
       const now = Date.now();
-
       setPosts((prev) => {
-        const filtered = prev.filter(
-          (post) => !post.endsAt || post.endsAt > now,
-        );
+        const filtered = prev.filter((p) => !p.endsAt || p.endsAt > now);
         return filtered.length !== prev.length ? filtered : prev;
       });
-
       setUserPosts((prev) => {
-        const filtered = prev.filter(
-          (post) => !post.endsAt || post.endsAt > now,
-        );
+        const filtered = prev.filter((p) => !p.endsAt || p.endsAt > now);
         return filtered.length !== prev.length ? filtered : prev;
       });
-    }, 60000); // Check every minute
+    }, 300000); // Every 5 minutes (aligned with server cleanup)
 
     return () => clearInterval(cleanupInterval);
-  }, []);
+  }, [hasExpiringPosts]);
 
   useEffect(() => {
     if (!userId) return;
@@ -655,6 +654,10 @@ export const PostProvider = ({ children }) => {
           }
 
           delete reactionTimeoutRef.current[imageId];
+          // Prune completed keys to prevent unbounded growth
+          if (Object.keys(reactionTimeoutRef.current).length > 100) {
+            reactionTimeoutRef.current = {};
+          }
         } catch (err) {
           logError("❌ Reaction error:", err);
           setUserReactions((prev) => ({ ...prev, [imageId]: currentReaction }));
@@ -715,10 +718,10 @@ export const PostProvider = ({ children }) => {
   const getUserPollVote = useCallback(
     (postId) => {
       if (!userId) return null;
-      const post = posts.find((p) => p.id === postId);
+      const post = postsRef.current.find((p) => p.id === postId);
       return post?.votes?.[userId] ?? null;
     },
-    [posts, userId],
+    [userId],
   );
 
   // ── Comments subcollection helpers ──────────────────────────────────
@@ -874,36 +877,35 @@ export const PostProvider = ({ children }) => {
     [db, userId, firebaseUser],
   );
 
+  // Selector functions use refs instead of depending on posts/userReactions directly.
+  // This means they don't change identity when data changes, which prevents
+  // cascading re-renders through the context.
   const getReactions = useCallback(
-    (imageId) => {
-      const post = posts.find((p) => p.id === imageId);
+    (postId) => {
+      const post = postsRef.current.find((p) => p.id === postId);
       return post?.reactions || {};
     },
-    [posts],
+    [],
   );
 
   const getUserReaction = useCallback(
-    (imageId) => userReactions[imageId] || null,
-    [userReactions],
+    (postId) => userReactionsRef.current[postId] || null,
+    [],
   );
-
-  // getCommentReactions / getUserCommentReaction removed — comments are now
-  // in a subcollection and reaction data lives on each comment doc.
-  // PostModalCommentsSection reads them directly from its own subscription.
 
   const getPostById = useCallback(
     (id) => {
-      return posts.find((p) => p.id === id) || null;
+      return postsRef.current.find((p) => p.id === id) || null;
     },
-    [posts],
+    [],
   );
 
   const getPostsByType = useCallback(
     (type) => {
-      if (type === "all") return posts;
-      return posts.filter((p) => p.type === type);
+      if (type === "all") return postsRef.current;
+      return postsRef.current.filter((p) => p.type === type);
     },
-    [posts],
+    [],
   );
 
   const stats = useMemo(() => {
@@ -990,28 +992,8 @@ export const PostProvider = ({ children }) => {
       userId,
       userName,
       ...stats,
-      // Selector functions that depend on reactive data
-      getUserPollVote,
-      getReactions,
-      getUserReaction,
-      getPostById,
-      getPostsByType,
     };
-  }, [
-    posts,
-    userPosts,
-    userReactions,
-    loading,
-    error,
-    userId,
-    userName,
-    stats,
-    getUserPollVote,
-    getReactions,
-    getUserReaction,
-    getPostById,
-    getPostsByType,
-  ]);
+  }, [posts, userPosts, userReactions, loading, error, userId, userName, stats]);
 
   // PostActionsContext value — stable mutation functions.
   // Only recreated when auth/db changes (login/logout), not on every post update.
@@ -1028,6 +1010,12 @@ export const PostProvider = ({ children }) => {
       toggleCommentReaction,
       fetchPostById,
       loadMorePosts,
+      // Stable selector functions (use refs internally, never change identity)
+      getReactions,
+      getUserReaction,
+      getUserPollVote,
+      getPostById,
+      getPostsByType,
     };
   }, [
     addPost,
@@ -1040,6 +1028,11 @@ export const PostProvider = ({ children }) => {
     toggleCommentReaction,
     fetchPostById,
     loadMorePosts,
+    getReactions,
+    getUserReaction,
+    getUserPollVote,
+    getPostById,
+    getPostsByType,
   ]);
 
   return (

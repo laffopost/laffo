@@ -1,4 +1,4 @@
-import { memo, useState, useRef } from "react";
+import { memo, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon } from "../../utils/icons";
@@ -31,10 +31,11 @@ const PostCard = memo(
     isBookmarked,
     onToggleBookmark,
   }) => {
-    const allReactions = Object.entries(reactions || {}).sort(
-      (a, b) => b[1] - a[1],
-    );
-    const topReactions = allReactions.slice(0, 4);
+    const topReactions = useMemo(() => {
+      return Object.entries(reactions || {})
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4);
+    }, [reactions]);
 
     const [showMoreReactions, setShowMoreReactions] = useState(false);
     const moreBtnRef = useRef(null);
@@ -59,10 +60,6 @@ const PostCard = memo(
     };
 
     const timeLeft = formatTimeLeft(post.endsAt);
-
-    // Removed: was creating new Audio() on every hover = memory leak + CPU spike
-    // The global click sound hook already handles interaction sounds
-    const handleMouseEnter = () => {};
 
     const handleAuthorClick = (e) => {
       e.stopPropagation();
@@ -90,7 +87,6 @@ const PostCard = memo(
       <>
         <div
           className={`image-card${isSelected ? " selected" : ""}`}
-          onMouseEnter={handleMouseEnter}
         >
           <div className="image-thumbnail" onClick={onClick}>
             {/* Show appropriate content based on post type */}
