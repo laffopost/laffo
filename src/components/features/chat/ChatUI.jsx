@@ -350,61 +350,63 @@ function MessageBubble({
         )}
       </div>
 
-      <div className="chat-bubble">
-        {editingMessage === msg.id ? (
-          <div className="chat-edit-form">
-            <input
-              value={editText}
-              onChange={(e) => setEditText(e.target.value)}
-              className="chat-edit-input"
-              autoFocus
-              maxLength={500}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") { e.preventDefault(); handleEditMessage(msg.id, editText); }
-                else if (e.key === "Escape") { cancelEditing(); }
-              }}
-            />
-            <div className="chat-edit-actions">
-              <button type="button" onClick={() => handleEditMessage(msg.id, editText)} className="chat-edit-save"><CheckIcon size={18} /></button>
-              <button type="button" onClick={cancelEditing} className="chat-edit-cancel"><CloseIcon size={18} /></button>
-            </div>
-          </div>
-        ) : (
-          <>
-            <p>
-              {msg.text}
-              {msg.edited && <span className="chat-edited"> (edited)</span>}
-            </p>
-            <LinkPreview text={msg.text} />
-            {isOwn && (
-              <div className="chat-msg-actions">
-                <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit"><EditIcon size={16} /></button>
-                <button
-                  onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
-                  className="chat-action-btn"
-                  title="Delete"
-                ><DeleteIcon size={16} /></button>
+      <div className="chat-bubble-col">
+        <div className="chat-bubble">
+          {editingMessage === msg.id ? (
+            <div className="chat-edit-form">
+              <input
+                value={editText}
+                onChange={(e) => setEditText(e.target.value)}
+                className="chat-edit-input"
+                autoFocus
+                maxLength={500}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") { e.preventDefault(); handleEditMessage(msg.id, editText); }
+                  else if (e.key === "Escape") { cancelEditing(); }
+                }}
+              />
+              <div className="chat-edit-actions">
+                <button type="button" onClick={() => handleEditMessage(msg.id, editText)} className="chat-edit-save"><CheckIcon size={18} /></button>
+                <button type="button" onClick={cancelEditing} className="chat-edit-cancel"><CloseIcon size={18} /></button>
               </div>
-            )}
-          </>
-        )}
-        <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>
-      </div>
-
-      {reactionEntries.length > 0 && (
-        <div className={`chat-reactions${isOwn ? " own" : ""}`}>
-          {reactionEntries.map(([emoji, uids]) => (
-            <button
-              key={emoji}
-              className={`chat-reaction-pill${uids.includes(currentUid) ? " active" : ""}`}
-              onClick={() => handleReaction(msg.id, emoji)}
-              title={`${uids.length} reaction${uids.length !== 1 ? "s" : ""}`}
-            >
-              {emoji} {uids.length}
-            </button>
-          ))}
+            </div>
+          ) : (
+            <>
+              <p>
+                {msg.text}
+                {msg.edited && <span className="chat-edited"> (edited)</span>}
+              </p>
+              <LinkPreview text={msg.text} />
+              {isOwn && (
+                <div className="chat-msg-actions">
+                  <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit"><EditIcon size={16} /></button>
+                  <button
+                    onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
+                    className="chat-action-btn"
+                    title="Delete"
+                  ><DeleteIcon size={16} /></button>
+                </div>
+              )}
+            </>
+          )}
+          <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>
         </div>
-      )}
+
+        {reactionEntries.length > 0 && (
+          <div className={`chat-reactions${isOwn ? " own" : ""}`}>
+            {reactionEntries.map(([emoji, uids]) => (
+              <button
+                key={emoji}
+                className={`chat-reaction-pill${uids.includes(currentUid) ? " active" : ""}`}
+                onClick={() => handleReaction(msg.id, emoji)}
+                title={`${uids.length} reaction${uids.length !== 1 ? "s" : ""}`}
+              >
+                {emoji} {uids.length}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

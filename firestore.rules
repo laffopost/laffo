@@ -134,11 +134,18 @@ service cloud.firestore {
                       && isConvoParticipant()
                       && isRecentTimestamp(request.resource.data.timestamp);
         allow update: if isRealUser()
-                      && resource.data.senderId == request.auth.uid
-                      && request.resource.data.senderId == request.auth.uid
-                      && request.resource.data.text is string
-                      && request.resource.data.text.size() > 0
-                      && request.resource.data.text.size() <= 500;
+                      && isConvoParticipant()
+                      && (
+                        // Sender can edit their own message text
+                        (resource.data.senderId == request.auth.uid
+                         && request.resource.data.senderId == request.auth.uid
+                         && request.resource.data.text is string
+                         && request.resource.data.text.size() > 0
+                         && request.resource.data.text.size() <= 500)
+                        ||
+                        // Any participant can add/remove reactions
+                        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+                      );
         allow delete: if isRealUser()
                       && resource.data.senderId == request.auth.uid;
       }

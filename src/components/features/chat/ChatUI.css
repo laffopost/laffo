@@ -432,8 +432,13 @@
   justify-content: flex-end;
 }
 
-.chat-bubble {
+.chat-bubble-col {
+  display: flex;
+  flex-direction: column;
   max-width: 75%;
+}
+
+.chat-bubble {
   padding: 8px 12px;
   border-radius: var(--radius-md) var(--radius-md) var(--radius-md) 4px;
   background: rgba(255, 255, 255, 0.06);
@@ -781,8 +786,11 @@
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
-  margin-top: 4px;
+  margin-top: -8px;
+  padding: 0 6px 2px;
   justify-content: flex-start;
+  position: relative;
+  z-index: 1;
 }
 
 .chat-reactions.own {
@@ -793,24 +801,27 @@
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(20, 18, 50, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 12px;
-  padding: 2px 7px;
-  font-size: 0.75rem;
+  padding: 2px 8px;
+  font-size: 0.78rem;
   cursor: pointer;
   color: var(--text-base);
-  transition: background 0.15s, border-color 0.15s;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  transition: background 0.15s, border-color 0.15s, transform 0.1s;
 }
 
 .chat-reaction-pill:hover {
   background: var(--color-primary-15);
-  border-color: var(--color-primary-30);
+  border-color: var(--color-primary-40);
+  transform: scale(1.08);
 }
 
 .chat-reaction-pill.active {
-  background: var(--color-primary-20);
-  border-color: var(--color-primary-50);
+  background: var(--color-primary-25);
+  border-color: var(--color-primary-60);
+  box-shadow: 0 0 6px var(--color-primary-30);
 }
 
 /* ── Typing indicator ──────────────────────────────────────────── */
