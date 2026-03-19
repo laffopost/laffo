@@ -21,11 +21,9 @@ export function AuthProvider({ children }) {
         setFirebaseUser(user);
         try {
           const userRef = doc(db, "users", user.uid);
-          let userProfileData = null;
           const userDoc = await getDoc(userRef);
-          if (userDoc.exists()) {
-            userProfileData = userDoc.data();
-          }
+          let userProfileData = userDoc.exists() ? userDoc.data() : null;
+
           const updateData = {
             email: user.email,
             username: userProfileData?.username || user.email?.split("@")[0],
@@ -34,10 +32,10 @@ export function AuthProvider({ children }) {
             lastLogin: user.metadata?.lastSignInTime || null,
             lastSeen: serverTimestamp(),
           };
+
           await setDoc(userRef, updateData, { merge: true });
-          const updatedDoc = await getDoc(userRef);
-          const finalProfile = updatedDoc.exists() ? updatedDoc.data() : null;
-          setUserProfile(finalProfile);
+          // After merge, construct final profile from updateData (fresh write includes merge)
+          setUserProfile(updateData);
         } catch (err) {
           logger.error("Error loading user profile:", err);
           setUserProfile(null);

@@ -152,7 +152,6 @@ export const Icons = {
   image: Image,
   eye: Eye,
   sparkle: Star,
-  trending: TrendingUp,
   diamond: Star,
 };
 

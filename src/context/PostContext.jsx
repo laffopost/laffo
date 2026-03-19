@@ -207,6 +207,46 @@ export const PostProvider = ({ children }) => {
       limit(INITIAL_LOAD_LIMIT),
     );
 
+    // Helper to apply snapshot changes with optional filtering
+    const applyChanges = (prev, changes, filterFn) => {
+      const updated = [...prev];
+      let changed = false;
+
+      changes.forEach((change) => {
+        const data = { id: change.doc.id, ...change.doc.data() };
+
+        // Skip if doesn't pass filter
+        if (!filterFn(data)) return;
+
+        const isExpired = data.endsAt && data.endsAt <= Date.now();
+
+        if (change.type === "added") {
+          if (!isExpired && !updated.find((p) => p.id === data.id)) {
+            updated.unshift(data);
+            changed = true;
+          }
+        } else if (change.type === "modified") {
+          const index = updated.findIndex((p) => p.id === data.id);
+          if (index >= 0) {
+            if (!isExpired) {
+              updated[index] = data;
+            } else {
+              updated.splice(index, 1);
+            }
+            changed = true;
+          }
+        } else if (change.type === "removed") {
+          const index = updated.findIndex((p) => p.id === data.id);
+          if (index >= 0) {
+            updated.splice(index, 1);
+            changed = true;
+          }
+        }
+      });
+
+      return changed ? updated : prev;
+    };
+
     unsubscribeRef.current = onSnapshot(
       q,
       { includeMetadataChanges: false },
@@ -249,80 +289,17 @@ export const PostProvider = ({ children }) => {
         } else {
           log("🔄 Incremental update");
 
-          setPosts((prev) => {
-            const updated = [...prev];
-            let changed = false;
+          // Apply changes to all posts
+          setPosts((prev) => applyChanges(prev, snapshot.docChanges(), () => true));
 
-            snapshot.docChanges().forEach((change) => {
-              const data = { id: change.doc.id, ...change.doc.data() };
-              const isExpired = data.endsAt && data.endsAt <= Date.now();
-
-              if (change.type === "added") {
-                if (!isExpired && !updated.find((img) => img.id === data.id)) {
-                  updated.unshift(data);
-                  changed = true;
-                }
-              } else if (change.type === "modified") {
-                const index = updated.findIndex((i) => i.id === data.id);
-                if (index >= 0) {
-                  if (!isExpired) {
-                    updated[index] = data;
-                  } else {
-                    // Post expired, remove it
-                    updated.splice(index, 1);
-                  }
-                  changed = true;
-                }
-              } else if (change.type === "removed") {
-                const index = updated.findIndex((i) => i.id === data.id);
-                if (index >= 0) {
-                  updated.splice(index, 1);
-                  changed = true;
-                }
-              }
-            });
-
-            return changed ? updated : prev;
-          });
-
-          setUserPosts((prev) => {
-            const updated = [...prev];
-            let changed = false;
-
-            snapshot.docChanges().forEach((change) => {
-              const data = { id: change.doc.id, ...change.doc.data() };
-
-              if (data.uploadedBy !== userId) return;
-
-              const isExpired = data.endsAt && data.endsAt <= Date.now();
-
-              if (change.type === "added") {
-                if (!isExpired && !updated.find((img) => img.id === data.id)) {
-                  updated.unshift(data);
-                  changed = true;
-                }
-              } else if (change.type === "modified") {
-                const index = updated.findIndex((i) => i.id === data.id);
-                if (index >= 0) {
-                  if (!isExpired) {
-                    updated[index] = data;
-                  } else {
-                    // Post expired, remove it
-                    updated.splice(index, 1);
-                  }
-                  changed = true;
-                }
-              } else if (change.type === "removed") {
-                const index = updated.findIndex((i) => i.id === data.id);
-                if (index >= 0) {
-                  updated.splice(index, 1);
-                  changed = true;
-                }
-              }
-            });
-
-            return changed ? updated : prev;
-          });
+          // Apply changes to user's own posts
+          setUserPosts((prev) =>
+            applyChanges(
+              prev,
+              snapshot.docChanges(),
+              (data) => data.uploadedBy === userId,
+            ),
+          );
         }
 
         setLoading(false);
