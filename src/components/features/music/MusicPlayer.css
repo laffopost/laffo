@@ -465,6 +465,25 @@
   transform: scale(0.92);
 }
 
+.mini-ctrl-btn.shuffle {
+  background: var(--gradient-pink);
+  border-color: var(--color-pink-50);
+  color: var(--text-base);
+  box-shadow: var(--shadow-pink);
+}
+
+.mini-ctrl-btn.shuffle:hover {
+  background: var(--gradient-pink-hover);
+  border-color: var(--color-pink-50);
+  color: var(--text-base);
+  transform: translateY(-1px) rotate(15deg);
+  box-shadow: var(--shadow-pink-lg);
+}
+
+.mini-ctrl-btn.shuffle:active {
+  transform: translateY(0) rotate(-15deg);
+}
+
 .mini-ctrl-btn.play {
   width: 34px;
   height: 34px;
@@ -1044,6 +1063,25 @@
 .transport-btn:active {
   transform: translateY(0);
   box-shadow: 0 1px 3px rgba(139, 92, 246, 0.25);
+}
+
+.transport-btn.shuffle {
+  background: var(--gradient-pink);
+  border-color: var(--color-pink-50);
+  color: var(--text-base);
+  box-shadow: var(--shadow-pink);
+}
+
+.transport-btn.shuffle:hover {
+  background: var(--gradient-pink-hover);
+  border-color: var(--color-pink-50);
+  color: var(--text-base);
+  transform: translateY(-1px) rotate(15deg);
+  box-shadow: var(--shadow-pink-lg);
+}
+
+.transport-btn.shuffle:active {
+  transform: translateY(0) rotate(-15deg);
 }
 
 .transport-btn.play-main {

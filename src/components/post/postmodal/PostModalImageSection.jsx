@@ -20,7 +20,7 @@ import MediaPlayer from "../MediaPlayer";
 import StatusRenderer from "../StatusRenderer";
 import PollRenderer from "../PollRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon, UserProfileIcon, ChevronRightIcon } from "../../../utils/icons";
+import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon } from "../../../utils/icons";
 import FollowListModal from "../../profile/FollowListModal";
 
 export default function PostModalImageSection({
@@ -459,7 +459,7 @@ export default function PostModalImageSection({
               onClick={onRandom}
               title="Random post"
             >
-              <ShuffleIcon size={15} />
+              🎲
             </button>
           )}
         </div>

@@ -530,8 +530,7 @@
 }
 
 .postmodal-action-btn--edit,
-.postmodal-action-btn--delete,
-.postmodal-action-btn--random {
+.postmodal-action-btn--delete {
   color: var(--color-primary);
 }
 
@@ -542,8 +541,19 @@
   transform: scale(1.12);
 }
 
+.postmodal-action-btn--random {
+  background: var(--gradient-pink);
+  border: 2px solid var(--color-pink-50);
+  color: var(--text-base);
+  box-shadow: var(--shadow-pink);
+}
+
 .postmodal-action-btn--random:hover {
-  color: var(--color-warning);
-  background: var(--color-primary-8);
-  transform: scale(1.12) rotate(20deg);
+  background: var(--gradient-pink-hover);
+  transform: translateY(-2px) rotate(15deg);
+  box-shadow: var(--shadow-pink-lg);
+}
+
+.postmodal-action-btn--random:active {
+  transform: translateY(0) rotate(-15deg);
 }

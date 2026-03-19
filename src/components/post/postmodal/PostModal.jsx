@@ -65,7 +65,7 @@ const PostModal = memo(
     }, [firebaseUser, userProfile, post]);
 
     const canEdit = useMemo(() => {
-      if (!firebaseUser || !post) return false;
+      if (!firebaseUser || !post || post.isAnonymousPost) return false;
       return (
         post.uploadedBy === firebaseUser.uid ||
         post.author?.toLowerCase() === userProfile?.username?.toLowerCase()

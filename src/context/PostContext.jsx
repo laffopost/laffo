@@ -120,19 +120,20 @@ export const PostProvider = ({ children }) => {
     });
   }, []);
 
-  // Client-side expiry cleanup: filters UI state and deletes expired posts from Firestore.
-  const hasExpiringPosts = posts.some((p) => p.endsAt);
+  // Client-side expiry cleanup: hides and deletes posts exactly when they expire.
+  const nextExpiry = posts.reduce((min, p) => {
+    if (!p.endsAt) return min;
+    return min === null ? p.endsAt : Math.min(min, p.endsAt);
+  }, null);
+
   useEffect(() => {
-    if (!hasExpiringPosts || !db) return;
+    if (!nextExpiry || !db) return;
 
     const cleanupExpired = () => {
       const now = Date.now();
       setPosts((prev) => {
         const expired = prev.filter((p) => p.endsAt && p.endsAt <= now);
-        // Delete expired posts from Firestore (fire and forget)
-        expired.forEach((p) => {
-          deleteDoc(doc(db, "posts", p.id)).catch(() => {});
-        });
+        expired.forEach((p) => deleteDoc(doc(db, "posts", p.id)).catch(() => {}));
         const filtered = prev.filter((p) => !p.endsAt || p.endsAt > now);
         return filtered.length !== prev.length ? filtered : prev;
       });
@@ -142,12 +143,10 @@ export const PostProvider = ({ children }) => {
       });
     };
 
-    // Run immediately on mount, then every 5 minutes
-    cleanupExpired();
-    const cleanupInterval = setInterval(cleanupExpired, 300000);
-
-    return () => clearInterval(cleanupInterval);
-  }, [hasExpiringPosts, db]);
+    const delay = Math.max(0, nextExpiry - Date.now());
+    const t = setTimeout(cleanupExpired, delay);
+    return () => clearTimeout(t);
+  }, [nextExpiry, db]);
 
   useEffect(() => {
     if (!userId) return;
