@@ -5,7 +5,7 @@ import "./GallerySection.css";
 export default function GallerySection({
   title,
   emoji,
-  images,
+  posts,
   scrollRef,
   onScroll,
   renderCard,
@@ -24,11 +24,11 @@ export default function GallerySection({
   };
 
   const handleRandomClick = () => {
-    if (images.length === 0) return;
-    const randomIndex = Math.floor(Math.random() * images.length);
-    const randomImage = images[randomIndex];
+    if (posts.length === 0) return;
+    const randomIndex = Math.floor(Math.random() * posts.length);
+    const randomPost = posts[randomIndex];
     if (onRandomClick) {
-      onRandomClick(randomImage);
+      onRandomClick(randomPost);
     }
   };
 
@@ -45,7 +45,7 @@ export default function GallerySection({
               <h2 className="gallery-section-title">
                 {emoji && <span className="title-emoji">{emoji}</span>}
                 {title}
-                <span className="gallery-post-count">({images.length})</span>
+                <span className="gallery-post-count">({posts.length})</span>
               </h2>
             </div>
             {subtitle && <p className="gallery-section-subtitle">{subtitle}</p>}
@@ -55,7 +55,7 @@ export default function GallerySection({
               <button
                 className="gallery-random-btn"
                 onClick={handleRandomClick}
-                disabled={images.length === 0}
+                disabled={posts.length === 0}
                 title="View random post"
               >
                 🎲
@@ -96,12 +96,12 @@ export default function GallerySection({
       {currentLayout === "horizontal" ? (
         <div className="gallery-scrollable" ref={scrollRef}>
           <div className="gallery-grid">
-            {images.map((image) => renderCard(image, sectionType))}
+            {posts.map((post) => renderCard(post, sectionType))}
           </div>
         </div>
       ) : (
         <div className="gallery-vertical-grid">
-          {images.map((image) => renderCard(image, sectionType))}
+          {posts.map((post) => renderCard(post, sectionType))}
         </div>
       )}
     </div>

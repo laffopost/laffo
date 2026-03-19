@@ -13,7 +13,7 @@ exports.cleanupExpiredPosts = onSchedule("every 60 minutes", async () => {
   const now = Date.now();
 
   const snap = await db
-    .collection("images")
+    .collection("posts")
     .where("endsAt", "<=", now)
     .limit(200)
     .get();

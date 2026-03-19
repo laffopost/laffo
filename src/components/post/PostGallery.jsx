@@ -5,9 +5,10 @@ import PostModal from "./postmodal/PostModal";
 import AddPostModal from "./AddPostModal";
 import PostCard from "./PostCard";
 import GallerySection from "./GallerySection";
+import GalleryFilters, { FILTERS } from "./GalleryFilters";
+import PostNotFound from "./PostNotFound";
 import { ShareMenu } from "../features/utilities";
-import { Notification, SkeletonGallery } from "../common";
-import CreatePostButton from "./CreatePostButton";
+import { SkeletonGallery } from "../common";
 import { usePosts } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
 import useRequireAuth from "../../hooks/useRequireAuth";
@@ -17,27 +18,6 @@ import { db } from "../../firebase/config";
 import "./PostGallery.css";
 
 import logger from "../../utils/logger";
-const FILTERS = [
-  { value: "all", label: "All", emoji: "🖼️" },
-  { value: "following", label: "Following", emoji: "👤" },
-  { value: "saved", label: "Saved", emoji: "🔖" },
-  { value: "sponsored", label: "Sponsored", emoji: "💎" },
-  { value: "status", label: "Status", emoji: "👀" },
-  { value: "poll", label: "Poll", emoji: "🎮" },
-  { value: "media", label: "Media", emoji: "🎵" },
-  { value: "music", label: "Music", emoji: "🎵" },
-  { value: "sports", label: "Sports", emoji: "⚽" },
-  { value: "tech", label: "Tech", emoji: "💻" },
-  { value: "food", label: "Food", emoji: "🍕" },
-  { value: "travel", label: "Travel", emoji: "✈️" },
-  { value: "pov", label: "POV", emoji: "👀" },
-  { value: "question", label: "Question", emoji: "❓" },
-  { value: "news", label: "News", emoji: "📰" },
-  { value: "crypto", label: "Crypto", emoji: "🪙" },
-  { value: "memecoin", label: "Memecoin", emoji: "🐶" },
-];
-
-const MAIN_FILTERS = FILTERS;
 
 const PostGallery = memo(function PostGallery({
   filterByUsername = null,
@@ -45,35 +25,35 @@ const PostGallery = memo(function PostGallery({
   onPostDelete,
 }) {
   const {
-    images,
-    userImages,
+    posts,
+    userPosts,
     addPost,
     editPost,
     getReactions,
     toggleReaction,
     getUserReaction,
     loading,
-    fetchImageById,
+    fetchPostById,
     loadMorePosts,
   } = usePosts();
 
   const { firebaseUser, userProfile } = useAuth();
   const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
 
-  const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [shareImage, setShareImage] = useState(null);
+  const [sharePost, setSharePost] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [imageNotFound, setImageNotFound] = useState(false);
+  const [postNotFound, setPostNotFound] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [notification, setNotification] = useState(null);
+
   const [isLoadingMore, setIsLoadingMore] = useState(false);
-  const [followingUids, setFollowingUids] = useState(null); // null = not loaded, [] = loaded but empty
+  const [followingUids, setFollowingUids] = useState(null);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -84,17 +64,15 @@ const PostGallery = memo(function PostGallery({
   const trendingScrollRef = useRef(null);
   const galleryRef = useRef(null);
   const sentinelRef = useRef(null);
-
   const isLoadingMoreRef = useRef(false);
 
-  // Debounce search — avoids recalculating filteredImages on every keystroke
+  // Debounce search
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(search), 300);
     return () => clearTimeout(timer);
   }, [search]);
 
-  // Infinite scroll — IntersectionObserver on a sentinel div at the bottom
-  // Much cheaper than a window scroll listener (fires ~60/sec)
+  // Infinite scroll
   useEffect(() => {
     const sentinel = sentinelRef.current;
     if (!sentinel) return;
@@ -110,66 +88,56 @@ const PostGallery = memo(function PostGallery({
           });
         }
       },
-      { rootMargin: "500px" }, // start loading 500px before sentinel is visible
+      { rootMargin: "500px" },
     );
 
     observer.observe(sentinel);
     return () => observer.disconnect();
   }, [loadMorePosts]);
 
-  // Guarded version of toggleReaction for cards
+  // ── Callbacks ───────────────────────────────────────────────────────
+
   const guardedToggleReaction = useCallback(
-    (imageId, emoji) => {
+    (postId, emoji) => {
       if (!requireAuth("react to a post")) return;
-      toggleReaction(imageId, emoji);
+      toggleReaction(postId, emoji);
     },
     [requireAuth, toggleReaction],
   );
 
-  // Check if user can edit a post
   const canEditPost = useCallback(
-    (image) => {
-      if (!firebaseUser || !image) return false;
+    (post) => {
+      if (!firebaseUser || !post) return false;
       return (
-        image.uploadedBy === firebaseUser.uid ||
-        image.author?.toLowerCase() === userProfile?.username?.toLowerCase()
+        post.uploadedBy === firebaseUser.uid ||
+        post.author?.toLowerCase() === userProfile?.username?.toLowerCase()
       );
     },
     [firebaseUser, userProfile],
   );
 
-  const allImagesWithUser = useMemo(() => {
+  // ── Computed data ───────────────────────────────────────────────────
+
+  const allPosts = useMemo(() => {
     const uniqueIds = new Set();
     const combined = [];
-    userImages.forEach((img) => {
-      if (!uniqueIds.has(img.id)) {
-        uniqueIds.add(img.id);
-        combined.push(img);
-      }
+    userPosts.forEach((p) => {
+      if (!uniqueIds.has(p.id)) { uniqueIds.add(p.id); combined.push(p); }
     });
-    images.forEach((img) => {
-      if (!uniqueIds.has(img.id)) {
-        uniqueIds.add(img.id);
-        combined.push(img);
-      }
+    posts.forEach((p) => {
+      if (!uniqueIds.has(p.id)) { uniqueIds.add(p.id); combined.push(p); }
     });
     return combined;
-  }, [userImages, images]);
+  }, [userPosts, posts]);
 
-  const filteredImagesByUser = useMemo(() => {
+  const filteredPostsByUser = useMemo(() => {
     if (!filterByUsername) return null;
-    // Filter by user ID (uploadedBy) which is reliable even after username changes
-    return allImagesWithUser.filter(
-      (img) => img.uploadedBy === filterByUsername,
-    );
-  }, [allImagesWithUser, filterByUsername]);
+    return allPosts.filter((p) => p.uploadedBy === filterByUsername);
+  }, [allPosts, filterByUsername]);
 
-  // Subscribe to current user's following list for the "Following" filter
+  // Subscribe to following list for "Following" filter
   useEffect(() => {
-    if (!firebaseUser?.uid) {
-      setFollowingUids(null);
-      return;
-    }
+    if (!firebaseUser?.uid) { setFollowingUids(null); return; }
     const q = query(
       collection(db, "follows"),
       where("followerId", "==", firebaseUser.uid),
@@ -180,201 +148,153 @@ const PostGallery = memo(function PostGallery({
     return () => unsub();
   }, [firebaseUser?.uid]);
 
-  const filteredImages = useMemo(() => {
-    const baseImages = filterByUsername
-      ? filteredImagesByUser || []
-      : allImagesWithUser;
+  const filteredPosts = useMemo(() => {
+    const base = filterByUsername ? filteredPostsByUser || [] : allPosts;
 
-    let imgs = [];
+    let result = [];
     if (activeFilter === "all") {
-      imgs = baseImages;
+      result = base;
     } else if (activeFilter === "recent") {
-      imgs = [...baseImages].sort((a, b) => {
+      result = [...base].sort((a, b) => {
         const timeA = a.createdAt?.seconds || 0;
         const timeB = b.createdAt?.seconds || 0;
         return timeB - timeA;
       });
     } else if (activeFilter === "saved") {
-      imgs = baseImages.filter((img) => bookmarkedIds.has(img.id));
+      result = base.filter((p) => bookmarkedIds.has(p.id));
     } else if (activeFilter === "following") {
-      if (!followingUids || followingUids.length === 0) {
-        imgs = [];
-      } else {
-        imgs = baseImages.filter((img) => followingUids.includes(img.uploadedBy));
-      }
+      result = !followingUids?.length ? [] : base.filter((p) => followingUids.includes(p.uploadedBy));
     } else {
-      imgs = baseImages.filter((img) => img.type === activeFilter);
+      result = base.filter((p) => p.type === activeFilter);
     }
+
     if (debouncedSearch.trim()) {
       const s = debouncedSearch.trim().toLowerCase();
-      imgs = imgs.filter(
-        (img) =>
-          img.title?.toLowerCase().includes(s) ||
-          img.description?.toLowerCase().includes(s) ||
-          img.author?.toLowerCase().includes(s) ||
-          img.question?.toLowerCase().includes(s) ||
-          img.status?.toLowerCase().includes(s),
+      result = result.filter(
+        (p) =>
+          p.title?.toLowerCase().includes(s) ||
+          p.description?.toLowerCase().includes(s) ||
+          p.author?.toLowerCase().includes(s) ||
+          p.question?.toLowerCase().includes(s) ||
+          p.status?.toLowerCase().includes(s),
       );
     }
-    return imgs;
-  }, [
-    activeFilter,
-    allImagesWithUser,
-    filteredImagesByUser,
-    filterByUsername,
-    followingUids,
-    bookmarkedIds,
-    debouncedSearch,
-  ]);
+    return result;
+  }, [activeFilter, allPosts, filteredPostsByUser, filterByUsername, followingUids, bookmarkedIds, debouncedSearch]);
 
   const trendingPosts = useMemo(() => {
     if (filterByUsername) return [];
-
-    const now = Date.now();
-    const sevenDaysAgo = now - 7 * 24 * 60 * 60 * 1000;
-
-    return allImagesWithUser
-      .filter((img) => {
-        const createdTime = img.createdAt?.seconds * 1000 || 0;
-        return createdTime > sevenDaysAgo;
-      })
-      .map((img) => ({
-        ...img,
-        totalReactions: Object.values(getReactions(img.id)).reduce(
-          (a, b) => a + b,
-          0,
-        ),
+    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    return allPosts
+      .filter((p) => (p.createdAt?.seconds * 1000 || 0) > sevenDaysAgo)
+      .map((p) => ({
+        ...p,
+        totalReactions: Object.values(getReactions(p.id)).reduce((a, b) => a + b, 0),
       }))
       .sort((a, b) => b.totalReactions - a.totalReactions)
       .slice(0, 8);
-  }, [allImagesWithUser, filterByUsername, getReactions]);
+  }, [allPosts, filterByUsername, getReactions]);
 
-  // Define handleImageClick BEFORE it's used in other callbacks
-  const handleImageClick = useCallback(
-    (image) => {
-      const index = allImagesWithUser.findIndex((img) => img.id === image.id);
+  // ── Navigation handlers ─────────────────────────────────────────────
+
+  const handlePostClick = useCallback(
+    (post) => {
+      const index = allPosts.findIndex((p) => p.id === post.id);
       setSelectedIndex(index);
-      setSelectedImage(image);
+      setSelectedPost(post);
       setIsOpen(true);
-      navigate(`/image/${image.id}`, { state: { background: location } });
+      navigate(`/image/${post.id}`, { state: { background: location } });
     },
-    [allImagesWithUser, navigate, location],
+    [allPosts, navigate, location],
   );
 
   const handleRandomPost = useCallback(() => {
-    if (filteredImages.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * filteredImages.length);
-    const randomImage = filteredImages[randomIndex];
-
-    handleImageClick(randomImage);
-  }, [filteredImages, handleImageClick]);
+    if (filteredPosts.length === 0) return;
+    handlePostClick(filteredPosts[Math.floor(Math.random() * filteredPosts.length)]);
+  }, [filteredPosts, handlePostClick]);
 
   const handleModalRandom = useCallback(() => {
-    if (filteredImages.length === 0) return;
-
-    // Filter out current image to avoid showing same post
-    const availableImages = filteredImages.filter(
-      (img) => img.id !== selectedImage?.id,
-    );
-    if (availableImages.length === 0) return;
-
-    const randomIndex = Math.floor(Math.random() * availableImages.length);
-    const randomImage = availableImages[randomIndex];
-
-    const index = allImagesWithUser.findIndex(
-      (img) => img.id === randomImage.id,
-    );
+    const available = filteredPosts.filter((p) => p.id !== selectedPost?.id);
+    if (available.length === 0) return;
+    const randomPost = available[Math.floor(Math.random() * available.length)];
+    const index = allPosts.findIndex((p) => p.id === randomPost.id);
     setSelectedIndex(index);
-    setSelectedImage(randomImage);
-    navigate(`/image/${randomImage.id}`, { state: { background: location } });
-  }, [filteredImages, selectedImage, allImagesWithUser, navigate, location]);
+    setSelectedPost(randomPost);
+    navigate(`/image/${randomPost.id}`, { state: { background: location } });
+  }, [filteredPosts, selectedPost, allPosts, navigate, location]);
 
-  // Track images/userImages via refs so this effect only re-runs when params.id or loading changes
-  const imagesRefLocal = useRef(images);
-  imagesRefLocal.current = images;
-  const userImagesRefLocal = useRef(userImages);
-  userImagesRefLocal.current = userImages;
+  // Track posts/userPosts via refs so deep-link effect only re-runs on params.id/loading
+  const postsRefLocal = useRef(posts);
+  postsRefLocal.current = posts;
+  const userPostsRefLocal = useRef(userPosts);
+  userPostsRefLocal.current = userPosts;
 
   useEffect(() => {
     if (params.id) {
-      const findAndSetImage = async () => {
+      const findAndSet = async () => {
         setIsLoading(true);
-        setImageNotFound(false);
+        setPostNotFound(false);
 
         if (loading) {
           logger.log("📦 Post data still loading, will attempt fetch anyway");
         }
 
-        let allImgs = [...userImagesRefLocal.current, ...imagesRefLocal.current];
-        let img = allImgs.find((i) => i.id === params.id);
+        let all = [...userPostsRefLocal.current, ...postsRefLocal.current];
+        let post = all.find((p) => p.id === params.id);
 
-        if (!img) {
-          logger.log(
-            `🔍 Post ${params.id} not found in loaded data, fetching...`,
-          );
-          img = await fetchImageById(params.id);
-          if (img) allImgs = [img, ...allImgs];
+        if (!post) {
+          logger.log(`🔍 Post ${params.id} not found in loaded data, fetching...`);
+          post = await fetchPostById(params.id);
+          if (post) all = [post, ...all];
         }
 
-        if (img) {
-          setSelectedImage(img);
-          setSelectedIndex(allImgs.findIndex((i) => i.id === img.id));
-          setImageNotFound(false);
+        if (post) {
+          setSelectedPost(post);
+          setSelectedIndex(all.findIndex((p) => p.id === post.id));
+          setPostNotFound(false);
           setIsOpen(true);
-          logger.log(`✅ Post ${params.id} loaded successfully`);
         } else {
-          logger.log(`❌ Post ${params.id} not found`);
-          setImageNotFound(true);
+          setPostNotFound(true);
         }
         setIsLoading(false);
       };
-      findAndSetImage();
+      findAndSet();
     } else {
-      setImageNotFound(false);
+      setPostNotFound(false);
       setIsLoading(false);
     }
-  }, [params.id, loading, fetchImageById]);
+  }, [params.id, loading, fetchPostById]);
 
-  // Remove duplicate handleImageClick - already defined above
-  // const handleImageClick = useCallback(...) // REMOVED - DUPLICATE
-
-  // Handle edit post
   const handleEditPost = useCallback(
-    (image) => {
+    (post) => {
       if (!requireAuth("edit a post")) return;
-      setEditingPost(image);
+      setEditingPost(post);
     },
     [requireAuth],
   );
 
-  const handlePrevImage = useCallback(() => {
-    const newIndex =
-      selectedIndex > 0 ? selectedIndex - 1 : allImagesWithUser.length - 1;
+  const handlePrev = useCallback(() => {
+    const newIndex = selectedIndex > 0 ? selectedIndex - 1 : allPosts.length - 1;
     setSelectedIndex(newIndex);
-    const newImage = allImagesWithUser[newIndex];
-    setSelectedImage(newImage);
+    const p = allPosts[newIndex];
+    setSelectedPost(p);
     setIsOpen(true);
-    navigate(`/image/${newImage.id}`, { state: { background: location } });
-  }, [selectedIndex, allImagesWithUser, navigate, location]);
+    navigate(`/image/${p.id}`, { state: { background: location } });
+  }, [selectedIndex, allPosts, navigate, location]);
 
-  const handleNextImage = useCallback(() => {
-    const newIndex =
-      selectedIndex < allImagesWithUser.length - 1 ? selectedIndex + 1 : 0;
+  const handleNext = useCallback(() => {
+    const newIndex = selectedIndex < allPosts.length - 1 ? selectedIndex + 1 : 0;
     setSelectedIndex(newIndex);
-    const newImage = allImagesWithUser[newIndex];
-    setSelectedImage(newImage);
+    const p = allPosts[newIndex];
+    setSelectedPost(p);
     setIsOpen(true);
-    navigate(`/image/${newImage.id}`, { state: { background: location } });
-  }, [selectedIndex, allImagesWithUser, navigate, location]);
+    navigate(`/image/${p.id}`, { state: { background: location } });
+  }, [selectedIndex, allPosts, navigate, location]);
 
   const handleCloseModal = useCallback(() => {
     setIsOpen(false);
-    setImageNotFound(false);
-
-    if (location.state?.background) {
-      navigate(-1);
-    } else if (filterByUsername) {
+    setPostNotFound(false);
+    if (location.state?.background || filterByUsername) {
       navigate(-1);
     } else {
       navigate("/", { replace: true });
@@ -383,10 +303,7 @@ const PostGallery = memo(function PostGallery({
 
   const scrollSection = useCallback((ref, direction) => {
     if (ref.current) {
-      const cardWidth = 200;
-      const gap = 0;
-      const scrollAmount = (cardWidth + gap) * 3;
-
+      const scrollAmount = 200 * 3;
       ref.current.scrollBy({
         left: direction === "left" ? -scrollAmount : scrollAmount,
         behavior: "smooth",
@@ -402,40 +319,31 @@ const PostGallery = memo(function PostGallery({
     [requireAuth, toggleBookmark],
   );
 
-  const renderImageCard = useCallback(
-    (image, sectionType) => (
+  // ── Render card ─────────────────────────────────────────────────────
+
+  const renderPostCard = useCallback(
+    (post, sectionType) => (
       <PostCard
-        key={image.id}
-        image={image}
+        key={post.id}
+        post={post}
         sectionType={sectionType}
-        onClick={() => handleImageClick(image)}
-        onShare={(img) => setShareImage(img)}
-        onComment={handleImageClick}
+        onClick={() => handlePostClick(post)}
+        onShare={(p) => setSharePost(p)}
+        onComment={handlePostClick}
         onReactionClick={guardedToggleReaction}
-        reactions={getReactions(image.id)}
-        userReaction={getUserReaction(image.id)}
-        isSelected={selectedImage && image.id === selectedImage.id}
-        canEdit={canEditPost(image)}
+        reactions={getReactions(post.id)}
+        userReaction={getUserReaction(post.id)}
+        isSelected={selectedPost && post.id === selectedPost.id}
+        canEdit={canEditPost(post)}
         onEdit={handleEditPost}
-        isBookmarked={isBookmarked(image.id)}
+        isBookmarked={isBookmarked(post.id)}
         onToggleBookmark={guardedToggleBookmark}
       />
     ),
-    [
-      handleImageClick,
-      guardedToggleReaction,
-      guardedToggleBookmark,
-      getReactions,
-      getUserReaction,
-      selectedImage,
-      canEditPost,
-      handleEditPost,
-      isBookmarked,
-    ],
+    [handlePostClick, guardedToggleReaction, guardedToggleBookmark, getReactions, getUserReaction, selectedPost, canEditPost, handleEditPost, isBookmarked],
   );
 
-  const currentFilter =
-    FILTERS.find((f) => f.value === activeFilter) || FILTERS[0];
+  const currentFilter = FILTERS.find((f) => f.value === activeFilter) || FILTERS[0];
 
   const handleAddPost = (newPost) => {
     const toastId = toast.loading("Creating post...");
@@ -447,11 +355,7 @@ const PostGallery = memo(function PostGallery({
 
   const handlePostDelete = useCallback(
     (error) => {
-      if (onPostDelete) {
-        onPostDelete(error);
-        return;
-      }
-
+      if (onPostDelete) { onPostDelete(error); return; }
       setTimeout(() => {
         if (error) {
           toast.error("Failed to delete post. Please try again.");
@@ -463,50 +367,31 @@ const PostGallery = memo(function PostGallery({
     [onPostDelete],
   );
 
+  // ── JSX ─────────────────────────────────────────────────────────────
+
   return (
     <>
-      {notification && (
-        <Notification
-          message={notification.message}
-          type={notification.type}
-          onClose={() => setNotification(null)}
-          duration={3000}
-        />
-      )}
-
       <div className="image-gallery" ref={galleryRef}>
         {showHeader && (
           <div className="profile-gallery-header">
-            <h2>📸 Posts ({filteredImages.length})</h2>
+            <h2>📸 Posts ({filteredPosts.length})</h2>
           </div>
         )}
 
         {!filterByUsername && (
-          <div className="create-post-search-row">
-            <CreatePostButton
-              onClick={() => {
-                if (!requireAuth("create a post")) return;
-                logger.log("Create post clicked");
-                setShowAddModal(true);
-              }}
-            />
-            <input
-              className="gallery-search-main"
-              type="text"
-              placeholder="Search by title, author, content..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label="Search posts by title, author, or content"
-            />
-            <button
-              className="random-post-btn"
-              onClick={handleRandomPost}
-              disabled={filteredImages.length === 0}
-              title="View random post"
-            >
-              🎲
-            </button>
-          </div>
+          <GalleryFilters
+            activeFilter={activeFilter}
+            onFilterChange={setActiveFilter}
+            search={search}
+            onSearchChange={setSearch}
+            onCreatePost={() => {
+              if (!requireAuth("create a post")) return;
+              logger.log("Create post clicked");
+              setShowAddModal(true);
+            }}
+            onRandom={handleRandomPost}
+            randomDisabled={filteredPosts.length === 0}
+          />
         )}
 
         {!filterByUsername && trendingPosts.length > 0 && !debouncedSearch.trim() && (
@@ -514,10 +399,10 @@ const PostGallery = memo(function PostGallery({
             <GallerySection
               title="Trending"
               emoji="🔥"
-              images={trendingPosts}
+              posts={trendingPosts}
               scrollRef={trendingScrollRef}
               onScroll={scrollSection}
-              renderCard={renderImageCard}
+              renderCard={renderPostCard}
               sectionType="trending"
               layoutMode="horizontal"
               allowToggle={false}
@@ -525,42 +410,24 @@ const PostGallery = memo(function PostGallery({
           </div>
         )}
 
-        {!filterByUsername && (
-          <div className="gallery-filters-row">
-            <div className="gallery-filters">
-              {MAIN_FILTERS.map((filter) => (
-                <button
-                  key={filter.value}
-                  className={`gallery-filter-btn${
-                    activeFilter === filter.value ? " active" : ""
-                  }${filter.value === "following" ? " gallery-filter-btn--following" : ""}`}
-                  onClick={() => setActiveFilter(filter.value)}
-                >
-                  {filter.emoji} {filter.label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+        {loading && posts.length === 0 && <SkeletonGallery count={6} />}
 
-        {loading && images.length === 0 && <SkeletonGallery count={6} />}
-
-        {filteredImages.length > 0 && (
+        {filteredPosts.length > 0 && (
           <GallerySection
             title={filterByUsername ? "" : currentFilter.label}
             emoji={filterByUsername ? "" : currentFilter.emoji}
-            images={filteredImages}
+            posts={filteredPosts}
             scrollRef={scrollRef}
             onScroll={scrollSection}
-            renderCard={renderImageCard}
+            renderCard={renderPostCard}
             sectionType={activeFilter}
             layoutMode="vertical"
             allowToggle={true}
-            onRandomClick={handleImageClick}
+            onRandomClick={handlePostClick}
           />
         )}
 
-        {filteredImages.length === 0 && !loading && (
+        {filteredPosts.length === 0 && !loading && (
           <div className="no-results">
             <span className="no-results-icon">🔍</span>
             <p>
@@ -580,7 +447,6 @@ const PostGallery = memo(function PostGallery({
           </div>
         )}
 
-        {/* Sentinel element — IntersectionObserver watches this to trigger pagination */}
         <div ref={sentinelRef} style={{ height: 1 }} aria-hidden="true" />
       </div>
 
@@ -588,44 +454,24 @@ const PostGallery = memo(function PostGallery({
         <div className="image-modal-overlay">
           <div className="image-loading">
             <div className="loading-spinner"></div>
-            <p>Loading image...</p>
+            <p>Loading post...</p>
           </div>
         </div>
       )}
 
-      {imageNotFound && params.id && (
-        <div className="image-modal-overlay" onClick={handleCloseModal}>
-          <div className="image-not-found" onClick={(e) => e.stopPropagation()}>
-            <div className="not-found-content">
-              <span className="not-found-icon">🔍</span>
-              <h2>Image Not Found</h2>
-              <p>
-                The image you're looking for doesn't exist or has been removed.
-              </p>
-              <button className="back-btn" onClick={handleCloseModal}>
-                Back to Gallery
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      {postNotFound && params.id && <PostNotFound onClose={handleCloseModal} />}
 
-      {isOpen && selectedImage && !isLoading && !imageNotFound && (
+      {isOpen && selectedPost && !isLoading && !postNotFound && (
         <PostModal
-          image={selectedImage}
+          post={selectedPost}
           onClose={handleCloseModal}
-          onPrev={handlePrevImage}
-          onNext={handleNextImage}
+          onPrev={handlePrev}
+          onNext={handleNext}
           onRandom={handleModalRandom}
           onDelete={handlePostDelete}
           onEdit={() => {
-            // Refresh the selected image after edit
-            const updatedImage = images.find(
-              (img) => img.id === selectedImage.id,
-            );
-            if (updatedImage) {
-              setSelectedImage(updatedImage);
-            }
+            const updated = posts.find((p) => p.id === selectedPost.id);
+            if (updated) setSelectedPost(updated);
           }}
         />
       )}
@@ -655,7 +501,7 @@ const PostGallery = memo(function PostGallery({
         />
       )}
 
-      <ShareMenu shareImage={shareImage} onClose={() => setShareImage(null)} />
+      <ShareMenu sharePost={sharePost} onClose={() => setSharePost(null)} />
     </>
   );
 });

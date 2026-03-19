@@ -12,7 +12,7 @@ import {
   Loader,
   AnimatedDotsBackground,
 } from "./components/common";
-import { ImageProvider } from "./context/PostContext";
+import { PostProvider } from "./context/PostContext";
 import { AuthProvider } from "./context/AuthContext";
 import { NotificationProvider } from "./context/NotificationContext";
 import { ThemeProvider } from "./context/ThemeContext";
@@ -172,7 +172,7 @@ function App() {
     <ThemeProvider>
       <AuthProvider>
         <NotificationProvider>
-          <ImageProvider>
+          <PostProvider>
             <Router>
               <div className="App">
                 <a href="#main-content" className="skip-to-content">
@@ -211,7 +211,7 @@ function App() {
                 <Footer />
               </div>
             </Router>
-          </ImageProvider>
+          </PostProvider>
         </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>

@@ -24,7 +24,7 @@ import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, ShuffleIcon, MessageIcon, U
 import FollowListModal from "../../profile/FollowListModal";
 
 export default function PostModalImageSection({
-  image,
+  post,
   isMediaPost,
   canDelete,
   onRandom,
@@ -36,18 +36,18 @@ export default function PostModalImageSection({
     toggleReaction,
     getReactions,
     getUserReaction,
-    images,
+    posts,
     votePoll,
     getUserPollVote,
   } = usePosts();
 
   // Always use live data from context so votes update immediately without reload
-  const liveImage = images.find((img) => img.id === image.id) || image;
+  const livePost = posts.find((p) => p.id === post.id) || post;
 
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [activeTab, setActiveTab] = useState("post");
-  const [userData, setUserData] = useState(image.userProfileData || null);
+  const [userData, setUserData] = useState(post.userProfileData || null);
   const shareMenuRef = useRef(null);
   const reactionPickerRef = useRef(null);
 
@@ -63,8 +63,8 @@ export default function PostModalImageSection({
   const [followListMode, setFollowListMode] = useState(null);
 
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
-  const reactions = getReactions(image.id);
-  const userReaction = getUserReaction(image.id);
+  const reactions = getReactions(post.id);
+  const userReaction = getUserReaction(post.id);
   const allReactions = Object.entries(reactions).sort((a, b) => b[1] - a[1]);
   const displayedReactions = allReactions.slice(0, 5);
 
@@ -77,19 +77,19 @@ export default function PostModalImageSection({
   const handleReactionClick = (emoji, _e) => {
     _e.stopPropagation();
     if (!requireAuth("react to a post")) return;
-    toggleReaction(image.id, emoji);
+    toggleReaction(post.id, emoji);
     setShowReactionPicker(false);
   };
 
   const copyLink = () => {
-    const link = `${window.location.origin}/image/${image.id}`;
+    const link = `${window.location.origin}/image/${post.id}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied to clipboard!");
   };
 
   const shareToSocial = (platform) => {
     const text = `Check out this post on LaughCoin!`;
-    const url = `${window.location.origin}/image/${image.id}`;
+    const url = `${window.location.origin}/image/${post.id}`;
     const links = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
         text,
@@ -131,45 +131,45 @@ export default function PostModalImageSection({
 
   // Follow: subscribe to followers count
   useEffect(() => {
-    if (!image.uploadedBy) return;
+    if (!post.uploadedBy) return;
     const q = query(
       collection(db, "follows"),
-      where("followingId", "==", image.uploadedBy),
+      where("followingId", "==", post.uploadedBy),
     );
     const unsub = onSnapshot(q, (snap) => setFollowersCount(snap.size));
     return () => unsub();
-  }, [image.uploadedBy]);
+  }, [post.uploadedBy]);
 
   // Follow: subscribe to following count
   useEffect(() => {
-    if (!image.uploadedBy) return;
+    if (!post.uploadedBy) return;
     const q = query(
       collection(db, "follows"),
-      where("followerId", "==", image.uploadedBy),
+      where("followerId", "==", post.uploadedBy),
     );
     const unsub = onSnapshot(q, (snap) => setFollowingCount(snap.size));
     return () => unsub();
-  }, [image.uploadedBy]);
+  }, [post.uploadedBy]);
 
   // Follow: check if current user follows this post's author
   useEffect(() => {
-    if (!firebaseUser?.uid || !image.uploadedBy || firebaseUser.uid === image.uploadedBy) {
+    if (!firebaseUser?.uid || !post.uploadedBy || firebaseUser.uid === post.uploadedBy) {
       setIsFollowing(false);
       return;
     }
-    const docId = `${firebaseUser.uid}_${image.uploadedBy}`;
+    const docId = `${firebaseUser.uid}_${post.uploadedBy}`;
     const unsub = onSnapshot(doc(db, "follows", docId), (snap) => {
       setIsFollowing(snap.exists());
     });
     return () => unsub();
-  }, [firebaseUser?.uid, image.uploadedBy]);
+  }, [firebaseUser?.uid, post.uploadedBy]);
 
   // Follow / unfollow handler
   const handleFollowToggle = useCallback(async () => {
-    if (!firebaseUser?.uid || !image.uploadedBy || followLoading) return;
+    if (!firebaseUser?.uid || !post.uploadedBy || followLoading) return;
     if (firebaseUser.isAnonymous) return;
 
-    const docId = `${firebaseUser.uid}_${image.uploadedBy}`;
+    const docId = `${firebaseUser.uid}_${post.uploadedBy}`;
     const followRef = doc(db, "follows", docId);
 
     setFollowLoading(true);
@@ -179,29 +179,29 @@ export default function PostModalImageSection({
       } else {
         await setDoc(followRef, {
           followerId: firebaseUser.uid,
-          followingId: image.uploadedBy,
+          followingId: post.uploadedBy,
           createdAt: serverTimestamp(),
         });
-        createFollowNotification(image.uploadedBy);
+        createFollowNotification(post.uploadedBy);
       }
     } catch (_err) {
       // silently fail
     } finally {
       setFollowLoading(false);
     }
-  }, [firebaseUser, image.uploadedBy, isFollowing, followLoading, createFollowNotification]);
+  }, [firebaseUser, post.uploadedBy, isFollowing, followLoading, createFollowNotification]);
 
   useEffect(() => {
     let ignore = false;
     async function fetchUser() {
-      if (image.uploadedBy) {
+      if (post.uploadedBy) {
         try {
-          const userDoc = await getDoc(doc(db, "users", image.uploadedBy));
+          const userDoc = await getDoc(doc(db, "users", post.uploadedBy));
           if (userDoc.exists() && !ignore) {
             setUserData(userDoc.data());
           }
         } catch (_e) {
-          // fallback to image.userProfileData if exists
+          // fallback to post.userProfileData if exists
         }
       }
     }
@@ -209,16 +209,16 @@ export default function PostModalImageSection({
     return () => {
       ignore = true;
     };
-  }, [image.uploadedBy]);
+  }, [post.uploadedBy]);
 
   // Tabs UI
-  const showTabs = image.type === "user-profile" || !!userData;
+  const showTabs = post.type === "user-profile" || !!userData;
 
   // Calculate user stats
-  const userPosts = images.filter(
+  const userPosts = posts.filter(
     (img) =>
-      img.author?.toLowerCase() === image.author?.toLowerCase() ||
-      img.uploadedBy === image.uploadedBy,
+      img.author?.toLowerCase() === post.author?.toLowerCase() ||
+      img.uploadedBy === post.uploadedBy,
   );
   const totalPosts = userPosts.length;
   const totalReactions = userPosts.reduce((sum, post) => {
@@ -254,9 +254,9 @@ export default function PostModalImageSection({
     const profile = userData || {};
     const avatar =
       profile.avatar ||
-      image.authorAvatar ||
+      post.authorAvatar ||
       `https://ui-avatars.com/api/?name=${encodeURIComponent(
-        profile.username || image.author || "U",
+        profile.username || post.author || "U",
       )}&background=8b5cf6&color=fff&size=200`;
 
     const hasInfo = profile.location || profile.solana || profile.lastLogin;
@@ -268,7 +268,7 @@ export default function PostModalImageSection({
           <div className="postmodal-user-header">
             <div className="postmodal-user-info-top">
               <div className="postmodal-user-username">
-                @{profile.username || image.author}
+                @{profile.username || post.author}
               </div>
               {profile.status && (
                 <div className="postmodal-user-status">{profile.status}</div>
@@ -336,7 +336,7 @@ export default function PostModalImageSection({
               className="postmodal-user-profile-btn"
               onClick={() =>
                 window.location.assign(
-                  `/profile/${encodeURIComponent(profile.username || image.author)}`,
+                  `/profile/${encodeURIComponent(profile.username || post.author)}`,
                 )
               }
             >
@@ -344,8 +344,8 @@ export default function PostModalImageSection({
             </button>
             {firebaseUser &&
               !firebaseUser.isAnonymous &&
-              image.uploadedBy &&
-              image.uploadedBy !== firebaseUser.uid && (
+              post.uploadedBy &&
+              post.uploadedBy !== firebaseUser.uid && (
                 <>
                   <button
                     className={`postmodal-user-follow-btn ${isFollowing ? "postmodal-user-follow-btn--following" : ""}`}
@@ -364,9 +364,9 @@ export default function PostModalImageSection({
                       window.dispatchEvent(
                         new CustomEvent("openDM", {
                           detail: {
-                            uid: image.uploadedBy,
-                            username: profile.username || image.author,
-                            avatar: profile.avatar || image.authorAvatar || null,
+                            uid: post.uploadedBy,
+                            username: profile.username || post.author,
+                            avatar: profile.avatar || post.authorAvatar || null,
                           },
                         }),
                       );
@@ -381,17 +381,17 @@ export default function PostModalImageSection({
         <FollowListModal
           isOpen={!!followListMode}
           onClose={() => setFollowListMode(null)}
-          userId={image.uploadedBy}
+          userId={post.uploadedBy}
           mode={followListMode}
         />
       </div>
     );
   };
 
-  const displayUsername = userData?.username || image.author || "User";
+  const displayUsername = userData?.username || post.author || "User";
   const displayAvatar =
     userData?.avatar ||
-    image.authorAvatar ||
+    post.authorAvatar ||
     `https://ui-avatars.com/api/?name=${encodeURIComponent(
       displayUsername,
     )}&background=8b5cf6&color=fff&size=64`;
@@ -427,8 +427,8 @@ export default function PostModalImageSection({
           </div>
         )}
         <div className="postmodal-toolbar-actions">
-          {image.type && (
-            <span className="postmodal-type-badge-inline">{image.type}</span>
+          {post.type && (
+            <span className="postmodal-type-badge-inline">{post.type}</span>
           )}
           {canEdit && onEditRequest && (
             <button
@@ -465,35 +465,35 @@ export default function PostModalImageSection({
         renderUserTab()
       ) : (
         <div className="image-modal-display">
-          {image.type === "status" ? (
+          {post.type === "status" ? (
             <StatusRenderer
-              status={image.status}
-              bgColor={image.bgColor}
-              textColor={image.textColor}
+              status={post.status}
+              bgColor={post.bgColor}
+              textColor={post.textColor}
               className="modal-status"
             />
-          ) : image.type === "poll" ? (
+          ) : post.type === "poll" ? (
             <PollRenderer
-              question={liveImage.question}
-              description={liveImage.description}
-              options={liveImage.options || []}
-              bgColor={liveImage.bgColor}
-              voteCounts={liveImage.voteCounts}
-              userVote={getUserPollVote(liveImage.id)}
-              endsAt={liveImage.endsAt}
+              question={livePost.question}
+              description={livePost.description}
+              options={livePost.options || []}
+              bgColor={livePost.bgColor}
+              voteCounts={livePost.voteCounts}
+              userVote={getUserPollVote(livePost.id)}
+              endsAt={livePost.endsAt}
               onVote={(optionIndex) => {
                 if (!requireAuth("vote on a poll")) return;
-                votePoll(liveImage.id, optionIndex);
+                votePoll(livePost.id, optionIndex);
               }}
               compact={false}
               className="modal-poll"
             />
           ) : isMediaPost ? (
-            <MediaPlayer image={image} />
+            <MediaPlayer image={post} />
           ) : (
             <img
-              src={image.image || image.imageUrl}
-              alt={image.title}
+              src={post.image || post.imageUrl}
+              alt={post.title}
               className="modal-image"
               loading="lazy"
             />

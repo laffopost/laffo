@@ -12,7 +12,7 @@ import "./PostModal.css";
 import logger from "../../../utils/logger";
 const PostModal = memo(
   function PostModal({
-    image,
+    post,
     onClose,
     onPrev,
     onNext,
@@ -20,10 +20,10 @@ const PostModal = memo(
     onDelete,
     onEdit,
   }) {
-    logger.log("🎬 PostModal rendered for:", image?.id);
-    logger.log("🎬 PostModal - Image type:", image?.type);
-    logger.log("🎬 PostModal - Is media?:", image?.type === "media");
-    logger.log("🎬 PostModal - Full image object:", image);
+    logger.log("🎬 PostModal rendered for:", post?.id);
+    logger.log("🎬 PostModal - Image type:", post?.type);
+    logger.log("🎬 PostModal - Is media?:", post?.type === "media");
+    logger.log("🎬 PostModal - Full post object:", post);
 
     const { deletePost, editPost } = usePosts();
     const { firebaseUser, userProfile } = useAuth();
@@ -32,13 +32,13 @@ const PostModal = memo(
     const [isDeleting, setIsDeleting] = useState(false);
 
     useEffect(() => {
-      if (image?.type === "media") {
+      if (post?.type === "media") {
         logger.log("🎥 MEDIA POST DETECTED!");
-        logger.log("🎥 Media Type:", image.mediaType);
-        logger.log("🎥 Embed URL:", image.embedUrl);
-        logger.log("🎥 Media URL:", image.mediaUrl);
+        logger.log("🎥 Media Type:", post.mediaType);
+        logger.log("🎥 Embed URL:", post.embedUrl);
+        logger.log("🎥 Media URL:", post.mediaUrl);
       }
-    }, [image]);
+    }, [post]);
 
     useEffect(() => {
       const handleKeyDown = (e) => {
@@ -57,27 +57,27 @@ const PostModal = memo(
     }, [onClose, showDeleteConfirm, showEditModal]);
 
     const canDelete = useMemo(() => {
-      if (!firebaseUser || !image) return false;
+      if (!firebaseUser || !post) return false;
       return (
-        image.uploadedBy === firebaseUser.uid ||
-        image.author?.toLowerCase() === userProfile?.username?.toLowerCase()
+        post.uploadedBy === firebaseUser.uid ||
+        post.author?.toLowerCase() === userProfile?.username?.toLowerCase()
       );
-    }, [firebaseUser, userProfile, image]);
+    }, [firebaseUser, userProfile, post]);
 
     const canEdit = useMemo(() => {
-      if (!firebaseUser || !image) return false;
+      if (!firebaseUser || !post) return false;
       return (
-        image.uploadedBy === firebaseUser.uid ||
-        image.author?.toLowerCase() === userProfile?.username?.toLowerCase()
+        post.uploadedBy === firebaseUser.uid ||
+        post.author?.toLowerCase() === userProfile?.username?.toLowerCase()
       );
-    }, [firebaseUser, userProfile, image]);
+    }, [firebaseUser, userProfile, post]);
 
     const handleDelete = async () => {
       if (!canDelete || isDeleting) return;
 
       setIsDeleting(true);
       try {
-        await deletePost(image.id);
+        await deletePost(post.id);
         setShowDeleteConfirm(false);
         onClose();
         if (onDelete) {
@@ -94,7 +94,7 @@ const PostModal = memo(
 
     const handleEditSubmit = (newPost) => {
       const toastId = toast.loading("Saving post...");
-      editPost(image.id, newPost)
+      editPost(post.id, newPost)
         .then(() => {
           toast.success("Post updated successfully!", { id: toastId });
           setShowEditModal(false);
@@ -130,8 +130,8 @@ const PostModal = memo(
                   ›
                 </button>
                 <PostModalImageSection
-                  image={image}
-                  isMediaPost={image.type === "media"}
+                  post={post}
+                  isMediaPost={post.type === "media"}
                   canDelete={canDelete}
                   canEdit={canEdit}
                   onDeleteRequest={() => setShowDeleteConfirm(true)}
@@ -139,7 +139,7 @@ const PostModal = memo(
                   onRandom={onRandom || null}
                 />
               </div>
-              <PostModalCommentsSection image={image} />
+              <PostModalCommentsSection post={post} />
             </div>
           </div>
         </div>
@@ -183,7 +183,7 @@ const PostModal = memo(
             onClose={() => setShowEditModal(false)}
             onSubmit={handleEditSubmit}
             editMode
-            editPostData={image}
+            editPostData={post}
             editPost={handleEditSubmit}
           />
         )}
@@ -191,7 +191,7 @@ const PostModal = memo(
     );
   },
   (prevProps, nextProps) => {
-    return prevProps.image?.id === nextProps.image?.id;
+    return prevProps.post?.id === nextProps.post?.id;
   },
 );
 

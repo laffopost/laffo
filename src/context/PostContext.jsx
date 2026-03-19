@@ -41,7 +41,7 @@ import { getPostExpiryService } from "../utils/postExpiry";
 
 
 // Two separate contexts:
-// - PostDataContext  → reactive data (images, loading, etc.) — changes on every update
+// - PostDataContext  → reactive data (posts, loading, etc.) — changes on every update
 // - PostActionsContext → stable mutation functions — only change on auth/db change
 const PostDataContext = createContext();
 const PostActionsContext = createContext();
@@ -56,7 +56,7 @@ export const usePosts = () => {
   const data = useContext(PostDataContext);
   const actions = useContext(PostActionsContext);
   if (!data || !actions) {
-    throw new Error("usePosts must be used within an ImageProvider");
+    throw new Error("usePosts must be used within an PostProvider");
   }
   return { ...data, ...actions };
 };
@@ -65,7 +65,7 @@ export const usePosts = () => {
 export const usePostActions = () => {
   const actions = useContext(PostActionsContext);
   if (!actions) {
-    throw new Error("usePostActions must be used within an ImageProvider");
+    throw new Error("usePostActions must be used within an PostProvider");
   }
   return actions;
 };
@@ -74,16 +74,16 @@ export const usePostActions = () => {
 export const usePostData = () => {
   const data = useContext(PostDataContext);
   if (!data) {
-    throw new Error("usePostData must be used within an ImageProvider");
+    throw new Error("usePostData must be used within an PostProvider");
   }
   return data;
 };
 
-export const ImageProvider = ({ children }) => {
-  log("🟢 ImageProvider rendered");
+export const PostProvider = ({ children }) => {
+  log("🟢 PostProvider rendered");
 
-  const [images, setImages] = useState([]);
-  const [userImages, setUserImages] = useState([]);
+  const [posts, setPosts] = useState([]);
+  const [userPosts, setUserPosts] = useState([]);
   const [userReactions, setUserReactions] = useState({});
   const [userName, setUserName] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -104,8 +104,8 @@ export const ImageProvider = ({ children }) => {
 
   // Ref snapshots — keep current values accessible in stable callbacks
   // without adding them as useCallback deps (avoids function recreation on every data change)
-  const imagesRef = useRef(images);
-  imagesRef.current = images;
+  const postsRef = useRef(posts);
+  postsRef.current = posts;
   const userReactionsRef = useRef(userReactions);
   userReactionsRef.current = userReactions;
   const userProfileRef = useRef(userProfile);
@@ -142,14 +142,14 @@ export const ImageProvider = ({ children }) => {
     const cleanupInterval = setInterval(() => {
       const now = Date.now();
 
-      setImages((prev) => {
+      setPosts((prev) => {
         const filtered = prev.filter(
           (post) => !post.endsAt || post.endsAt > now,
         );
         return filtered.length !== prev.length ? filtered : prev;
       });
 
-      setUserImages((prev) => {
+      setUserPosts((prev) => {
         const filtered = prev.filter(
           (post) => !post.endsAt || post.endsAt > now,
         );
@@ -201,9 +201,9 @@ export const ImageProvider = ({ children }) => {
     mountedRef.current = true;
 
     // Initial query loads only 15 posts for faster page load
-    const imagesRef = collection(db, "images");
+    const postsCol = collection(db, "posts");
     const q = query(
-      imagesRef,
+      postsCol,
       orderBy("createdAt", "desc"),
       limit(INITIAL_LOAD_LIMIT),
     );
@@ -245,12 +245,12 @@ export const ImageProvider = ({ children }) => {
           const filteredAllDocs = filterExpiredPosts(allDocs);
           const filteredUserDocs = filterExpiredPosts(userDocs);
 
-          setImages(filteredAllDocs);
-          setUserImages(filteredUserDocs);
+          setPosts(filteredAllDocs);
+          setUserPosts(filteredUserDocs);
         } else {
           log("🔄 Incremental update");
 
-          setImages((prev) => {
+          setPosts((prev) => {
             const updated = [...prev];
             let changed = false;
 
@@ -286,7 +286,7 @@ export const ImageProvider = ({ children }) => {
             return changed ? updated : prev;
           });
 
-          setUserImages((prev) => {
+          setUserPosts((prev) => {
             const updated = [...prev];
             let changed = false;
 
@@ -345,16 +345,16 @@ export const ImageProvider = ({ children }) => {
     };
   }, [db, userId]);
 
-  const fetchImageById = useCallback(
+  const fetchPostById = useCallback(
     async (imageId) => {
       log(`🔍 Fetching post ${imageId}`);
       try {
-        const imageRef = doc(db, "images", imageId);
+        const imageRef = doc(db, "posts", imageId);
         const docSnap = await getDoc(imageRef);
 
         if (docSnap.exists()) {
           const imageData = { id: docSnap.id, ...docSnap.data() };
-          setImages((prev) => {
+          setPosts((prev) => {
             if (prev.find((img) => img.id === imageId)) {
               return prev;
             }
@@ -469,7 +469,7 @@ export const ImageProvider = ({ children }) => {
 
         log("🔥 PostContext - Final post object being saved:", newPost);
 
-        const docRef = await addDoc(collection(db, "images"), newPost);
+        const docRef = await addDoc(collection(db, "posts"), newPost);
         const newPostWithId = { id: docRef.id, ...newPost };
 
         log("✅ PostContext - Post saved successfully with ID:", docRef.id);
@@ -482,8 +482,8 @@ export const ImageProvider = ({ children }) => {
         }
 
         lastPostTimeRef.current = Date.now();
-        setImages((prev) => [newPostWithId, ...prev]);
-        setUserImages((prev) => [newPostWithId, ...prev]);
+        setPosts((prev) => [newPostWithId, ...prev]);
+        setUserPosts((prev) => [newPostWithId, ...prev]);
 
         // Notify followers about the new post (fire and forget)
         notifyFollowersOfNewPost({
@@ -507,7 +507,7 @@ export const ImageProvider = ({ children }) => {
       log(`🗑️ Deleting post ${postId}`);
       try {
         // Ownership check: only the post author can delete
-        const postRef = doc(db, "images", postId);
+        const postRef = doc(db, "posts", postId);
         const postDoc = await getDoc(postRef);
         if (!postDoc.exists()) {
           throw new Error("Post not found");
@@ -516,8 +516,8 @@ export const ImageProvider = ({ children }) => {
           throw new Error("You can only delete your own posts");
         }
         await deleteDoc(postRef);
-        setImages((prev) => prev.filter((img) => img.id !== postId));
-        setUserImages((prev) => prev.filter((img) => img.id !== postId));
+        setPosts((prev) => prev.filter((img) => img.id !== postId));
+        setUserPosts((prev) => prev.filter((img) => img.id !== postId));
         return true;
       } catch (error) {
         logError("❌ Error deleting:", error);
@@ -532,7 +532,7 @@ export const ImageProvider = ({ children }) => {
       log(`✏️ Editing post ${postId}`, updateData);
       try {
         // Ownership check: only the post author can edit
-        const postRef = doc(db, "images", postId);
+        const postRef = doc(db, "posts", postId);
         const postDoc = await getDoc(postRef);
         if (!postDoc.exists()) {
           throw new Error("Post not found");
@@ -559,10 +559,10 @@ export const ImageProvider = ({ children }) => {
 
         // Update local state
         const updatedPost = { ...postDoc.data(), ...editData, id: postId };
-        setImages((prev) =>
+        setPosts((prev) =>
           prev.map((img) => (img.id === postId ? updatedPost : img)),
         );
-        setUserImages((prev) =>
+        setUserPosts((prev) =>
           prev.map((img) => (img.id === postId ? updatedPost : img)),
         );
 
@@ -581,7 +581,7 @@ export const ImageProvider = ({ children }) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) return;
       // Block reacting to own post — use ref to avoid depending on images array
-      const ownPost = imagesRef.current.find((img) => img.id === imageId);
+      const ownPost = postsRef.current.find((img) => img.id === imageId);
       if (ownPost && (ownPost.uploadedBy === userId || ownPost.userId === userId)) return;
       log(`👍 Toggling reaction ${emoji} on ${imageId}`);
 
@@ -607,7 +607,7 @@ export const ImageProvider = ({ children }) => {
 
       reactionTimeoutRef.current[imageId] = setTimeout(async () => {
         try {
-          const imageRef = doc(db, "images", imageId);
+          const imageRef = doc(db, "posts", imageId);
           let shouldCreateNotification = false;
           let postData = null;
 
@@ -670,7 +670,7 @@ export const ImageProvider = ({ children }) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) return;
       // Use ref snapshot so this doesn't need `images` in deps
-      const post = imagesRef.current.find((img) => img.id === postId);
+      const post = postsRef.current.find((img) => img.id === postId);
       if (!post || post.type !== "poll") return;
 
       // Prevent double voting
@@ -681,7 +681,7 @@ export const ImageProvider = ({ children }) => {
       newCounts[optionIndex] = (newCounts[optionIndex] || 0) + 1;
 
       // Optimistic update
-      setImages((prev) =>
+      setPosts((prev) =>
         prev.map((img) =>
           img.id === postId
             ? {
@@ -694,7 +694,7 @@ export const ImageProvider = ({ children }) => {
       );
 
       try {
-        const postRef = doc(db, "images", postId);
+        const postRef = doc(db, "posts", postId);
         await updateDoc(postRef, {
           voteCounts: newCounts,
           [`votes.${userId}`]: optionIndex,
@@ -703,26 +703,26 @@ export const ImageProvider = ({ children }) => {
       } catch (err) {
         logError("❌ Poll vote error:", err);
         // Rollback
-        setImages((prev) =>
+        setPosts((prev) =>
           prev.map((img) => (img.id === postId ? post : img)),
         );
       }
     },
-    // images removed from deps — accessed via imagesRef.current
+    // images removed from deps — accessed via postsRef.current
     [db, userId, firebaseUser],
   );
 
   const getUserPollVote = useCallback(
     (postId) => {
       if (!userId) return null;
-      const post = images.find((img) => img.id === postId);
+      const post = posts.find((p) => p.id === postId);
       return post?.votes?.[userId] ?? null;
     },
-    [images, userId],
+    [posts, userId],
   );
 
   // ── Comments subcollection helpers ──────────────────────────────────
-  // Comments now live in images/{postId}/comments as individual docs.
+  // Comments now live in posts/{postId}/comments as individual docs.
   // PostModalCommentsSection subscribes to them in real-time.
   // PostContext only manages commentCount on the parent post doc.
 
@@ -758,7 +758,7 @@ export const ImageProvider = ({ children }) => {
       };
 
       // Optimistic: bump local commentCount
-      setImages((prev) =>
+      setPosts((prev) =>
         prev.map((img) =>
           img.id === imageId
             ? { ...img, commentCount: (img.commentCount || 0) + 1 }
@@ -768,16 +768,16 @@ export const ImageProvider = ({ children }) => {
 
       try {
         // Write comment to subcollection
-        await addDoc(collection(db, "images", imageId, "comments"), commentData);
+        await addDoc(collection(db, "posts", imageId, "comments"), commentData);
 
         // Increment commentCount on the parent post doc
-        const imageRef = doc(db, "images", imageId);
+        const imageRef = doc(db, "posts", imageId);
         await updateDoc(imageRef, { commentCount: increment(1) });
 
         lastCommentTimeRef.current = Date.now();
 
         // Notification (fire and forget)
-        const postDoc = await getDoc(doc(db, "images", imageId));
+        const postDoc = await getDoc(doc(db, "posts", imageId));
         const postData = postDoc.exists() ? postDoc.data() : null;
         if (postData) {
           const username =
@@ -797,7 +797,7 @@ export const ImageProvider = ({ children }) => {
       } catch (err) {
         logError("❌ Comment error:", err);
         // Rollback optimistic count
-        setImages((prev) =>
+        setPosts((prev) =>
           prev.map((img) =>
             img.id === imageId
               ? { ...img, commentCount: Math.max(0, (img.commentCount || 0) - 1) }
@@ -816,7 +816,7 @@ export const ImageProvider = ({ children }) => {
       log(`🗑️ Deleting comment ${commentId} from post ${imageId}`);
 
       // Optimistic count decrement
-      setImages((prev) =>
+      setPosts((prev) =>
         prev.map((img) =>
           img.id === imageId
             ? { ...img, commentCount: Math.max(0, (img.commentCount || 0) - 1) }
@@ -825,12 +825,12 @@ export const ImageProvider = ({ children }) => {
       );
 
       try {
-        await deleteDoc(doc(db, "images", imageId, "comments", commentId));
-        await updateDoc(doc(db, "images", imageId), { commentCount: increment(-1) });
+        await deleteDoc(doc(db, "posts", imageId, "comments", commentId));
+        await updateDoc(doc(db, "posts", imageId), { commentCount: increment(-1) });
       } catch (err) {
         logError("❌ Delete comment error:", err);
         // Rollback
-        setImages((prev) =>
+        setPosts((prev) =>
           prev.map((img) =>
             img.id === imageId
               ? { ...img, commentCount: (img.commentCount || 0) + 1 }
@@ -849,7 +849,7 @@ export const ImageProvider = ({ children }) => {
       log(`❤️ Toggling comment reaction`);
 
       try {
-        const commentRef = doc(db, "images", imageId, "comments", commentId);
+        const commentRef = doc(db, "posts", imageId, "comments", commentId);
         const commentSnap = await getDoc(commentRef);
         if (!commentSnap.exists()) return;
 
@@ -876,10 +876,10 @@ export const ImageProvider = ({ children }) => {
 
   const getReactions = useCallback(
     (imageId) => {
-      const image = images.find((img) => img.id === imageId);
-      return image?.reactions || {};
+      const post = posts.find((p) => p.id === imageId);
+      return post?.reactions || {};
     },
-    [images],
+    [posts],
   );
 
   const getUserReaction = useCallback(
@@ -891,34 +891,34 @@ export const ImageProvider = ({ children }) => {
   // in a subcollection and reaction data lives on each comment doc.
   // PostModalCommentsSection reads them directly from its own subscription.
 
-  const getImageById = useCallback(
+  const getPostById = useCallback(
     (id) => {
-      return images.find((img) => img.id === id) || null;
+      return posts.find((p) => p.id === id) || null;
     },
-    [images],
+    [posts],
   );
 
-  const getImagesByType = useCallback(
+  const getPostsByType = useCallback(
     (type) => {
-      if (type === "all") return images;
-      return images.filter((img) => img.type === type);
+      if (type === "all") return posts;
+      return posts.filter((p) => p.type === type);
     },
-    [images],
+    [posts],
   );
 
   const stats = useMemo(() => {
     log("📊 Calculating stats");
-    const totalPosts = images.length;
+    const totalPosts = posts.length;
     const totalUsers = new Set(
-      images.map((img) => (img.author || "Anonymous").trim()).filter(Boolean),
+      posts.map((p) => (p.author || "Anonymous").trim()).filter(Boolean),
     ).size;
-    const totalReacts = images.reduce((sum, img) => {
-      if (!img.reactions) return sum;
-      return sum + Object.values(img.reactions).reduce((a, b) => a + b, 0);
+    const totalReacts = posts.reduce((sum, p) => {
+      if (!p.reactions) return sum;
+      return sum + Object.values(p.reactions).reduce((a, b) => a + b, 0);
     }, 0);
 
     return { totalPosts, totalUsers, totalReacts };
-  }, [images]);
+  }, [posts]);
 
   // Load more posts (cursor-based pagination using startAfter)
   // Only fetches the NEXT page instead of re-downloading everything from the top.
@@ -928,7 +928,7 @@ export const ImageProvider = ({ children }) => {
       log("⚠️ No more posts to load");
       return;
     }
-    if (imagesRef.current.length >= MAX_TOTAL_LOAD) {
+    if (postsRef.current.length >= MAX_TOTAL_LOAD) {
       log("⚠️ Reached maximum post limit");
       return;
     }
@@ -938,9 +938,9 @@ export const ImageProvider = ({ children }) => {
 
     log(`📥 Loading more posts after cursor`);
 
-    const imgCollection = collection(db, "images");
+    const postsCol = collection(db, "posts");
     const q = query(
-      imgCollection,
+      postsCol,
       orderBy("createdAt", "desc"),
       startAfter(cursor),
       limit(PAGINATION_INCREMENT),
@@ -965,7 +965,7 @@ export const ImageProvider = ({ children }) => {
 
       const filteredNew = filterExpiredPosts(newDocs);
       // Append to existing images (deduplicated)
-      setImages((prev) => {
+      setPosts((prev) => {
         const existingIds = new Set(prev.map((p) => p.id));
         const unique = filteredNew.filter((p) => !existingIds.has(p.id));
         return [...prev, ...unique];
@@ -982,25 +982,24 @@ export const ImageProvider = ({ children }) => {
   const dataValue = useMemo(() => {
     log("🎯 Creating data context value");
     return {
-      images,
-      userImages,
+      posts,
+      userPosts,
       userReactions,
       loading,
       error,
       userId,
       userName,
-      getAllImages: images,
       ...stats,
       // Selector functions that depend on reactive data
       getUserPollVote,
       getReactions,
       getUserReaction,
-      getImageById,
-      getImagesByType,
+      getPostById,
+      getPostsByType,
     };
   }, [
-    images,
-    userImages,
+    posts,
+    userPosts,
     userReactions,
     loading,
     error,
@@ -1010,8 +1009,8 @@ export const ImageProvider = ({ children }) => {
     getUserPollVote,
     getReactions,
     getUserReaction,
-    getImageById,
-    getImagesByType,
+    getPostById,
+    getPostsByType,
   ]);
 
   // PostActionsContext value — stable mutation functions.
@@ -1027,7 +1026,7 @@ export const ImageProvider = ({ children }) => {
       addComment,
       deleteComment,
       toggleCommentReaction,
-      fetchImageById,
+      fetchPostById,
       loadMorePosts,
     };
   }, [
@@ -1039,7 +1038,7 @@ export const ImageProvider = ({ children }) => {
     addComment,
     deleteComment,
     toggleCommentReaction,
-    fetchImageById,
+    fetchPostById,
     loadMorePosts,
   ]);
 

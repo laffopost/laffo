@@ -7,7 +7,7 @@ export default function LiveFeed() {
   const [activities, setActivities] = useState([]);
   const feedRef = useRef(null);
   const navigate = useNavigate();
-  const { images } = usePostData();
+  const { posts } = usePostData();
 
   // Generate activities from recent posts and game scores
   useEffect(() => {
@@ -16,7 +16,7 @@ export default function LiveFeed() {
       const seenIds = new Set(); // Track seen IDs to avoid duplicates
 
       // Recent posts activity (limit to 10)
-      const recentPosts = images.slice(0, 10);
+      const recentPosts = posts.slice(0, 10);
       recentPosts.forEach((post) => {
         const activityId = `post-${post.id}`;
         if (!seenIds.has(activityId)) {
@@ -73,7 +73,7 @@ export default function LiveFeed() {
     const interval = setInterval(generateActivities, 60000); // Update every 60s (was 30s)
 
     return () => clearInterval(interval);
-  }, [images]);
+  }, [posts]);
 
   // Auto-scroll to bottom when new activity added
   useEffect(() => {

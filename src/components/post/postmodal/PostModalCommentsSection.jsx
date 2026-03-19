@@ -37,7 +37,7 @@ import useRequireAuth from "../../../hooks/useRequireAuth";
 import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon } from "../../../utils/icons";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
-  image,
+  post,
 }) {
   const {
     addComment,
@@ -59,12 +59,12 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
   // Subscribe to comments subcollection in real-time
   useEffect(() => {
-    if (!image?.id) {
+    if (!post?.id) {
       setComments([]);
       return;
     }
 
-    const commentsRef = collection(db, "images", image.id, "comments");
+    const commentsRef = collection(db, "posts", post.id, "comments");
     const q = query(commentsRef, orderBy("createdAt", "asc"), limit(200));
 
     const unsub = onSnapshot(q, (snap) => {
@@ -74,7 +74,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
     });
 
     return () => unsub();
-  }, [image?.id]);
+  }, [post?.id]);
 
   // Fetch avatars for unique authors
   useEffect(() => {
@@ -119,12 +119,12 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       const avatar = userProfile?.avatar || firebaseUser?.photoURL || "😂";
 
       setNewComment("");
-      addComment(image.id, commentText, avatar).catch((err) => {
+      addComment(post.id, commentText, avatar).catch((err) => {
         setNewComment(commentText);
         toast.error(err.message || "Failed to post comment");
       });
     },
-    [newComment, image.id, userProfile, firebaseUser, addComment, requireAuth],
+    [newComment, post.id, userProfile, firebaseUser, addComment, requireAuth],
   );
 
   const handleInputClick = (e) => e.stopPropagation();
@@ -166,7 +166,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
     return { label: `${seconds}s left`, expired: false };
   };
 
-  const timeLeft = formatTimeLeft(image.endsAt);
+  const timeLeft = formatTimeLeft(post.endsAt);
 
   // Derive comment reaction counts from each comment's reactions map
   const getCommentReactionCounts = useCallback((comment) => {
@@ -189,13 +189,13 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   return (
     <div className="comments-section">
       {/* Post title + description */}
-      {(image.title || image.description) && (
+      {(post.title || post.description) && (
         <div className="comments-post-info">
-          {image.title && (
-            <h2 className="comments-post-title">{image.title}</h2>
+          {post.title && (
+            <h2 className="comments-post-title">{post.title}</h2>
           )}
-          {image.description && (
-            <p className="comments-post-desc">{image.description}</p>
+          {post.description && (
+            <p className="comments-post-desc">{post.description}</p>
           )}
           {timeLeft && (
             <span
@@ -204,11 +204,11 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
               ⏱ {timeLeft.label}
             </span>
           )}
-          {fmtDate(image.createdAt) && (
+          {fmtDate(post.createdAt) && (
             <p className="comments-post-date">
-              <CalendarIcon size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}} /> {fmtDate(image.createdAt)}
-              {image.edited && fmtDate(image.updatedAt) && (
-                <span> · <EditIcon size={12} style={{display: 'inline', marginRight: '4px'}} /> Edited {fmtDate(image.updatedAt)}</span>
+              <CalendarIcon size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}} /> {fmtDate(post.createdAt)}
+              {post.edited && fmtDate(post.updatedAt) && (
+                <span> · <EditIcon size={12} style={{display: 'inline', marginRight: '4px'}} /> Edited {fmtDate(post.updatedAt)}</span>
               )}
             </p>
           )}
@@ -336,8 +336,8 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                     {firebaseUser &&
                       !firebaseUser.isAnonymous &&
                       (comment.userId === firebaseUser.uid ||
-                        image.uploadedBy === firebaseUser.uid ||
-                        image.userId === firebaseUser.uid) && (
+                        post.uploadedBy === firebaseUser.uid ||
+                        post.userId === firebaseUser.uid) && (
                         <button
                           className="comment-delete-btn"
                           onClick={(e) => {
@@ -363,7 +363,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                             onClick={() => {
                               if (!requireAuth("react to a comment")) return;
                               toggleCommentReaction(
-                                image.id,
+                                post.id,
                                 comment.id,
                                 emoji,
                               );
@@ -406,7 +406,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                               onClick={() => {
                                 if (!requireAuth("react to a comment")) return;
                                 toggleCommentReaction(
-                                  image.id,
+                                  post.id,
                                   comment.id,
                                   emoji,
                                 );
@@ -447,7 +447,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
               <button
                 className="btn-confirm-delete"
                 onClick={() => {
-                  deleteComment(image.id, confirmDeleteCommentId);
+                  deleteComment(post.id, confirmDeleteCommentId);
                   setConfirmDeleteCommentId(null);
                 }}
               >

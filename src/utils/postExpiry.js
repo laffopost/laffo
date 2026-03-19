@@ -64,7 +64,7 @@ export class PostExpiryService {
       logger.log("🧹 Starting expired posts cleanup...");
 
       // Query for posts that have an endsAt timestamp and are expired
-      const postsRef = collection(this.db, "images");
+      const postsRef = collection(this.db, "posts");
       const expiredQuery = query(
         postsRef,
         where("endsAt", "<=", now),
@@ -90,7 +90,7 @@ export class PostExpiryService {
         );
 
         deletePromises.push(
-          deleteDoc(doc(this.db, "images", postDoc.id)).catch((error) => {
+          deleteDoc(doc(this.db, "posts", postDoc.id)).catch((error) => {
             logger.error(
               `❌ Failed to delete expired post ${postDoc.id}:`,
               error,
@@ -174,7 +174,7 @@ export class PostExpiryService {
   async deleteExpiredPost(postId) {
     try {
       logger.log(`🗑️ Auto-deleting expired post: ${postId}`);
-      await deleteDoc(doc(this.db, "images", postId));
+      await deleteDoc(doc(this.db, "posts", postId));
       logger.log(`✅ Successfully deleted expired post: ${postId}`);
     } catch (error) {
       logger.error(`❌ Failed to delete expired post ${postId}:`, error);

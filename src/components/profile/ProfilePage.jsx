@@ -35,7 +35,7 @@ import "./ProfilePage.css";
 
 export default function ProfilePage() {
   const { firebaseUser, userProfile } = useAuth();
-  const { images, getReactions, addPost } = usePosts();
+  const { posts, getReactions, addPost } = usePosts();
   const [error, setError] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
   const [publicProfile, setPublicProfile] = useState(null);
@@ -312,7 +312,7 @@ export default function ProfilePage() {
   const usernameForFilter = publicProfile?.uid;
 
   // User's posts and stats
-  const userPosts = images.filter(
+  const userPosts = posts.filter(
     (img) =>
       img.author?.toLowerCase() === publicProfile.username?.toLowerCase() ||
       img.uploadedBy === publicProfile.uid,

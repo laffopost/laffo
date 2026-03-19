@@ -17,7 +17,7 @@ function formatCardDate(ts) {
 
 const PostCard = memo(
   ({
-    image,
+    post,
     onClick,
     sectionType,
     onShare,
@@ -58,7 +58,7 @@ const PostCard = memo(
       return { label: `${seconds}s left`, expired: false };
     };
 
-    const timeLeft = formatTimeLeft(image.endsAt);
+    const timeLeft = formatTimeLeft(post.endsAt);
 
     // Removed: was creating new Audio() on every hover = memory leak + CPU spike
     // The global click sound hook already handles interaction sounds
@@ -66,8 +66,8 @@ const PostCard = memo(
 
     const handleAuthorClick = (e) => {
       e.stopPropagation();
-      if (image.author) {
-        navigate(`/profile/${encodeURIComponent(image.author.toLowerCase())}`);
+      if (post.author) {
+        navigate(`/profile/${encodeURIComponent(post.author.toLowerCase())}`);
       }
     };
 
@@ -84,7 +84,7 @@ const PostCard = memo(
       setShowMoreReactions((prev) => !prev);
     };
 
-    const authorAvatar = image.authorAvatar;
+    const authorAvatar = post.authorAvatar;
 
     return (
       <>
@@ -94,45 +94,45 @@ const PostCard = memo(
         >
           <div className="image-thumbnail" onClick={onClick}>
             {/* Show appropriate content based on post type */}
-            {image.type === "status" ? (
+            {post.type === "status" ? (
               <StatusRenderer
-                status={image.status}
-                bgColor={image.bgColor}
-                textColor={image.textColor}
+                status={post.status}
+                bgColor={post.bgColor}
+                textColor={post.textColor}
                 className="post-status-thumbnail"
               />
-            ) : image.type === "poll" ? (
+            ) : post.type === "poll" ? (
               <PollRenderer
-                question={image.question}
-                options={image.options || []}
-                bgColor={image.bgColor}
-                voteCounts={image.voteCounts}
-                endsAt={image.endsAt}
+                question={post.question}
+                options={post.options || []}
+                bgColor={post.bgColor}
+                voteCounts={post.voteCounts}
+                endsAt={post.endsAt}
                 compact={true}
                 className="post-poll-thumbnail"
               />
-            ) : image.type === "media" && image.embedUrl ? (
+            ) : post.type === "media" && post.embedUrl ? (
               <div className="media-thumbnail-preview">
-                {image.mediaType === "youtube" ? (
+                {post.mediaType === "youtube" ? (
                   // Extract video ID and show YouTube thumbnail
                   <img
                     src={
-                      image.image ||
+                      post.image ||
                       `https://img.youtube.com/vi/${
-                        image.embedUrl.match(/embed\/([^?]+)/)?.[1] || ""
+                        post.embedUrl.match(/embed\/([^?]+)/)?.[1] || ""
                       }/maxresdefault.jpg`
                     }
-                    alt={image.title}
+                    alt={post.title}
                     className="post-image media-preview"
                     loading="lazy"
                     onError={(e) => {
                       // Fallback to default quality if maxres doesn't exist
                       e.target.src = `https://img.youtube.com/vi/${
-                        image.embedUrl.match(/embed\/([^?]+)/)?.[1] || ""
+                        post.embedUrl.match(/embed\/([^?]+)/)?.[1] || ""
                       }/hqdefault.jpg`;
                     }}
                   />
-                ) : image.mediaType === "spotify" ? (
+                ) : post.mediaType === "spotify" ? (
                   // Show Spotify icon for audio
                   <div className="spotify-thumbnail">
                     <MusicIcon size={18} className="spotify-icon" style={{color: '#1DB954'}} />
@@ -146,21 +146,21 @@ const PostCard = memo(
                 )}
                 {/* Media badge overlay */}
                 <div className="media-type-badge">
-                  {image.mediaType === "youtube" ? "▶️ YouTube" : <><MusicIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> Spotify</>}
+                  {post.mediaType === "youtube" ? "▶️ YouTube" : <><MusicIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> Spotify</>}
                 </div>
               </div>
             ) : (
               <img
-                src={image.image}
-                alt={image.title}
+                src={post.image}
+                alt={post.title}
                 className="post-image"
                 loading="lazy"
               />
             )}
 
             <div className="image-overlay">
-              {image.badge && (
-                <span className="image-badge sponsored">{image.badge}</span>
+              {post.badge && (
+                <span className="image-badge sponsored">{post.badge}</span>
               )}
               <div className="image-meta-overlay">
                 <span
@@ -185,15 +185,15 @@ const PostCard = memo(
                       }}
                     />
                   )}
-                  {image.author || "Anonymous"}
+                  {post.author || "Anonymous"}
                 </span>
                 <span
                   className={
                     "image-type-badge-overlay" +
-                    (image.type === "user" ? " user-type-badge" : "")
+                    (post.type === "user" ? " user-type-badge" : "")
                   }
                 >
-                  {image.type || "all"}
+                  {post.type || "all"}
                 </span>
               </div>
               {/* Expiry chip positioned below type badge */}
@@ -212,16 +212,16 @@ const PostCard = memo(
           <div className="image-info">
             <div className="image-info-title-row">
               <h4 onClick={onClick}>
-                {image.type === "user" ? image.author : image.title}
+                {post.type === "user" ? post.author : post.title}
               </h4>
-              {image.edited && (
+              {post.edited && (
                 <span className="post-edited-chip">edited</span>
               )}
             </div>
-            {image.type !== "user" && image.description && (
-              <p className="image-info-desc">{image.description}</p>
+            {post.type !== "user" && post.description && (
+              <p className="image-info-desc">{post.description}</p>
             )}
-            <LinkPreview text={image.description || image.status || ""} />
+            <LinkPreview text={post.description || post.status || ""} />
 
             {topReactions.length > 0 && (
               <div className="image-reactions-preview">
@@ -234,7 +234,7 @@ const PostCard = memo(
                     title={`Click to react with ${emoji}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      onReactionClick(image.id, emoji);
+                      onReactionClick(post.id, emoji);
                     }}
                   >
                     <span className="reaction-emoji-char">{emoji}</span>
@@ -251,7 +251,7 @@ const PostCard = memo(
                   title="Edit post"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onEdit(image);
+                    onEdit(post);
                   }}
                 >
                   <EditIcon size={13} />
@@ -263,11 +263,11 @@ const PostCard = memo(
                 title="Comment"
                 onClick={(e) => {
                   e.stopPropagation();
-                  onComment(image);
+                  onComment(post);
                 }}
               >
                 <ChatIcon size={15} />
-                <span className="comment-count">{image.commentCount || 0}</span>
+                <span className="comment-count">{post.commentCount || 0}</span>
               </button>
 
               <div
@@ -299,7 +299,7 @@ const PostCard = memo(
                         }`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          onReactionClick(image.id, emoji);
+                          onReactionClick(post.id, emoji);
                           setShowMoreReactions(false);
                         }}
                         title={`React with ${emoji}`}
@@ -318,7 +318,7 @@ const PostCard = memo(
                   title={isBookmarked ? "Remove bookmark" : "Bookmark"}
                   onClick={(e) => {
                     e.stopPropagation();
-                    onToggleBookmark(image.id);
+                    onToggleBookmark(post.id);
                   }}
                 >
                   <BookmarkIcon size={15} />
@@ -331,7 +331,7 @@ const PostCard = memo(
                   title="Share"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onShare(image);
+                    onShare(post);
                   }}
                 >
                   <ShareIcon size={15} />

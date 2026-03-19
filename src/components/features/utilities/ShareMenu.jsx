@@ -1,12 +1,12 @@
 import toast from "react-hot-toast";
 import "./ShareMenu.css";
 
-export default function ShareMenu({ shareImage, onClose }) {
-  if (!shareImage) return null;
+export default function ShareMenu({ sharePost, onClose }) {
+  if (!sharePost) return null;
 
   const shareToSocial = (platform) => {
-    const text = `Check out this hilarious ${shareImage.title} on LaughCoin!`;
-    const url = `${window.location.origin}/image/${shareImage.id}`;
+    const text = `Check out this hilarious ${sharePost.title} on LaughCoin!`;
+    const url = `${window.location.origin}/image/${sharePost.id}`;
     const links = {
       twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
         text,
@@ -28,7 +28,7 @@ export default function ShareMenu({ shareImage, onClose }) {
   };
 
   const copyLink = () => {
-    const link = `${window.location.origin}/image/${shareImage.id}`;
+    const link = `${window.location.origin}/image/${sharePost.id}`;
     navigator.clipboard.writeText(link);
     toast.success("Link copied to clipboard!");
     onClose();

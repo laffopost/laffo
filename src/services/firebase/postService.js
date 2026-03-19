@@ -17,7 +17,7 @@ import {
 import { getFirestore } from "../firebase/config";
 
 const db = getFirestore();
-const postsCollection = collection(db, "images");
+const postsCollection = collection(db, "posts");
 
 /**
  * Save a new post
@@ -40,7 +40,7 @@ export const createPost = async (postData) => {
  */
 export const updatePost = async (postId, updates) => {
   try {
-    const docRef = doc(db, "images", postId);
+    const docRef = doc(db, "posts", postId);
     await updateDoc(docRef, {
       ...updates,
       updatedAt: new Date(),
@@ -57,7 +57,7 @@ export const updatePost = async (postId, updates) => {
  */
 export const deletePost = async (postId) => {
   try {
-    const docRef = doc(db, "images", postId);
+    const docRef = doc(db, "posts", postId);
     await deleteDoc(docRef);
     return postId;
   } catch (error) {
