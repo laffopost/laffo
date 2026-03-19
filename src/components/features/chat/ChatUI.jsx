@@ -401,7 +401,7 @@ function MessageBubble({
                 onClick={() => handleReaction(msg.id, emoji)}
                 title={`${uids.length} reaction${uids.length !== 1 ? "s" : ""}`}
               >
-                {emoji} {uids.length}
+                {emoji}{uids.length > 1 && ` ${uids.length}`}
               </button>
             ))}
           </div>
