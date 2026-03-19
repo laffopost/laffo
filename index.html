@@ -35,6 +35,14 @@
     />
     <meta name="twitter:image" content="/laugh.png" />
 
+    <!-- Preconnect to Firebase domains — saves ~100ms on first request -->
+    <link rel="preconnect" href="https://firestore.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://www.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://identitytoolkit.googleapis.com" crossorigin />
+    <link rel="preconnect" href="https://firebasestorage.googleapis.com" crossorigin />
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com" />
+    <link rel="dns-prefetch" href="https://www.googleapis.com" />
+
     <title>LAFFO – live & laugh</title>
   </head>
   <body>

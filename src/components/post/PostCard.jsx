@@ -1,9 +1,10 @@
 import { memo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
-import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon } from "../../utils/icons";
+import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
+import LinkPreview from "../common/LinkPreview";
 
 const AVAILABLE_REACTIONS = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
@@ -27,6 +28,8 @@ const PostCard = memo(
     isSelected,
     canEdit,
     onEdit,
+    isBookmarked,
+    onToggleBookmark,
   }) => {
     const allReactions = Object.entries(reactions || {}).sort(
       (a, b) => b[1] - a[1],
@@ -218,6 +221,7 @@ const PostCard = memo(
             {image.type !== "user" && image.description && (
               <p className="image-info-desc">{image.description}</p>
             )}
+            <LinkPreview text={image.description || image.status || ""} />
 
             {topReactions.length > 0 && (
               <div className="image-reactions-preview">
@@ -307,6 +311,19 @@ const PostCard = memo(
                   </div>
                 )}
               </div>
+
+              {onToggleBookmark && (
+                <button
+                  className={`image-action-btn small-bookmark${isBookmarked ? " bookmarked" : ""}`}
+                  title={isBookmarked ? "Remove bookmark" : "Bookmark"}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onToggleBookmark(image.id);
+                  }}
+                >
+                  <BookmarkIcon size={15} />
+                </button>
+              )}
 
               <div className="share-container-gallery">
                 <button

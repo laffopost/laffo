@@ -481,6 +481,25 @@
   transform: scale(1.12);
 }
 
+.small-bookmark {
+  background: none;
+  border: none;
+  color: var(--text-description);
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.small-bookmark:hover {
+  color: var(--color-warning);
+  transform: scale(1.12);
+}
+
+.small-bookmark.bookmarked {
+  color: var(--color-warning, #f59e0b);
+}
+
 .comment-count {
   color: inherit;
   font-size: 0.7em;

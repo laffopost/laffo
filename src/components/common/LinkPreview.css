@@ -1,0 +1,80 @@
+.link-preview {
+  display: flex;
+  gap: 8px;
+  background: var(--color-primary-8);
+  border: 1px solid var(--color-primary-15);
+  border-radius: 8px;
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  margin-top: 6px;
+  transition: border-color 0.2s, background 0.2s;
+  max-width: 280px;
+}
+
+.link-preview:hover {
+  border-color: var(--color-primary-30);
+  background: var(--color-primary-12);
+}
+
+.link-preview-thumb {
+  width: 72px;
+  min-height: 48px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.link-preview-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 8px 6px 0;
+  min-width: 0;
+}
+
+.link-preview:not(:has(.link-preview-thumb)) .link-preview-body {
+  padding-left: 8px;
+}
+
+.link-preview-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.link-preview-domain {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  color: var(--color-primary);
+  opacity: 0.8;
+}
+
+.link-preview-favicon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+}
+
+/* YouTube type */
+.link-preview--youtube {
+  border-color: rgba(255, 0, 0, 0.15);
+}
+
+.link-preview--youtube:hover {
+  border-color: rgba(255, 0, 0, 0.3);
+}
+
+/* Spotify type */
+.link-preview--spotify {
+  border-color: rgba(29, 185, 84, 0.15);
+}
+
+.link-preview--spotify:hover {
+  border-color: rgba(29, 185, 84, 0.3);
+}

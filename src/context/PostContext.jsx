@@ -27,10 +27,10 @@ import {
   limit,
   serverTimestamp,
   increment,
-  arrayUnion,
   getDoc,
   deleteDoc,
   getDocs,
+  startAfter,
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import {
@@ -99,6 +99,8 @@ export const ImageProvider = ({ children }) => {
   const lastPostTimeRef = useRef(0);
   const lastCommentTimeRef = useRef(0);
   const expiryServiceRef = useRef(null);
+  const lastDocSnapshotRef = useRef(null); // Cursor for pagination
+  const hasMoreRef = useRef(true);
 
   // Ref snapshots — keep current values accessible in stable callbacks
   // without adding them as useCallback deps (avoids function recreation on every data change)
@@ -223,6 +225,11 @@ export const ImageProvider = ({ children }) => {
 
         if (isInitialLoad) {
           log("📥 Initial load");
+          // Save last doc for cursor-based pagination
+          if (snapshot.docs.length > 0) {
+            lastDocSnapshotRef.current = snapshot.docs[snapshot.docs.length - 1];
+            hasMoreRef.current = snapshot.docs.length >= INITIAL_LOAD_LIMIT;
+          }
           const allDocs = [];
           const userDocs = [];
 
@@ -425,7 +432,6 @@ export const ImageProvider = ({ children }) => {
           uploadedBy: firebaseUser.uid,
           createdAt: serverTimestamp(),
           reactions: postData.reactions || DEFAULT_REACTIONS,
-          comments: [],
           commentCount: 0,
           endsAt: postData.endsAt || null,
         };
@@ -715,6 +721,11 @@ export const ImageProvider = ({ children }) => {
     [images, userId],
   );
 
+  // ── Comments subcollection helpers ──────────────────────────────────
+  // Comments now live in images/{postId}/comments as individual docs.
+  // PostModalCommentsSection subscribes to them in real-time.
+  // PostContext only manages commentCount on the parent post doc.
+
   const addComment = useCallback(
     async (imageId, commentText, avatar) => {
       if (!userId) return;
@@ -722,7 +733,6 @@ export const ImageProvider = ({ children }) => {
         throw new Error("You must be logged in to comment");
       }
 
-      // Rate limiting: prevent comment spam
       const now = Date.now();
       const elapsed = now - lastCommentTimeRef.current;
       if (elapsed < COMMENT_COOLDOWN_MS) {
@@ -732,145 +742,98 @@ export const ImageProvider = ({ children }) => {
 
       log(`💬 Adding comment to ${imageId}`);
 
-      // Use ref snapshots so userName/userProfile aren't deps
       const author =
         userProfileRef.current?.username?.trim() ||
         firebaseUser?.displayName?.trim() ||
         userNameRef.current ||
         "Anonymous";
 
-      const newComment = {
-        id: Date.now().toString(),
+      const commentData = {
         author,
         avatar: avatar || "",
         text: commentText,
-        timestamp: new Date().toLocaleString("en-US", {
-          month: "short",
-          day: "numeric",
-          hour: "numeric",
-          minute: "2-digit",
-          hour12: true,
-        }),
         userId: userId,
         reactions: {},
+        createdAt: serverTimestamp(),
       };
 
+      // Optimistic: bump local commentCount
+      setImages((prev) =>
+        prev.map((img) =>
+          img.id === imageId
+            ? { ...img, commentCount: (img.commentCount || 0) + 1 }
+            : img,
+        ),
+      );
+
       try {
+        // Write comment to subcollection
+        await addDoc(collection(db, "images", imageId, "comments"), commentData);
+
+        // Increment commentCount on the parent post doc
         const imageRef = doc(db, "images", imageId);
-
-        // Get post data for notification before updating
-        const postDoc = await getDoc(imageRef);
-        const postData = postDoc.exists() ? postDoc.data() : null;
-
-        // Optimistic update: Update local state immediately for better UX
-        setImages((prevImages) =>
-          prevImages.map((img) =>
-            img.id === imageId
-              ? {
-                  ...img,
-                  comments: [...(img.comments || []), newComment],
-                  commentCount: (img.commentCount || 0) + 1,
-                }
-              : img,
-          ),
-        );
-
-        // Update Firestore
-        await updateDoc(imageRef, {
-          comments: arrayUnion(newComment),
-          commentCount: increment(1),
-        });
+        await updateDoc(imageRef, { commentCount: increment(1) });
 
         lastCommentTimeRef.current = Date.now();
 
-        // Create notification for comment
+        // Notification (fire and forget)
+        const postDoc = await getDoc(doc(db, "images", imageId));
+        const postData = postDoc.exists() ? postDoc.data() : null;
         if (postData) {
           const username =
-            userProfileRef.current?.username ||
-            userNameRef.current ||
-            "Anonymous";
-          log("🔔 About to create comment notification:", {
-            postData,
-            userId,
-            username,
-          });
-          await createNotificationForPost({
+            userProfileRef.current?.username || userNameRef.current || "Anonymous";
+          createNotificationForPost({
             type: "comment",
             postId: imageId,
             postAuthorId: postData.uploadedBy || postData.userId,
             postTitle: postData.title || postData.text,
             currentUserId: userId,
             currentUsername: username,
-            commentText: commentText,
+            commentText,
           });
         }
 
-        log("✅ Comment added");
+        log("✅ Comment added to subcollection");
       } catch (err) {
         logError("❌ Comment error:", err);
-
-        // Rollback optimistic update on error
-        setImages((prevImages) =>
-          prevImages.map((img) =>
+        // Rollback optimistic count
+        setImages((prev) =>
+          prev.map((img) =>
             img.id === imageId
-              ? {
-                  ...img,
-                  comments: (img.comments || []).filter(
-                    (c) => c.id !== newComment.id,
-                  ),
-                  commentCount: Math.max(0, (img.commentCount || 0) - 1),
-                }
+              ? { ...img, commentCount: Math.max(0, (img.commentCount || 0) - 1) }
               : img,
           ),
         );
+        throw err;
       }
     },
-    // userName/userProfile removed — accessed via refs
     [db, userId, firebaseUser],
   );
 
   const deleteComment = useCallback(
     async (imageId, commentId) => {
       if (!userId) return;
-      const imageRef = doc(db, "images", imageId);
-      const docSnap = await getDoc(imageRef);
-      if (!docSnap.exists()) return;
-      const existing = docSnap.data().comments || [];
-      const comment = existing.find((c) => c.id === commentId);
-      if (!comment) return;
-      // Only allow the comment author or the post owner to delete
-      const postOwnerId = docSnap.data().uploadedBy || docSnap.data().userId;
-      if (comment.userId !== userId && postOwnerId !== userId) return;
+      log(`🗑️ Deleting comment ${commentId} from post ${imageId}`);
 
-      // Optimistic update
+      // Optimistic count decrement
       setImages((prev) =>
         prev.map((img) =>
           img.id === imageId
-            ? {
-                ...img,
-                comments: (img.comments || []).filter((c) => c.id !== commentId),
-                commentCount: Math.max(0, (img.commentCount || 0) - 1),
-              }
+            ? { ...img, commentCount: Math.max(0, (img.commentCount || 0) - 1) }
             : img,
         ),
       );
+
       try {
-        // Use filtered array instead of arrayRemove to avoid exact-object-match issues
-        const filtered = existing.filter((c) => c.id !== commentId);
-        await updateDoc(imageRef, {
-          comments: filtered,
-          commentCount: Math.max(0, filtered.length),
-        });
-      } catch {
+        await deleteDoc(doc(db, "images", imageId, "comments", commentId));
+        await updateDoc(doc(db, "images", imageId), { commentCount: increment(-1) });
+      } catch (err) {
+        logError("❌ Delete comment error:", err);
         // Rollback
         setImages((prev) =>
           prev.map((img) =>
             img.id === imageId
-              ? {
-                  ...img,
-                  comments: [...(img.comments || []), comment],
-                  commentCount: (img.commentCount || 0) + 1,
-                }
+              ? { ...img, commentCount: (img.commentCount || 0) + 1 }
               : img,
           ),
         );
@@ -886,50 +849,29 @@ export const ImageProvider = ({ children }) => {
       log(`❤️ Toggling comment reaction`);
 
       try {
-        const imageRef = doc(db, "images", imageId);
-        const docSnap = await getDoc(imageRef);
+        const commentRef = doc(db, "images", imageId, "comments", commentId);
+        const commentSnap = await getDoc(commentRef);
+        if (!commentSnap.exists()) return;
 
-        if (docSnap.exists()) {
-          const imageData = docSnap.data();
-          const comments = imageData.comments || [];
+        const commentData = commentSnap.data();
+        if (commentData.userId === userId) return; // Can't react to own comment
 
-          // Block reacting to own comment
-          const targetComment = comments.find((c) => c.id === commentId);
-          if (targetComment?.userId === userId) return;
+        const reactions = { ...(commentData.reactions || {}) };
+        const currentReaction = reactions[userId];
 
-          const updatedComments = comments.map((comment) => {
-            if (comment.id === commentId) {
-              const reactions = comment.reactions || {};
-              const currentUserReaction = reactions[userId];
-
-              if (currentUserReaction) {
-                delete reactions[userId];
-              }
-
-              if (currentUserReaction !== emoji) {
-                reactions[userId] = emoji;
-              }
-
-              return { ...comment, reactions };
-            }
-            return comment;
-          });
-
-          await updateDoc(imageRef, { comments: updatedComments });
+        if (currentReaction) {
+          delete reactions[userId];
         }
+        if (currentReaction !== emoji) {
+          reactions[userId] = emoji;
+        }
+
+        await updateDoc(commentRef, { reactions });
       } catch (error) {
         logError("❌ Comment reaction error:", error);
       }
     },
-    [db, userId],
-  );
-
-  const getComments = useCallback(
-    (imageId) => {
-      const image = images.find((img) => img.id === imageId);
-      return image?.comments || [];
-    },
-    [images],
+    [db, userId, firebaseUser],
   );
 
   const getReactions = useCallback(
@@ -945,38 +887,9 @@ export const ImageProvider = ({ children }) => {
     [userReactions],
   );
 
-  const getCommentReactions = useCallback(
-    (imageId, commentId) => {
-      const image = images.find((img) => img.id === imageId);
-      if (!image) return {};
-
-      const comment = (image.comments || []).find((c) => c.id === commentId);
-      if (!comment || !comment.reactions) return {};
-
-      const reactionCounts = {};
-      Object.values(comment.reactions).forEach((emoji) => {
-        reactionCounts[emoji] = (reactionCounts[emoji] || 0) + 1;
-      });
-
-      return reactionCounts;
-    },
-    [images],
-  );
-
-  const getUserCommentReaction = useCallback(
-    (imageId, commentId) => {
-      if (!userId) return null;
-
-      const image = images.find((img) => img.id === imageId);
-      if (!image) return null;
-
-      const comment = (image.comments || []).find((c) => c.id === commentId);
-      if (!comment || !comment.reactions) return null;
-
-      return comment.reactions[userId] || null;
-    },
-    [images, userId],
-  );
+  // getCommentReactions / getUserCommentReaction removed — comments are now
+  // in a subcollection and reaction data lives on each comment doc.
+  // PostModalCommentsSection reads them directly from its own subscription.
 
   const getImageById = useCallback(
     (id) => {
@@ -1007,39 +920,58 @@ export const ImageProvider = ({ children }) => {
     return { totalPosts, totalUsers, totalReacts };
   }, [images]);
 
-  // Load more posts (for infinite scroll)
-  // Uses imagesRef.current.length so this callback is stable (not recreated on every post update)
+  // Load more posts (cursor-based pagination using startAfter)
+  // Only fetches the NEXT page instead of re-downloading everything from the top.
   const loadMorePosts = useCallback(async () => {
     if (!db) return;
-
-    const currentCount = imagesRef.current.length;
-    if (currentCount >= MAX_TOTAL_LOAD) {
+    if (!hasMoreRef.current) {
+      log("⚠️ No more posts to load");
+      return;
+    }
+    if (imagesRef.current.length >= MAX_TOTAL_LOAD) {
       log("⚠️ Reached maximum post limit");
       return;
     }
 
-    const newLimit = Math.min(
-      currentCount + PAGINATION_INCREMENT,
-      MAX_TOTAL_LOAD,
-    );
+    const cursor = lastDocSnapshotRef.current;
+    if (!cursor) return;
 
-    log(`📥 Loading more posts: ${currentCount} → ${newLimit}`);
+    log(`📥 Loading more posts after cursor`);
 
     const imgCollection = collection(db, "images");
-    const q = query(imgCollection, orderBy("createdAt", "desc"), limit(newLimit));
+    const q = query(
+      imgCollection,
+      orderBy("createdAt", "desc"),
+      startAfter(cursor),
+      limit(PAGINATION_INCREMENT),
+    );
 
     try {
       const snapshot = await getDocs(q);
-      const allDocs = [];
+      if (snapshot.empty) {
+        hasMoreRef.current = false;
+        log("📭 No more posts available");
+        return;
+      }
 
+      const newDocs = [];
       snapshot.forEach((doc) => {
-        const data = { id: doc.id, ...doc.data() };
-        allDocs.push(data);
+        newDocs.push({ id: doc.id, ...doc.data() });
       });
 
-      const filteredDocs = filterExpiredPosts(allDocs);
-      setImages(filteredDocs);
-      log(`✅ Loaded ${filteredDocs.length} posts total`);
+      // Update cursor to last doc of this page
+      lastDocSnapshotRef.current = snapshot.docs[snapshot.docs.length - 1];
+      hasMoreRef.current = snapshot.docs.length >= PAGINATION_INCREMENT;
+
+      const filteredNew = filterExpiredPosts(newDocs);
+      // Append to existing images (deduplicated)
+      setImages((prev) => {
+        const existingIds = new Set(prev.map((p) => p.id));
+        const unique = filteredNew.filter((p) => !existingIds.has(p.id));
+        return [...prev, ...unique];
+      });
+
+      log(`✅ Loaded ${filteredNew.length} more posts`);
     } catch (err) {
       logError("❌ Error loading more posts:", err);
     }
@@ -1061,11 +993,8 @@ export const ImageProvider = ({ children }) => {
       ...stats,
       // Selector functions that depend on reactive data
       getUserPollVote,
-      getComments,
       getReactions,
       getUserReaction,
-      getCommentReactions,
-      getUserCommentReaction,
       getImageById,
       getImagesByType,
     };
@@ -1079,11 +1008,8 @@ export const ImageProvider = ({ children }) => {
     userName,
     stats,
     getUserPollVote,
-    getComments,
     getReactions,
     getUserReaction,
-    getCommentReactions,
-    getUserCommentReaction,
     getImageById,
     getImagesByType,
   ]);

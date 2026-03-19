@@ -1,0 +1,69 @@
+/* Skeleton pulse animation */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.15; }
+}
+
+.skeleton-pulse {
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+  background: var(--border-primary, rgba(139, 92, 246, 0.15));
+  border-radius: 8px;
+}
+
+/* Skeleton card — mirrors PostCard shape */
+.skeleton-card {
+  width: 100%;
+  border: 1px solid var(--border-primary, rgba(139, 92, 246, 0.1));
+  background: var(--bg-dark-20, rgba(20, 20, 30, 0.5));
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.skeleton-thumbnail {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  border-radius: 0;
+}
+
+.skeleton-info {
+  padding: 10px 12px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeleton-title {
+  height: 14px;
+  width: 70%;
+}
+
+.skeleton-desc {
+  height: 10px;
+  width: 50%;
+}
+
+.skeleton-reactions {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.skeleton-reaction {
+  height: 22px;
+  width: 40px;
+  border-radius: 12px;
+}
+
+/* Skeleton gallery grid — matches GallerySection vertical grid */
+.skeleton-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+  padding: 8px 0;
+}
+
+/* Inline skeleton line */
+.skeleton-line {
+  height: 12px;
+  border-radius: 6px;
+}

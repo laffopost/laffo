@@ -1,16 +1,25 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // ── Helper: timestamp must be server-generated (within 10 s of request) ──
+    function isRecentTimestamp(ts) {
+      return ts is timestamp
+             && ts >= request.time - duration.value(10, 's')
+             && ts <= request.time + duration.value(10, 's');
+    }
+
     // Chat messages collection
     match /chat-messages/{messageId} {
       allow read: if true;
-      allow create: if request.auth != null 
+      allow create: if request.auth != null
                     && request.resource.data.keys().hasAll(['text', 'userId', 'userName', 'timestamp'])
                     && request.resource.data.text is string
                     && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 200
-                    && request.auth.uid == request.resource.data.userId;
-      allow delete: if request.auth != null 
+                    && request.auth.uid == request.resource.data.userId
+                    && isRecentTimestamp(request.resource.data.timestamp);
+      allow delete: if request.auth != null
                     && request.auth.uid == resource.data.userId;
       allow update: if false;
     }
@@ -27,7 +36,8 @@ service cloud.firestore {
                     && request.resource.data.text.size() <= 200
                     && request.resource.data.userId is string
                     && request.resource.data.userName is string
-                    && request.auth.uid == request.resource.data.userId;
+                    && request.auth.uid == request.resource.data.userId
+                    && isRecentTimestamp(request.resource.data.timestamp);
       allow delete: if request.auth != null
                     && request.auth.token.firebase.sign_in_provider != 'anonymous'
                     && request.auth.uid == resource.data.userId;
@@ -37,14 +47,15 @@ service cloud.firestore {
     // Music chat collection
     match /music-chat/{messageId} {
       allow read: if true;
-      allow create: if request.auth != null 
+      allow create: if request.auth != null
                     && request.resource.data.keys().hasAll(['text', 'userId', 'userName', 'timestamp'])
                     && request.resource.data.text is string
                     && request.resource.data.text.size() > 0
                     && request.resource.data.text.size() <= 200
                     && request.resource.data.userId is string
                     && request.resource.data.userName is string
-                    && request.auth.uid == request.resource.data.userId;
+                    && request.auth.uid == request.resource.data.userId
+                    && isRecentTimestamp(request.resource.data.timestamp);
       allow delete: if request.auth != null 
                     && request.auth.uid == resource.data.userId;
       allow update: if false;
@@ -61,20 +72,42 @@ service cloud.firestore {
     // Images collection
     match /images/{imageId} {
       allow read: if true;
-      // Only real (non-anonymous) users can create posts
+      // Only real (non-anonymous) users can create posts; enforce sane size limits
       allow create: if request.auth != null
-                    && request.auth.token.firebase.sign_in_provider != 'anonymous';
-      // Post author can update anything; others can only touch reactions/comments
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                    && request.resource.data.uploadedBy == request.auth.uid
+                    && (!('title' in request.resource.data) || request.resource.data.title.size() <= 100)
+                    && (!('description' in request.resource.data) || request.resource.data.description.size() <= 500);
+      // Post author can update anything; others can only touch reactions/commentCount
       allow update: if request.auth != null
                     && request.auth.token.firebase.sign_in_provider != 'anonymous'
                     && (
                         request.auth.uid == resource.data.uploadedBy
                         || request.resource.data.diff(resource.data).affectedKeys()
-                               .hasOnly(['reactions', 'comments', 'commentCount'])
+                               .hasOnly(['reactions', 'commentCount'])
                     );
       allow delete: if request.auth != null
                     && (request.auth.uid == resource.data.uploadedBy
                         || (resource.data.endsAt != null && request.time.toMillis() > resource.data.endsAt));
+
+      // Comments subcollection — each comment is its own doc
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if request.auth != null
+                      && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                      && request.resource.data.userId == request.auth.uid
+                      && request.resource.data.text is string
+                      && request.resource.data.text.size() > 0
+                      && request.resource.data.text.size() <= 200;
+        // Author can update reactions map; comment owner can edit text
+        allow update: if request.auth != null
+                      && request.auth.token.firebase.sign_in_provider != 'anonymous';
+        // Comment author or post owner can delete
+        allow delete: if request.auth != null
+                      && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                      && (request.auth.uid == resource.data.userId
+                          || request.auth.uid == get(/databases/$(database)/documents/images/$(imageId)).data.uploadedBy);
+      }
     }
 
     // Users collection
@@ -121,7 +154,8 @@ service cloud.firestore {
           && request.resource.data.text is string
           && request.resource.data.text.size() <= 500
           && request.resource.data.text.size() > 0
-          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convoId)).data.participants;
+          && request.auth.uid in get(/databases/$(database)/documents/conversations/$(convoId)).data.participants
+          && isRecentTimestamp(request.resource.data.timestamp);
 
         // Allow updating messages if user is the sender (for editing)
         allow update: if request.auth != null
@@ -172,6 +206,19 @@ service cloud.firestore {
                    && request.auth.uid != request.resource.data.followingId;
       allow delete: if request.auth != null
                    && request.auth.uid == resource.data.followerId;
+      allow update: if false;
+    }
+
+    // Bookmarks collection (doc ID = `${userId}_${postId}`)
+    match /bookmarks/{bookmarkId} {
+      allow read: if request.auth != null
+                  && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null
+                    && request.auth.token.firebase.sign_in_provider != 'anonymous'
+                    && request.auth.uid == request.resource.data.userId
+                    && request.resource.data.keys().hasAll(['userId', 'postId', 'createdAt']);
+      allow delete: if request.auth != null
+                    && request.auth.uid == resource.data.userId;
       allow update: if false;
     }
 

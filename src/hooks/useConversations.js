@@ -52,6 +52,8 @@ export function useConversations({ onConversationStarted } = {}) {
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
   const cooldownRef = useRef(0);
+  const typingTimeoutRef = useRef(null);
+  const [otherUserTyping, setOtherUserTyping] = useState(false);
 
   // ── Derived current user ──────────────────────────────────────────
   const currentUser = useMemo(() => {
@@ -118,6 +120,43 @@ export function useConversations({ onConversationStarted } = {}) {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // ── Typing indicator — detect other user typing ─────────────────
+  useEffect(() => {
+    if (!activeConvo || !currentUid) {
+      setOtherUserTyping(false);
+      return;
+    }
+    // Check the active conversation's typing field
+    const otherUid = activeConvo.participants?.find((p) => p !== currentUid);
+    if (!otherUid) return;
+
+    const typingTs = activeConvo[`typing_${otherUid}`];
+    if (typingTs) {
+      const tsMs = typingTs.toMillis ? typingTs.toMillis() : typingTs;
+      const age = Date.now() - tsMs;
+      if (age < 4000) {
+        setOtherUserTyping(true);
+        const timer = setTimeout(() => setOtherUserTyping(false), 4000 - age);
+        return () => clearTimeout(timer);
+      }
+    }
+    setOtherUserTyping(false);
+  }, [activeConvo, currentUid]);
+
+  // ── sendTypingIndicator — debounced, writes to convo doc ────────
+  const sendTypingIndicator = useCallback(() => {
+    if (!activeConvo?.id || !currentUid) return;
+    // Debounce: only send once per 2 seconds
+    if (typingTimeoutRef.current) return;
+    typingTimeoutRef.current = setTimeout(() => {
+      typingTimeoutRef.current = null;
+    }, 2000);
+
+    updateDoc(doc(db, "conversations", activeConvo.id), {
+      [`typing_${currentUid}`]: Date.now(),
+    }).catch(() => {});
+  }, [activeConvo?.id, currentUid]);
 
   // ── openConversation — select a convo and immediately mark it read ─
   const openConversation = useCallback(
@@ -470,6 +509,9 @@ export function useConversations({ onConversationStarted } = {}) {
     startEditing,
     cancelEditing,
     handleEmojiSelect,
+    sendTypingIndicator,
+    // state
+    otherUserTyping,
     // formatTime (re-exported for convenience)
     formatTime,
   };

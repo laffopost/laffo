@@ -1,5 +1,15 @@
-import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
+import { useState, useEffect, useRef, useCallback, memo } from "react";
 import toast from "react-hot-toast";
+import {
+  collection,
+  query,
+  orderBy,
+  limit,
+  onSnapshot,
+  doc,
+  getDoc,
+} from "firebase/firestore";
+import { db } from "../../../firebase/config";
 
 function fmtDate(ts) {
   if (!ts) return null;
@@ -7,9 +17,21 @@ function fmtDate(ts) {
   if (isNaN(d)) return null;
   return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
 }
+
+function fmtCommentTime(ts) {
+  if (!ts) return "";
+  const d = ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+  if (isNaN(d)) return "";
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 import { usePosts } from "../../../context/PostContext";
-import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../../firebase/config";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
 import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon } from "../../../utils/icons";
@@ -20,30 +42,41 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const {
     addComment,
     deleteComment,
-    getComments,
     toggleCommentReaction,
-    getCommentReactions,
-    getUserCommentReaction,
   } = usePosts();
   const { userProfile, firebaseUser } = useAuth();
   const { requireAuth, isLoggedIn } = useRequireAuth();
+  const userId = firebaseUser?.uid;
 
+  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [showCommentReactionPicker, setShowCommentReactionPicker] =
-    useState(null);
+  const [showCommentReactionPicker, setShowCommentReactionPicker] = useState(null);
   const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
   const [avatars, setAvatars] = useState({});
   const commentReactionPickerRef = useRef(null);
 
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
-  // Memoize comments so we don't recompute on every render
-  const comments = useMemo(
-    () => getComments(image.id),
-    [image.id, getComments],
-  );
+  // Subscribe to comments subcollection in real-time
+  useEffect(() => {
+    if (!image?.id) {
+      setComments([]);
+      return;
+    }
 
-  // Fetch avatars for unique authors, but only when comments change
+    const commentsRef = collection(db, "images", image.id, "comments");
+    const q = query(commentsRef, orderBy("createdAt", "asc"), limit(200));
+
+    const unsub = onSnapshot(q, (snap) => {
+      const list = [];
+      snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      setComments(list);
+    });
+
+    return () => unsub();
+  }, [image?.id]);
+
+  // Fetch avatars for unique authors
   useEffect(() => {
     const uniqueAuthors = [
       ...new Set(comments.map((c) => c.author).filter(Boolean)),
@@ -83,11 +116,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       if (!requireAuth("comment on a post")) return;
 
       const commentText = newComment.trim();
-
       const avatar = userProfile?.avatar || firebaseUser?.photoURL || "😂";
-
-      // Optimistic local update for UX (optional – you can remove if you don't keep local comments state)
-      // addComment will update Firestore and snapshot will refresh comments
 
       setNewComment("");
       addComment(image.id, commentText, avatar).catch((err) => {
@@ -138,6 +167,24 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   };
 
   const timeLeft = formatTimeLeft(image.endsAt);
+
+  // Derive comment reaction counts from each comment's reactions map
+  const getCommentReactionCounts = useCallback((comment) => {
+    if (!comment?.reactions) return {};
+    const counts = {};
+    Object.values(comment.reactions).forEach((emoji) => {
+      counts[emoji] = (counts[emoji] || 0) + 1;
+    });
+    return counts;
+  }, []);
+
+  const getUserCommentReaction = useCallback(
+    (comment) => {
+      if (!userId || !comment?.reactions) return null;
+      return comment.reactions[userId] || null;
+    },
+    [userId],
+  );
 
   return (
     <div className="comments-section">
@@ -215,8 +262,8 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
           </div>
         ) : (
           comments.map((comment) => {
-            const reactions = getCommentReactions(image.id, comment.id);
-            const userReaction = getUserCommentReaction(image.id, comment.id);
+            const reactions = getCommentReactionCounts(comment);
+            const userReaction = getUserCommentReaction(comment);
             const reactionEntries = Object.entries(reactions);
             const isAnonymous =
               !comment.author ||
@@ -284,7 +331,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                         </button>
                       )}
                     <span className="comment-time" style={{ marginLeft: 8 }}>
-                      {comment.timestamp || comment.time}
+                      {fmtCommentTime(comment.createdAt) || comment.timestamp || comment.time}
                     </span>
                     {firebaseUser &&
                       !firebaseUser.isAnonymous &&

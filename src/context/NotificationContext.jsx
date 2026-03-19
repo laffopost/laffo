@@ -10,6 +10,7 @@ import {
   collection,
   query,
   where,
+  orderBy,
   limit,
   onSnapshot,
   addDoc,
@@ -57,7 +58,8 @@ export function NotificationProvider({ children }) {
     const q = query(
       notificationsRef,
       where("userId", "==", userId),
-      limit(50), // Limit to last 50 notifications (removed orderBy to avoid index requirement)
+      orderBy("createdAt", "desc"),
+      limit(50),
     );
 
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -70,13 +72,7 @@ export function NotificationProvider({ children }) {
         if (!data.read) unread++;
       });
 
-      // Sort notifications by createdAt (most recent first) on client side
-      notificationsList.sort((a, b) => {
-        const aTime = a.createdAt?.toMillis ? a.createdAt.toMillis() : 0;
-        const bTime = b.createdAt?.toMillis ? b.createdAt.toMillis() : 0;
-        return bTime - aTime;
-      });
-
+      // Already sorted by Firestore via orderBy — no client-side sort needed
       setNotifications(notificationsList);
       setUnreadCount(unread);
       setLoading(false);

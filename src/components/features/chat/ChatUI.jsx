@@ -12,6 +12,7 @@ import {
   CheckIcon,
   ChatIcon,
 } from "../../../utils/icons";
+import LinkPreview from "../../common/LinkPreview";
 import "./ChatUI.css";
 
 const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
@@ -54,6 +55,8 @@ export default function ChatUI({
   cancelEditing,
   handleEmojiSelect,
   getOtherUser,
+  sendTypingIndicator,
+  otherUserTyping,
   // layout
   variant = "page",
   onClose,
@@ -244,6 +247,13 @@ export default function ChatUI({
                   />
                 ))
               )}
+              {otherUserTyping && (
+                <div className="chat-typing-indicator">
+                  <span className="chat-typing-dot" />
+                  <span className="chat-typing-dot" />
+                  <span className="chat-typing-dot" />
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
 
@@ -253,7 +263,7 @@ export default function ChatUI({
                   ref={inputRef}
                   type="text"
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={(e) => { setNewMessage(e.target.value); sendTypingIndicator?.(); }}
                   placeholder="Type a message..."
                   maxLength={500}
                   className="chat-input"
@@ -364,6 +374,7 @@ function MessageBubble({
               {msg.text}
               {msg.edited && <span className="chat-edited"> (edited)</span>}
             </p>
+            <LinkPreview text={msg.text} />
             {isOwn && (
               <div className="chat-msg-actions">
                 <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit"><EditIcon size={16} /></button>

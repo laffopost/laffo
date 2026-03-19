@@ -6,11 +6,12 @@ import AddPostModal from "./AddPostModal";
 import PostCard from "./PostCard";
 import GallerySection from "./GallerySection";
 import { ShareMenu } from "../features/utilities";
-import { Notification, Loader } from "../common";
+import { Notification, SkeletonGallery } from "../common";
 import CreatePostButton from "./CreatePostButton";
 import { usePosts } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
 import useRequireAuth from "../../hooks/useRequireAuth";
+import { useBookmarks } from "../../hooks/useBookmarks";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import "./PostGallery.css";
@@ -19,6 +20,7 @@ import logger from "../../utils/logger";
 const FILTERS = [
   { value: "all", label: "All", emoji: "🖼️" },
   { value: "following", label: "Following", emoji: "👤" },
+  { value: "saved", label: "Saved", emoji: "🔖" },
   { value: "sponsored", label: "Sponsored", emoji: "💎" },
   { value: "status", label: "Status", emoji: "👀" },
   { value: "poll", label: "Poll", emoji: "🎮" },
@@ -56,6 +58,7 @@ const PostGallery = memo(function PostGallery({
   } = usePosts();
 
   const { firebaseUser, userProfile } = useAuth();
+  const { bookmarkedIds, toggleBookmark, isBookmarked } = useBookmarks();
 
   const [selectedImage, setSelectedImage] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -65,6 +68,7 @@ const PostGallery = memo(function PostGallery({
   const [editingPost, setEditingPost] = useState(null);
   const [activeFilter, setActiveFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [imageNotFound, setImageNotFound] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [notification, setNotification] = useState(null);
@@ -82,6 +86,12 @@ const PostGallery = memo(function PostGallery({
   const sentinelRef = useRef(null);
 
   const isLoadingMoreRef = useRef(false);
+
+  // Debounce search — avoids recalculating filteredImages on every keystroke
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300);
+    return () => clearTimeout(timer);
+  }, [search]);
 
   // Infinite scroll — IntersectionObserver on a sentinel div at the bottom
   // Much cheaper than a window scroll listener (fires ~60/sec)
@@ -184,6 +194,8 @@ const PostGallery = memo(function PostGallery({
         const timeB = b.createdAt?.seconds || 0;
         return timeB - timeA;
       });
+    } else if (activeFilter === "saved") {
+      imgs = baseImages.filter((img) => bookmarkedIds.has(img.id));
     } else if (activeFilter === "following") {
       if (!followingUids || followingUids.length === 0) {
         imgs = [];
@@ -193,8 +205,8 @@ const PostGallery = memo(function PostGallery({
     } else {
       imgs = baseImages.filter((img) => img.type === activeFilter);
     }
-    if (search.trim()) {
-      const s = search.trim().toLowerCase();
+    if (debouncedSearch.trim()) {
+      const s = debouncedSearch.trim().toLowerCase();
       imgs = imgs.filter(
         (img) =>
           img.title?.toLowerCase().includes(s) ||
@@ -211,7 +223,8 @@ const PostGallery = memo(function PostGallery({
     filteredImagesByUser,
     filterByUsername,
     followingUids,
-    search,
+    bookmarkedIds,
+    debouncedSearch,
   ]);
 
   const trendingPosts = useMemo(() => {
@@ -381,6 +394,14 @@ const PostGallery = memo(function PostGallery({
     }
   }, []);
 
+  const guardedToggleBookmark = useCallback(
+    (postId) => {
+      if (!requireAuth("bookmark a post")) return;
+      toggleBookmark(postId);
+    },
+    [requireAuth, toggleBookmark],
+  );
+
   const renderImageCard = useCallback(
     (image, sectionType) => (
       <PostCard
@@ -396,16 +417,20 @@ const PostGallery = memo(function PostGallery({
         isSelected={selectedImage && image.id === selectedImage.id}
         canEdit={canEditPost(image)}
         onEdit={handleEditPost}
+        isBookmarked={isBookmarked(image.id)}
+        onToggleBookmark={guardedToggleBookmark}
       />
     ),
     [
       handleImageClick,
       guardedToggleReaction,
+      guardedToggleBookmark,
       getReactions,
       getUserReaction,
       selectedImage,
       canEditPost,
       handleEditPost,
+      isBookmarked,
     ],
   );
 
@@ -484,7 +509,7 @@ const PostGallery = memo(function PostGallery({
           </div>
         )}
 
-        {!filterByUsername && trendingPosts.length > 0 && !search.trim() && (
+        {!filterByUsername && trendingPosts.length > 0 && !debouncedSearch.trim() && (
           <div className="trending-wrapper">
             <GallerySection
               title="Trending"
@@ -518,7 +543,7 @@ const PostGallery = memo(function PostGallery({
           </div>
         )}
 
-        {loading && images.length === 0 && <Loader text="Loading posts..." />}
+        {loading && images.length === 0 && <SkeletonGallery count={6} />}
 
         {filteredImages.length > 0 && (
           <GallerySection
@@ -539,8 +564,8 @@ const PostGallery = memo(function PostGallery({
           <div className="no-results">
             <span className="no-results-icon">🔍</span>
             <p>
-              {search.trim()
-                ? `No posts found for "${search}"`
+              {debouncedSearch.trim()
+                ? `No posts found for "${debouncedSearch}"`
                 : filterByUsername
                   ? "No posts yet"
                   : `No ${activeFilter} posts yet`}

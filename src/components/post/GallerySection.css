@@ -150,21 +150,27 @@
   margin-bottom: 0;
 }
 
+/* Masonry layout using CSS columns — cards flow naturally into gaps */
 .gallery-vertical-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  columns: 3;
+  column-gap: 12px;
   width: 100%;
+}
+
+.gallery-vertical-grid > * {
+  break-inside: avoid;
+  margin-bottom: 12px;
 }
 
 @media (max-width: 1200px) {
   .gallery-vertical-grid {
-    grid-template-columns: repeat(2, 1fr);
+    columns: 2;
   }
 }
 
 @media (max-width: 768px) {
   .gallery-vertical-grid {
-    grid-template-columns: 1fr;
+    columns: 1;
   }
 
   .gallery-section-header {
