@@ -435,21 +435,21 @@ export function useConversations({ onConversationStarted } = {}) {
     [activeConvo, currentUser],
   );
 
-  // ── deleteConversation ────────────────────────────────────────────
+  // ── deleteConversation — hard delete (messages + conversation doc) ─
   const deleteConversation = useCallback(
     async (conversationId) => {
       if (!currentUser || !conversationId) return;
-      if (
-        !window.confirm(
-          "Are you sure you want to delete this conversation? This will permanently delete all messages and cannot be undone.",
-        )
-      )
-        return;
       try {
+        // Delete all messages in the subcollection first
+        const messagesSnap = await getDocs(
+          collection(db, "conversations", conversationId, "messages")
+        );
+        const batch = [];
+        messagesSnap.forEach((d) => batch.push(deleteDoc(d.ref)));
+        await Promise.all(batch);
+        // Then delete the conversation document
         await deleteDoc(doc(db, "conversations", conversationId));
-        if (activeConvo?.id === conversationId) {
-          setActiveConvo(null);
-        }
+        if (activeConvo?.id === conversationId) setActiveConvo(null);
         toast.success("Conversation deleted");
       } catch {
         toast.error("Failed to delete conversation");

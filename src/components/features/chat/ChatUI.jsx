@@ -23,6 +23,21 @@ const QUICK_REACTIONS = ["👍", "❤️", "😂", "😮", "😢", "🔥"];
  * variant="overlay" — rendered inside the FAB popup (DirectMessages)
  * variant="page"    — rendered as the full Messages page
  */
+function ConfirmModal({ title, message, onConfirm, onCancel, confirmLabel = "Delete" }) {
+  return (
+    <div className="delete-confirm-overlay" onClick={onCancel}>
+      <div className="delete-confirm-modal" onClick={(e) => e.stopPropagation()}>
+        <h3>{title}</h3>
+        <p>{message}</p>
+        <div className="delete-confirm-actions">
+          <button className="btn-cancel-delete" onClick={onCancel}>Cancel</button>
+          <button className="btn-confirm-delete" onClick={onConfirm}>{confirmLabel}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function ChatUI({
   // data
   currentUser,
@@ -62,8 +77,21 @@ export default function ChatUI({
   variant = "page",
   onClose,
 }) {
+  const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
+
+  const askConfirm = (title, message, onConfirm) =>
+    setConfirm({ title, message, onConfirm });
+
   return (
     <div className="chat-ui">
+      {confirm && (
+        <ConfirmModal
+          title={confirm.title}
+          message={confirm.message}
+          onConfirm={() => { confirm.onConfirm(); setConfirm(null); }}
+          onCancel={() => setConfirm(null)}
+        />
+      )}
       {/* ── Sidebar ────────────────────────────────────────────────── */}
       <div className={`chat-sidebar ${activeConvo ? "hide-mobile" : ""}`}>
         <div className="chat-sidebar-header">
@@ -217,7 +245,11 @@ export default function ChatUI({
               </div>
               <button
                 className="chat-delete-btn"
-                onClick={() => deleteConversation(activeConvo.id)}
+                onClick={() => askConfirm(
+                  "Delete Conversation?",
+                  "All messages will be permanently deleted. This cannot be undone.",
+                  () => deleteConversation(activeConvo.id),
+                )}
                 title="Delete conversation"
               >
                 <DeleteIcon size={20} />
@@ -245,6 +277,7 @@ export default function ChatUI({
                     startEditing={startEditing}
                     handleDeleteMessage={handleDeleteMessage}
                     handleReaction={handleReaction}
+                    askConfirm={askConfirm}
                   />
                 ))
               )}
@@ -318,6 +351,7 @@ function MessageBubble({
   startEditing,
   handleDeleteMessage,
   handleReaction,
+  askConfirm,
 }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const reactions = msg.reactions ?? {};
@@ -381,7 +415,7 @@ function MessageBubble({
                 <div className="chat-msg-actions">
                   <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit"><EditIcon size={16} /></button>
                   <button
-                    onClick={() => { if (window.confirm("Delete this message?")) handleDeleteMessage(msg.id); }}
+                    onClick={() => askConfirm("Delete Message?", "This message will be permanently deleted.", () => handleDeleteMessage(msg.id))}
                     className="chat-action-btn"
                     title="Delete"
                   ><DeleteIcon size={16} /></button>
