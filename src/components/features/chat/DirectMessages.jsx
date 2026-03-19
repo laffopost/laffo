@@ -37,6 +37,11 @@ export default function DirectMessages() {
     (c) => c.lastSenderId !== uid && !c[`read_${uid}`] && c.lastMessage,
   ).length;
 
+  // Broadcast unread count to Header so it doesn't need its own Firestore listener
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("dm-unread-count", { detail: unreadMessageCount }));
+  }, [unreadMessageCount]);
+
   if (!isOpen) {
     return (
       <button

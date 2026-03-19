@@ -273,6 +273,8 @@ export function useConversations({ onConversationStarted } = {}) {
   );
 
   // ── handleSearchUsers (debounced 300 ms) ─────────────────────────
+  // Cache fetched users to avoid re-downloading entire collection on every keystroke
+  const usersCacheRef = useRef({ data: null, fetchedAt: 0 });
   const searchDebounceRef = useRef(null);
   const handleSearchUsers = useCallback(
     (q) => {
@@ -286,17 +288,21 @@ export function useConversations({ onConversationStarted } = {}) {
       setSearching(true);
       searchDebounceRef.current = setTimeout(async () => {
         try {
-          const snap = await getDocs(collection(db, "users"));
-          const results = [];
-          snap.forEach((d) => {
-            const data = d.data();
-            if (
-              d.id !== currentUser?.uid &&
-              data.username?.toLowerCase().includes(q.toLowerCase())
-            ) {
-              results.push({ uid: d.id, ...data });
-            }
-          });
+          const cache = usersCacheRef.current;
+          const now = Date.now();
+          // Re-fetch at most every 30 seconds
+          if (!cache.data || now - cache.fetchedAt > 30000) {
+            const snap = await getDocs(collection(db, "users"));
+            const users = [];
+            snap.forEach((d) => users.push({ uid: d.id, ...d.data() }));
+            cache.data = users;
+            cache.fetchedAt = now;
+          }
+          const results = cache.data.filter(
+            (u) =>
+              u.uid !== currentUser?.uid &&
+              u.username?.toLowerCase().includes(q.toLowerCase()),
+          );
           setSearchResults(results.slice(0, 10));
         } catch {
           toast.error("Search failed");

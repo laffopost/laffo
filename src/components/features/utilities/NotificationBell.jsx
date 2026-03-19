@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { useNotifications } from "../../../context/NotificationContext";
-import { useUnreadMessageCount } from "../../../hooks/useUnreadMessageCount";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
 import { NotificationIcon, ChatIcon, HeartIconSmall, MessageIcon, UserIcon, AddIcon } from "../../../utils/icons";
@@ -9,19 +8,18 @@ export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
     useNotifications();
-  const unreadMessageCount = useUnreadMessageCount();
+  // Listen for unread count from DirectMessages instead of creating a duplicate Firestore listener
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  useEffect(() => {
+    const handler = (e) => setUnreadMessageCount(e.detail ?? 0);
+    window.addEventListener("dm-unread-count", handler);
+    return () => window.removeEventListener("dm-unread-count", handler);
+  }, []);
   const totalUnread = unreadCount + unreadMessageCount;
   const dropdownRef = useRef(null);
   const navigate = useNavigate();
 
-  // Debug logging
-  useEffect(() => {
-    logger.log("🔔 NotificationBell: notifications updated", {
-      count: notifications.length,
-      unreadCount,
-      notifications,
-    });
-  }, [notifications, unreadCount]);
+  // Removed debug useEffect that logged on every notification change
 
   // Close dropdown when clicking outside
   useEffect(() => {

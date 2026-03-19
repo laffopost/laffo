@@ -10,19 +10,26 @@
 .animated-dot {
   position: absolute;
   border-radius: 50%;
-  opacity: 0.55;
-  filter: blur(24px);
-  mix-blend-mode: multiply; /* Changed from screen for better performance */
-  animation: move-dot 70s linear infinite alternate; /* Increased duration for slower, less CPU-intensive animation */
-  backface-visibility: hidden; /* Performance optimization */
+  opacity: 0.5;
+  filter: blur(30px);
+  /* GPU-promoted layer: transform + opacity only = no repaints */
+  will-change: transform, opacity;
+  animation: move-dot 100s linear infinite alternate;
+  backface-visibility: hidden;
+  /* Removed mix-blend-mode — it forces compositing on every frame */
 }
 
 @keyframes move-dot {
   0% {
-    transform: scale(1) translateY(0) rotate(0deg);
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 0.35;
   }
   100% {
-    transform: scale(1.3) translateY(-50vh) rotate(180deg); /* Reduced transform intensity */
+    transform: translate3d(0, -30vh, 0) scale(1.15);
+    opacity: 0.5;
   }
 }
 

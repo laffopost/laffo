@@ -130,14 +130,7 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
 
   const { firebaseUser, userProfile, loading } = useAuth();
 
-  useEffect(() => {
-    logger.log(
-      "FirebaseChat: user/context changed",
-      firebaseUser,
-      userProfile,
-      loading,
-    );
-  }, [firebaseUser, userProfile, loading]);
+  // Removed debug useEffect that logged on every auth/profile change
 
   const generateUsername = useCallback((uid) => {
     const adjIndex = parseInt(uid.slice(0, 2), 36) % ADJECTIVES.length;

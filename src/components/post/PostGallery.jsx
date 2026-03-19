@@ -277,18 +277,23 @@ const PostGallery = memo(function PostGallery({
     navigate(`/image/${randomImage.id}`, { state: { background: location } });
   }, [filteredImages, selectedImage, allImagesWithUser, navigate, location]);
 
+  // Track images/userImages via refs so this effect only re-runs when params.id or loading changes
+  const imagesRefLocal = useRef(images);
+  imagesRefLocal.current = images;
+  const userImagesRefLocal = useRef(userImages);
+  userImagesRefLocal.current = userImages;
+
   useEffect(() => {
     if (params.id) {
       const findAndSetImage = async () => {
         setIsLoading(true);
         setImageNotFound(false);
 
-        // If still loading initial data, wait for it but proceed to fetch if not found
         if (loading) {
           logger.log("📦 Post data still loading, will attempt fetch anyway");
         }
 
-        let allImgs = [...userImages, ...images];
+        let allImgs = [...userImagesRefLocal.current, ...imagesRefLocal.current];
         let img = allImgs.find((i) => i.id === params.id);
 
         if (!img) {
@@ -316,7 +321,7 @@ const PostGallery = memo(function PostGallery({
       setImageNotFound(false);
       setIsLoading(false);
     }
-  }, [params.id, userImages, images, loading, fetchImageById]);
+  }, [params.id, loading, fetchImageById]);
 
   // Remove duplicate handleImageClick - already defined above
   // const handleImageClick = useCallback(...) // REMOVED - DUPLICATE

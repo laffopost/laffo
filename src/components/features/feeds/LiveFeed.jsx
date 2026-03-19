@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { usePosts } from "../../../context/PostContext";
+import { usePostData } from "../../../context/PostContext";
 import "./LiveFeed.css";
 
 export default function LiveFeed() {
   const [activities, setActivities] = useState([]);
   const feedRef = useRef(null);
   const navigate = useNavigate();
-  const { images } = usePosts();
+  const { images } = usePostData();
 
   // Generate activities from recent posts and game scores
   useEffect(() => {

@@ -60,7 +60,7 @@ export default function Home() {
     <div className="home">
       <div className="home-layout">
         <div className="left-column">
-          <Suspense fallback={<WidgetFallback />}>
+{/*           <Suspense fallback={<WidgetFallback />}>
             <MoodTracker />
           </Suspense>
           <Suspense fallback={<WidgetFallback />}>
@@ -68,7 +68,7 @@ export default function Home() {
           </Suspense>
           <Suspense fallback={<WidgetFallback />}>
             <TokenInfo data={TOKEN_DATA} />
-          </Suspense>
+          </Suspense> */}
         </div>
         <div className="center-column">
           <PostGallery />

@@ -1,7 +1,6 @@
 import { memo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
-import clickSound from "../../assets/click.mp3";
 import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
@@ -58,16 +57,9 @@ const PostCard = memo(
 
     const timeLeft = formatTimeLeft(image.endsAt);
 
-    const handleMouseEnter = () => {
-      if (
-        typeof window !== "undefined" &&
-        window.__LAUGHCOIN_SOUND_ON__ !== false
-      ) {
-        const audio = new Audio(clickSound);
-        audio.currentTime = 0;
-        audio.play().catch(() => {});
-      }
-    };
+    // Removed: was creating new Audio() on every hover = memory leak + CPU spike
+    // The global click sound hook already handles interaction sounds
+    const handleMouseEnter = () => {};
 
     const handleAuthorClick = (e) => {
       e.stopPropagation();

@@ -1,9 +1,9 @@
 import { memo } from "react";
-import { usePosts } from "../../../context/PostContext";
+import { usePostData } from "../../../context/PostContext";
 import "./CommunityStats.css";
 
 const CommunityStats = memo(function CommunityStats() {
-  const { totalPosts, totalUsers, totalReacts } = usePosts();
+  const { totalPosts, totalUsers, totalReacts } = usePostData();
 
   return (
     <div className="community-stats-card">

@@ -574,8 +574,8 @@ export const ImageProvider = ({ children }) => {
     (imageId, emoji) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) return;
-      // Block reacting to own post
-      const ownPost = images.find((img) => img.id === imageId);
+      // Block reacting to own post — use ref to avoid depending on images array
+      const ownPost = imagesRef.current.find((img) => img.id === imageId);
       if (ownPost && (ownPost.uploadedBy === userId || ownPost.userId === userId)) return;
       log(`👍 Toggling reaction ${emoji} on ${imageId}`);
 
@@ -655,8 +655,8 @@ export const ImageProvider = ({ children }) => {
         }
       }, 2000);
     },
-    // userReactions removed from deps — accessed via userReactionsRef.current
-    [db, userId, firebaseUser, images],
+    // userReactions & images removed from deps — accessed via refs
+    [db, userId, firebaseUser],
   );
 
   const votePoll = useCallback(
@@ -1005,13 +1005,14 @@ export const ImageProvider = ({ children }) => {
     }, 0);
 
     return { totalPosts, totalUsers, totalReacts };
-  }, [images.length, images]);
+  }, [images]);
 
   // Load more posts (for infinite scroll)
+  // Uses imagesRef.current.length so this callback is stable (not recreated on every post update)
   const loadMorePosts = useCallback(async () => {
     if (!db) return;
 
-    const currentCount = images.length;
+    const currentCount = imagesRef.current.length;
     if (currentCount >= MAX_TOTAL_LOAD) {
       log("⚠️ Reached maximum post limit");
       return;
@@ -1024,8 +1025,8 @@ export const ImageProvider = ({ children }) => {
 
     log(`📥 Loading more posts: ${currentCount} → ${newLimit}`);
 
-    const imagesRef = collection(db, "images");
-    const q = query(imagesRef, orderBy("createdAt", "desc"), limit(newLimit));
+    const imgCollection = collection(db, "images");
+    const q = query(imgCollection, orderBy("createdAt", "desc"), limit(newLimit));
 
     try {
       const snapshot = await getDocs(q);
@@ -1042,7 +1043,7 @@ export const ImageProvider = ({ children }) => {
     } catch (err) {
       logError("❌ Error loading more posts:", err);
     }
-  }, [db, images.length, filterExpiredPosts]);
+  }, [db, filterExpiredPosts]);
 
   // PostDataContext value — updates whenever reactive data changes
   // Consumers re-render only when images/reactions/loading change

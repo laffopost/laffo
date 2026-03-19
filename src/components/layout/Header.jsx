@@ -1,7 +1,6 @@
 import { useState, useEffect, memo } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-import { useUnreadMessageCount } from "../../hooks/useUnreadMessageCount";
 import { NotificationBell } from "../features/utilities";
 import { ThemeToggle, Dropdown } from "../common";
 import { VolumeUpIcon, VolumeMuteIcon } from "../../utils/icons";
@@ -12,50 +11,30 @@ import { auth } from "../../firebase/config";
 
 const MOTTOS = [
   "Because laughter is the best investment.",
-  "HODL and laugh your way to the moon! 🚀",
-  "Where memes meet money. 💰",
-  "The only coin that makes you smile. 😂",
-  "Serious gains, hilarious community. 💎",
-  "Laughing all the way to the bank. 🏦",
-  "Degen by day, comedian by night. 🌙",
-  "Making crypto fun again! 🎉",
+  "HODL and laugh your way to the moon!",
+  "Where memes meet money.",
+  "The only coin that makes you smile.",
+  "Serious gains, hilarious community.",
+  "Laughing all the way to the bank.",
+  "Making crypto fun again!",
 ];
 
 const SOUND_KEY = "laughcoin_sound_on";
 
+// Cycle mottos every 6 seconds instead of per-character setTimeout (was ~15-33 re-renders/sec)
 function TypingMotto() {
   const [mottoIndex, setMottoIndex] = useState(0);
-  const [displayedText, setDisplayedText] = useState("");
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [charIndex, setCharIndex] = useState(0);
 
   useEffect(() => {
-    const currentMotto = MOTTOS[mottoIndex];
-    const typingSpeed = isDeleting ? 30 : 80;
-    const pauseAfterComplete = 3000;
-
-    const timer = setTimeout(() => {
-      if (!isDeleting && charIndex < currentMotto.length) {
-        setDisplayedText(currentMotto.substring(0, charIndex + 1));
-        setCharIndex(charIndex + 1);
-      } else if (!isDeleting && charIndex === currentMotto.length) {
-        setTimeout(() => setIsDeleting(true), pauseAfterComplete);
-      } else if (isDeleting && charIndex > 0) {
-        setDisplayedText(currentMotto.substring(0, charIndex - 1));
-        setCharIndex(charIndex - 1);
-      } else if (isDeleting && charIndex === 0) {
-        setIsDeleting(false);
-        setMottoIndex((mottoIndex + 1) % MOTTOS.length);
-      }
-    }, typingSpeed);
-
-    return () => clearTimeout(timer);
-  }, [charIndex, isDeleting, mottoIndex]);
+    const interval = setInterval(() => {
+      setMottoIndex((i) => (i + 1) % MOTTOS.length);
+    }, 6000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <span className="logo-desc">
-      {displayedText}
-      <span className="typing-cursor">|</span>
+    <span className="logo-desc motto-fade" key={mottoIndex}>
+      {MOTTOS[mottoIndex]}
     </span>
   );
 }
@@ -64,7 +43,14 @@ const Header = memo(function Header() {
   const location = useLocation();
   const navigate = useNavigate();
   const { firebaseUser, userProfile } = useAuth();
-  const unreadMessageCount = useUnreadMessageCount();
+  // Removed useUnreadMessageCount — it was a duplicate Firestore listener.
+  // The badge on /messages nav link is now driven by a lightweight event from DirectMessages.
+  const [unreadMessageCount, setUnreadMessageCount] = useState(0);
+  useEffect(() => {
+    const handler = (e) => setUnreadMessageCount(e.detail ?? 0);
+    window.addEventListener("dm-unread-count", handler);
+    return () => window.removeEventListener("dm-unread-count", handler);
+  }, []);
   const [soundOn, setSoundOn] = useState(() => {
     const stored = localStorage.getItem(SOUND_KEY);
     return stored === null ? true : stored === "true";
