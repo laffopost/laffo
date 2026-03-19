@@ -72,16 +72,27 @@ export function useConversations({ onConversationStarted } = {}) {
     const q = query(
       collection(db, "conversations"),
       where("participants", "array-contains", currentUid),
-      orderBy("lastMessageAt", "desc"),
       limit(30),
     );
     let cancelled = false;
-    const unsub = onSnapshot(q, (snap) => {
-      if (cancelled) return;
-      const convos = [];
-      snap.forEach((d) => convos.push({ id: d.id, ...d.data() }));
-      setConversations(convos);
-    });
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        if (cancelled) return;
+        const convos = [];
+        snap.forEach((d) => convos.push({ id: d.id, ...d.data() }));
+        // Sort client-side to avoid needing a composite index
+        convos.sort((a, b) => {
+          const aTime = a.lastMessageAt?.seconds || 0;
+          const bTime = b.lastMessageAt?.seconds || 0;
+          return bTime - aTime;
+        });
+        setConversations(convos);
+      },
+      (err) => {
+        console.error("Conversations query error:", err);
+      },
+    );
     return () => {
       cancelled = true;
       // Defer unsub by one tick to avoid Firestore watch-stream race condition

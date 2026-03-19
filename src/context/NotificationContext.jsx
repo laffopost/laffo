@@ -61,29 +61,41 @@ export function NotificationProvider({ children }) {
     const q = query(
       notificationsRef,
       where("userId", "==", userId),
-      orderBy("createdAt", "desc"),
       limit(50),
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const notificationsList = [];
-      let unread = 0;
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const notificationsList = [];
+        let unread = 0;
 
-      snapshot.forEach((doc) => {
-        const data = { id: doc.id, ...doc.data() };
-        notificationsList.push(data);
-        if (!data.read) unread++;
-      });
+        snapshot.forEach((doc) => {
+          const data = { id: doc.id, ...doc.data() };
+          notificationsList.push(data);
+          if (!data.read) unread++;
+        });
 
-      // Already sorted by Firestore via orderBy — no client-side sort needed
-      setNotifications(notificationsList);
+        // Sort client-side to avoid needing a composite index
+        notificationsList.sort((a, b) => {
+          const aTime = a.createdAt?.seconds || 0;
+          const bTime = b.createdAt?.seconds || 0;
+          return bTime - aTime;
+        });
+
+        setNotifications(notificationsList);
       setUnreadCount(unread);
       setLoading(false);
 
       logger.log(
         `Loaded ${notificationsList.length} notifications, ${unread} unread`,
       );
-    });
+      },
+      (err) => {
+        console.error("Notifications query error:", err);
+        setLoading(false);
+      },
+    );
 
     return () => unsubscribe();
   }, [userId]);
