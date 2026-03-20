@@ -52,6 +52,14 @@
   height: 100%;
 }
 
+/* All renderer thumbnails fill the card edge-to-edge — card clips via overflow:hidden */
+.image-thumbnail .post-status-thumbnail,
+.image-thumbnail .post-poll-thumbnail,
+.image-thumbnail .post-countdown-thumbnail,
+.image-thumbnail .post-quiz-thumbnail {
+  border-radius: 0 !important;
+}
+
 .post-image {
   width: 100%;
   height: 100%;
@@ -63,55 +71,57 @@
   display: none; /* Hide default background when we have real image */
 }
 
-.image-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--gradient-image-overlay);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  padding: 8px;
-  z-index: 1;
-}
-
-.image-meta-overlay {
+/* Header above the image — mirrors image-info style */
+.post-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  width: 100%;
-  gap: 6px;
+  gap: 8px;
+  padding: 8px 11px;
+  background: linear-gradient(
+    180deg,
+    var(--bg-image-bottom) 0%,
+    var(--bg-image-top) 100%
+  );
+  border-bottom: 1px solid var(--color-primary-22);
 }
 
-.image-overlay-bottom {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  width: 100%;
-  position: absolute;
-  top: 55px;
-  right: 8px;
-  z-index: 2;
-}
-
-/* Adjust positioning for vertical layout */
-.gallery-vertical-grid .image-overlay-bottom {
-  top: 45px;
+.post-card-header-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 5px;
+  border: 1.5px solid var(--color-primary);
+  flex-shrink: 0;
 }
 
 .image-author-overlay {
   color: var(--text-primary);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   flex: 1;
-  text-shadow: 0 1px 3px var(--bg-overlay);
+}
+
+/* Minimal overlay — only badge/expiry, no gradient covering image */
+.image-overlay--minimal {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.image-overlay--minimal .image-expiry-chip,
+.image-overlay--minimal .image-badge {
+  pointer-events: auto;
 }
 
 .clickable-author {
@@ -128,27 +138,20 @@
 }
 
 .image-type-badge-overlay {
-  background: var(--color-primary-90);
-  color: var(--text-base);
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-size: 0.65rem;
+  color: var(--color-primary);
+  font-size: 0.62rem;
   font-weight: 700;
   text-transform: capitalize;
   white-space: nowrap;
   flex-shrink: 0;
-  backdrop-filter: blur(4px);
-  border: 1px solid var(--border-subtle-hover);
-  box-shadow: 0 2px 4px var(--bg-dark-30);
+  letter-spacing: 0.03em;
+  opacity: 0.75;
 }
 
 .image-type-badge-overlay.user-type-badge {
-  background: var(--gradient-success-90);
-  color: var(--text-base);
-  border: 1.5px solid var(--color-success);
-  box-shadow: 0 2px 8px var(--color-success-18);
+  color: var(--color-success);
+  opacity: 1;
   font-weight: 800;
-  letter-spacing: 0.5px;
 }
 
 .image-badge {
@@ -171,12 +174,11 @@
     var(--bg-image-top) 0%,
     var(--bg-image-bottom) 100%
   );
-  padding: 9px 11px 8px;
+  padding: 8px 11px 9px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   border-top: 1px solid var(--color-primary-22);
-  box-shadow: var(--shadow-inset-primary);
 }
 
 .image-info-title-row {
@@ -593,7 +595,7 @@
 
 .media-type-badge {
   position: absolute;
-  top: 40px;
+  top: 8px;
   right: 8px;
   background: var(--bg-overlay-media);
   color: var(--text-base);

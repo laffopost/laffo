@@ -91,6 +91,34 @@ const PostCard = memo(
         <div
           className={`image-card${isSelected ? " selected" : ""}`}
         >
+          {/* Instagram-style header above the image */}
+          <div className="post-card-header">
+            <span
+              className={`image-author-overlay${post.isAnonymousPost ? "" : " clickable-author"}`}
+              onClick={post.isAnonymousPost ? undefined : handleAuthorClick}
+              title={post.isAnonymousPost ? "Anonymous post" : "View profile"}
+              style={{ display: "flex", alignItems: "center", cursor: post.isAnonymousPost ? "default" : "pointer" }}
+            >
+              {authorAvatar && (
+                <img
+                  src={authorAvatar}
+                  alt="avatar"
+                  loading="lazy"
+                  className="post-card-header-avatar"
+                />
+              )}
+              {post.author || "Anonymous"}
+            </span>
+            <span
+              className={
+                "image-type-badge-overlay" +
+                (post.type === "user" ? " user-type-badge" : "")
+              }
+            >
+              {post.type || "all"}
+            </span>
+          </div>
+
           <div className="image-thumbnail" onClick={onClick}>
             {/* Show appropriate content based on post type */}
             {post.type === "status" ? (
@@ -175,55 +203,19 @@ const PostCard = memo(
               />
             )}
 
-            <div className="image-overlay">
-              {post.badge && (
-                <span className="image-badge sponsored">{post.badge}</span>
-              )}
-              <div className="image-meta-overlay">
-                <span
-                  className={`image-author-overlay${post.isAnonymousPost ? "" : " clickable-author"}`}
-                  onClick={post.isAnonymousPost ? undefined : handleAuthorClick}
-                  title={post.isAnonymousPost ? "Anonymous post" : "View profile"}
-                  style={{ display: "flex", alignItems: "center", cursor: post.isAnonymousPost ? "default" : "pointer" }}
-                >
-                  {authorAvatar && (
-                    <img
-                      src={authorAvatar}
-                      alt="avatar"
-                      loading="lazy"
-                      style={{
-                        width: 28,
-                        height: 28,
-                        borderRadius: "50%",
-                        objectFit: "cover",
-                        marginRight: 4,
-                        border: "1.5px solid #8b5cf6",
-                        background: "#23234a",
-                      }}
-                    />
-                  )}
-                  {post.author || "Anonymous"}
-                </span>
-                <span
-                  className={
-                    "image-type-badge-overlay" +
-                    (post.type === "user" ? " user-type-badge" : "")
-                  }
-                >
-                  {post.type || "all"}
-                </span>
-              </div>
-              {/* Expiry chip positioned below type badge */}
-              {timeLeft && (
-                <div className="image-overlay-bottom">
-                  <span
-                    className={`image-expiry-chip${timeLeft.expired ? " expired" : ""}`}
-                  >
+            {/* Expiry chip — only overlay remaining */}
+            {(post.badge || timeLeft) && (
+              <div className="image-overlay image-overlay--minimal">
+                {post.badge && (
+                  <span className="image-badge sponsored">{post.badge}</span>
+                )}
+                {timeLeft && (
+                  <span className={`image-expiry-chip${timeLeft.expired ? " expired" : ""}`}>
                     ⏱ {timeLeft.label}
                   </span>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
             <div className={`animated-image-bg bg-${sectionType}`}></div>
           </div>
           <div className="image-info">
