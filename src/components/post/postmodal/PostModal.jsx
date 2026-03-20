@@ -3,7 +3,6 @@ import { useAuth } from "../../../context/AuthContext";
 import { usePosts } from "../../../context/PostContext";
 import PostModalImageSection from "./PostModalImageSection";
 import PostModalCommentsSection from "./PostModalCommentsSection";
-import PostModalHeader from "./PostModalHeader";
 import AddPostModal from "../AddPostModal";
 import toast from "react-hot-toast";
 import "./PostModal.css";
@@ -114,7 +113,6 @@ const PostModal = memo(
             className="image-modal-content"
             onClick={(e) => e.stopPropagation()}
           >
-            <PostModalHeader onClose={onClose} />
             <div className="image-modal-layout">
               <div className="image-modal-main">
                 <button
@@ -139,7 +137,7 @@ const PostModal = memo(
                   onRandom={onRandom || null}
                 />
               </div>
-              <PostModalCommentsSection post={post} />
+              <PostModalCommentsSection post={post} onClose={onClose} />
             </div>
           </div>
         </div>

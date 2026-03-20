@@ -110,16 +110,6 @@ export default function PollRenderer({
       className={`poll-renderer poll-renderer--full ${className}`}
       style={{ backgroundColor: bgColor, color: textColor }}
     >
-      <div className="poll-renderer__header">
-        {timeLeft && (
-          <span
-            className={`poll-renderer__time-badge${isExpired ? " expired" : ""}`}
-          >
-            {isExpired ? "⏰ Closed" : `⏳ ${timeLeft}`}
-          </span>
-        )}
-      </div>
-
       <p className="poll-renderer__question">{question}</p>
       {description && (
         <p className="poll-renderer__description">{description}</p>

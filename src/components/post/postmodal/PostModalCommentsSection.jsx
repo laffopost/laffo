@@ -34,11 +34,12 @@ function fmtCommentTime(ts) {
 import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon } from "../../../utils/icons";
+import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon, CloseIcon } from "../../../utils/icons";
 import ConfirmModal from "../../common/ConfirmModal";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
   post,
+  onClose,
 }) {
   const {
     addComment,
@@ -189,6 +190,11 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
   return (
     <div className="comments-section">
+      <div className="comments-close-row">
+        <button className="comments-close-btn" onClick={onClose} title="Close">
+          <CloseIcon size={14} />
+        </button>
+      </div>
       {/* Post description + meta */}
       {(post.type === "status" || post.description) && (
         <div className="comments-post-info">
