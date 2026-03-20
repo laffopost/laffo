@@ -54,7 +54,6 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [formData, setFormData] = useState({
-    title: initialData?.title || "",
     description: initialData?.description || "",
     author: "",
     authorAvatar: null,
@@ -169,14 +168,9 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.title.trim()) {
-      toast.error("Title is required!");
-      return;
-    }
 
     if (isEditMode) {
       onSave({
-        title: formData.title.trim(),
         description: formData.description || "",
         type: formData.type,
       });
@@ -216,8 +210,7 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
       : null;
 
     onSubmit({
-      title: formData.title,
-      description: formData.description || "No description provided.",
+      description: formData.description || "",
       author,
       authorAvatar,
       image: finalImage,
@@ -247,20 +240,7 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
       </div>
 
       <div className="form-group">
-        <label htmlFor="title">Title *</label>
-        <input
-          type="text"
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Give your post a title..."
-          maxLength={50}
-          required
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="description">Description</label>
+        <label htmlFor="description">Caption</label>
         <textarea
           id="description"
           value={formData.description}

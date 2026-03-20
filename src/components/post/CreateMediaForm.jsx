@@ -35,7 +35,6 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [formData, setFormData] = useState({
-    title: initialData?.title || "",
     description: initialData?.description || "",
     author: "",
     authorAvatar: null,
@@ -55,9 +54,6 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
   useEffect(() => {
     if (initialData?.url && !isEditMode) {
       parseMediaUrl(initialData.url);
-      if (initialData.title && !formData.title) {
-        setFormData((prev) => ({ ...prev, title: initialData.title }));
-      }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -133,14 +129,8 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.title.trim()) {
-      setError("Title is required!");
-      return;
-    }
-
     if (isEditMode) {
       onSave({
-        title: formData.title.trim(),
         description: formData.description || "",
       });
       onClose();
@@ -187,8 +177,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
       type: "media",
       mediaType: formData.mediaType,
       embedUrl: formData.embedUrl,
-      title: formData.title,
-      description: formData.description || "No description provided.",
+      description: formData.description || "",
       author,
       authorAvatar,
       reactions: initialReactions,
@@ -257,27 +246,14 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
       )}
 
       <div className="form-group">
-        <label htmlFor="title">Title *</label>
-        <input
-          type="text"
-          id="title"
-          value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-          placeholder="Give your media a title..."
-          maxLength={100}
-          required
-        />
-      </div>
-
-      <div className="form-group">
-        <label htmlFor="description">Description</label>
+        <label htmlFor="description">Caption</label>
         <textarea
           id="description"
           value={formData.description}
           onChange={(e) =>
             setFormData({ ...formData, description: e.target.value })
           }
-          placeholder="Tell us about this media..."
+          placeholder="Write something about this media..."
           maxLength={200}
           rows={3}
         />
@@ -337,7 +313,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
         <button
           type="submit"
           className="btn-submit"
-          disabled={(!isEditMode && !formData.embedUrl) || !formData.title.trim()}
+          disabled={!isEditMode && !formData.embedUrl}
         >
           {isEditMode ? "Save Changes ✓" : "Share Media ✨"}
         </button>

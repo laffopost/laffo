@@ -48,9 +48,6 @@ export default function EditPollForm({ post, onSave, onCancel, isSubmitting }) {
       description: description.trim(),
       options: validOptions.map((opt) => opt.trim()),
       bgColor,
-      title:
-        question.trim().substring(0, 50) +
-        (question.trim().length > 50 ? "..." : ""), // Update title from question
     };
 
     onSave(updateData);

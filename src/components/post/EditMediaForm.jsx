@@ -7,7 +7,6 @@ export default function EditMediaForm({
   onCancel,
   isSubmitting,
 }) {
-  const [title, setTitle] = useState(post.title || "");
   const [description, setDescription] = useState(post.description || "");
   const [embedUrl, setEmbedUrl] = useState(post.embedUrl || "");
 
@@ -47,11 +46,6 @@ export default function EditMediaForm({
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!title.trim()) {
-      toast.error("Title is required");
-      return;
-    }
-
     if (!embedUrl.trim()) {
       toast.error("Media URL is required");
       return;
@@ -64,7 +58,6 @@ export default function EditMediaForm({
     }
 
     const updateData = {
-      title: title.trim(),
       description: description.trim(),
       embedUrl: validation.embedUrl,
       mediaType: validation.type,
@@ -78,19 +71,6 @@ export default function EditMediaForm({
 
   return (
     <form onSubmit={handleSubmit} className="edit-form">
-      <div className="edit-form-group">
-        <label className="edit-form-label">Title *</label>
-        <input
-          type="text"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Enter media title"
-          className="edit-form-input"
-          maxLength={100}
-          required
-        />
-      </div>
-
       <div className="edit-form-group">
         <label className="edit-form-label">Description</label>
         <textarea
@@ -181,7 +161,6 @@ export default function EditMediaForm({
           className="edit-form-btn edit-form-btn-save"
           disabled={
             isSubmitting ||
-            !title.trim() ||
             !embedUrl.trim() ||
             !mediaValidation.isValid
           }

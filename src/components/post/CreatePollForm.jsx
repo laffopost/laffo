@@ -82,7 +82,6 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
         description: description.trim() || null,
         options: validOptions,
         bgColor,
-        title: question.trim(),
       });
       onClose();
       return;
@@ -104,7 +103,6 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       voteCounts: validOptions.map(() => 0),
       votes: {},
       image: null,
-      title: question.trim(),
       author: finalAuthor,
       authorAvatar: finalAvatar,
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },
@@ -142,10 +140,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       </div>
 
       <div className="form-group">
-        <label>
-          Description{" "}
-          <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span>
-        </label>
+        <label>Caption</label>
         <textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
