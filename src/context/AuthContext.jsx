@@ -34,8 +34,8 @@ export function AuthProvider({ children }) {
           };
 
           await setDoc(userRef, updateData, { merge: true });
-          // After merge, construct final profile from updateData (fresh write includes merge)
-          setUserProfile(updateData);
+          // Merge existing Firestore data with login-time updates so avatar/status/etc are preserved
+          setUserProfile({ ...userProfileData, ...updateData });
         } catch (err) {
           logger.error("Error loading user profile:", err);
           setUserProfile(null);

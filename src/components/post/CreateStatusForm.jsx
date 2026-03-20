@@ -75,8 +75,6 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
         status: status.trim(),
         bgColor,
         textColor,
-        title: status.trim(),
-        description: status.trim(),
       });
       onClose();
       return;
@@ -93,8 +91,6 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
       status: status.trim(),
       bgColor,
       textColor,
-      title: status.trim(),
-      description: status.trim(),
       author: finalAuthor,
       authorAvatar: finalAvatar,
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },

@@ -17,9 +17,10 @@ export default function ProfileEditForm({
   saving,
 }) {
   const [form, setForm] = useState({ ...initialData });
-  const [avatarPreview, setAvatarPreview] = useState(form.avatar || null);
+  const [avatarPreview, setAvatarPreview] = useState(initialData.avatar || null);
   const [avatarDraw, setAvatarDraw] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
+  const fileInputRef = useRef(null);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -79,28 +80,41 @@ export default function ProfileEditForm({
           <div className="form-section">
             <div className="form-section-title">Profile Picture</div>
             <div className="avatar-upload-area">
-              {avatarPreview && (
-                <div className="avatar-preview-large">
-                  <img
-                    src={avatarPreview}
-                    alt="Avatar"
-                    className="avatar-preview-img-large"
-                  />
-                </div>
-              )}
+              <div
+                className="avatar-upload-preview"
+                onClick={() => fileInputRef.current?.click()}
+                title="Click to upload photo"
+              >
+                {avatarPreview ? (
+                  <img src={avatarPreview} alt="Avatar" className="avatar-preview-img-large" />
+                ) : (
+                  <div className="avatar-upload-placeholder">📷</div>
+                )}
+                <div className="avatar-upload-overlay">Upload</div>
+              </div>
               <input
+                ref={fileInputRef}
                 type="file"
                 accept="image/*"
                 onChange={handleAvatarPhotoChange}
-                className="profile-auth-input file-input"
+                style={{ display: "none" }}
               />
-              <button
-                type="button"
-                className="avatar-draw-btn"
-                onClick={() => setAvatarDraw((v) => !v)}
-              >
-                {avatarDraw ? "✖ Cancel" : "🎨 Draw"}
-              </button>
+              <div className="avatar-upload-btns">
+                <button
+                  type="button"
+                  className="avatar-upload-btn"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  📷 Upload Photo
+                </button>
+                <button
+                  type="button"
+                  className="avatar-draw-btn"
+                  onClick={() => setAvatarDraw((v) => !v)}
+                >
+                  {avatarDraw ? "✖ Cancel" : "🎨 Draw"}
+                </button>
+              </div>
             </div>
             {avatarDraw && (
               <ImprovedAvatarCanvas

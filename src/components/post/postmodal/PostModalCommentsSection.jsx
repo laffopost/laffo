@@ -190,12 +190,12 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   return (
     <div className="comments-section">
       {/* Post title + description */}
-      {(post.title || post.description) && (
+      {(post.type === "status" || post.title || post.description) && (
         <div className="comments-post-info">
-          {post.title && (
+          {post.type !== "status" && post.title && (
             <h2 className="comments-post-title">{post.title}</h2>
           )}
-          {post.description && (
+          {post.type !== "status" && post.description && (
             <p className="comments-post-desc">{post.description}</p>
           )}
           {timeLeft && (

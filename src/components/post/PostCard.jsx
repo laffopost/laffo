@@ -208,14 +208,16 @@ const PostCard = memo(
           </div>
           <div className="image-info">
             <div className="image-info-title-row">
-              <h4 onClick={onClick}>
-                {post.type === "user" ? post.author : post.title}
-              </h4>
+              {post.type !== "status" && (
+                <h4 onClick={onClick}>
+                  {post.type === "user" ? post.author : post.title}
+                </h4>
+              )}
               {post.edited && (
                 <span className="post-edited-chip">edited</span>
               )}
             </div>
-            {post.type !== "user" && post.description && (
+            {post.type !== "user" && post.type !== "status" && post.description && (
               <p className="image-info-desc">{post.description}</p>
             )}
             <LinkPreview text={post.description || post.status || ""} />

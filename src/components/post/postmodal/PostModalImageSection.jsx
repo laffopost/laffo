@@ -431,38 +431,40 @@ export default function PostModalImageSection({
             </button>
           </div>
         )}
-        <div className="postmodal-toolbar-actions">
-          {post.type && (
-            <span className="postmodal-type-badge-inline">{post.type}</span>
-          )}
-          {canEdit && onEditRequest && (
-            <button
-              className="postmodal-action-btn postmodal-action-btn--edit"
-              onClick={onEditRequest}
-              title="Edit post"
-            >
-              <EditIcon size={15} />
-            </button>
-          )}
-          {canDelete && onDeleteRequest && (
-            <button
-              className="postmodal-action-btn postmodal-action-btn--delete"
-              onClick={onDeleteRequest}
-              title="Delete post"
-            >
-              <DeleteIcon size={15} />
-            </button>
-          )}
-          {onRandom && (
-            <button
-              className="postmodal-action-btn postmodal-action-btn--random"
-              onClick={onRandom}
-              title="Random post"
-            >
-              🎲
-            </button>
-          )}
-        </div>
+        {activeTab !== "user" && (
+          <div className="postmodal-toolbar-actions">
+            {post.type && (
+              <span className="postmodal-type-badge-inline">{post.type}</span>
+            )}
+            {canEdit && onEditRequest && (
+              <button
+                className="postmodal-action-btn postmodal-action-btn--edit"
+                onClick={onEditRequest}
+                title="Edit post"
+              >
+                <EditIcon size={15} />
+              </button>
+            )}
+            {canDelete && onDeleteRequest && (
+              <button
+                className="postmodal-action-btn postmodal-action-btn--delete"
+                onClick={onDeleteRequest}
+                title="Delete post"
+              >
+                <DeleteIcon size={15} />
+              </button>
+            )}
+            {onRandom && (
+              <button
+                className="postmodal-action-btn postmodal-action-btn--random"
+                onClick={onRandom}
+                title="Random post"
+              >
+                🎲
+              </button>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Content area */}
