@@ -215,6 +215,4 @@ export const UploadIcon = Icons.upload;
 export const ImageIcon = Icons.image;
 export const EyeIcon = Icons.eye;
 export const SparkleIcon = Icons.sparkle;
-export const TrendingIcon = Icons.trending;
-export const DiamondIcon = Icons.diamond;
 export const BookmarkIcon = Icons.bookmark;
