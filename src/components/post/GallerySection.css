@@ -150,27 +150,24 @@
   margin-bottom: 0;
 }
 
-/* Masonry layout using CSS columns — cards flow naturally into gaps */
+/* Grid layout — fills left-to-right, empty slots only at the end */
 .gallery-vertical-grid {
-  columns: 3;
-  column-gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  align-items: start;
   width: 100%;
-}
-
-.gallery-vertical-grid > * {
-  break-inside: avoid;
-  margin-bottom: 12px;
 }
 
 @media (max-width: 1200px) {
   .gallery-vertical-grid {
-    columns: 2;
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
 @media (max-width: 768px) {
   .gallery-vertical-grid {
-    columns: 1;
+    grid-template-columns: 1fr;
   }
 
   .gallery-section-header {

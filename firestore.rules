@@ -89,7 +89,7 @@ service cloud.firestore {
                       && request.resource.data.text is string
                       && request.resource.data.text.size() > 0
                       && request.resource.data.text.size() <= 200;
-        allow update: if isRealUser();
+        allow update: if isRealUser() && request.auth.uid == resource.data.userId;
         allow delete: if isRealUser()
                       && (request.auth.uid == resource.data.userId
                           || request.auth.uid == get(/databases/$(database)/documents/posts/$(postId)).data.uploadedBy);

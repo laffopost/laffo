@@ -80,7 +80,7 @@
 .postmodal-user-card::before {
   content: "";
   display: block;
-  height: 70px;
+  height: 56px;
   flex-shrink: 0;
   background: linear-gradient(
     135deg,
@@ -101,7 +101,11 @@
   gap: 8px;
   padding: 0 16px 14px;
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
   text-align: center;
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-primary-20) transparent;
 }
 
 .postmodal-user-avatar {
@@ -114,7 +118,7 @@
     0 0 0 2px var(--color-primary-60),
     0 0 14px var(--color-primary-25),
     0 6px 16px var(--bg-dark-50);
-  margin-top: -38px;
+  margin-top: -32px;
   flex-shrink: 0;
   background: var(--gradient-primary);
   transition:
@@ -228,13 +232,13 @@
 }
 
 .postmodal-stat-label {
-  font-size: 0.55rem;
-  color: var(--text-30);
+  font-size: 0.65rem;
+  color: var(--text-50);
   font-weight: 600;
   margin-top: 3px;
   display: block;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .postmodal-user-details {

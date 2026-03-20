@@ -4,10 +4,14 @@
    ═══════════════════════════════════════════════════════════════════ */
 
 .messages-page {
-  min-height: 70vh;
-  padding: 20px 16px 40px;
+  height: calc(100vh - 100px);
+  padding: 20px 16px;
   max-width: 960px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 /* ── Login prompt ─────────────────────────────────────────────────── */
@@ -57,9 +61,8 @@
 /* ── Wrapper (split-pane container) ───────────────────────────────── */
 .messages-wrapper {
   display: flex;
-  height: calc(80vh - 40px);
-  min-height: 480px;
-  max-height: 700px;
+  flex: 1;
+  min-height: 0;
   background: linear-gradient(
     160deg,
     rgba(30, 27, 65, 0.95),
@@ -76,12 +79,11 @@
 /* ── Mobile ───────────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .messages-page {
-    padding: 10px 8px 24px;
+    height: calc(100vh - 70px);
+    padding: 10px 8px;
   }
 
   .messages-wrapper {
-    height: calc(85vh - 20px);
-    max-height: none;
     border-radius: 14px;
   }
 }
