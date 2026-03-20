@@ -109,6 +109,7 @@ const PostModal = memo(
     return (
       <>
         <div className="image-modal-overlay" onClick={onClose}>
+          <div className="modal-border-wrap" onClick={(e) => e.stopPropagation()}>
           <div
             className="image-modal-content"
             onClick={(e) => e.stopPropagation()}
@@ -139,6 +140,7 @@ const PostModal = memo(
               </div>
               <PostModalCommentsSection post={post} onClose={onClose} />
             </div>
+          </div>
           </div>
         </div>
 
