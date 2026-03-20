@@ -446,6 +446,17 @@ export const PostProvider = ({ children }) => {
           newPost.bgColor = postData.bgColor || "#1a1a2e";
         }
 
+        if (postData.type === "quiz") {
+          newPost.question = postData.question;
+          newPost.options = postData.options;
+          newPost.correctIndex = postData.correctIndex ?? 0;
+          newPost.explanation = postData.explanation || null;
+          newPost.bgColor = postData.bgColor || "#1a1a2e";
+          newPost.description = postData.description || null;
+          newPost.voteCounts = postData.voteCounts || postData.options.map(() => 0);
+          newPost.votes = postData.votes || {};
+        }
+
         log("🔥 PostContext - Final post object being saved:", newPost);
 
         const docRef = await addDoc(collection(db, "posts"), newPost);
@@ -693,6 +704,50 @@ export const PostProvider = ({ children }) => {
   );
 
   const getUserPollVote = useCallback(
+    (postId) => {
+      if (!userId) return null;
+      const post = postsRef.current.find((p) => p.id === postId);
+      return post?.votes?.[userId] ?? null;
+    },
+    [userId],
+  );
+
+  const voteQuiz = useCallback(
+    async (postId, optionIndex) => {
+      if (!userId) return;
+      if (firebaseUser?.isAnonymous) return;
+      const post = postsRef.current.find((p) => p.id === postId);
+      if (!post || post.type !== "quiz") return;
+      if (post.votes && post.votes[userId] !== undefined) return;
+
+      const currentCounts = post.voteCounts || post.options.map(() => 0);
+      const newCounts = [...currentCounts];
+      newCounts[optionIndex] = (newCounts[optionIndex] || 0) + 1;
+
+      setPosts((prev) =>
+        prev.map((p) =>
+          p.id === postId
+            ? { ...p, voteCounts: newCounts, votes: { ...p.votes, [userId]: optionIndex } }
+            : p,
+        ),
+      );
+
+      try {
+        const postRef = doc(db, "posts", postId);
+        await updateDoc(postRef, {
+          voteCounts: newCounts,
+          [`votes.${userId}`]: optionIndex,
+        });
+        log(`✅ Quiz answer recorded: option ${optionIndex} on post ${postId}`);
+      } catch (err) {
+        logError("❌ Quiz vote error:", err);
+        setPosts((prev) => prev.map((p) => (p.id === postId ? post : p)));
+      }
+    },
+    [db, userId, firebaseUser],
+  );
+
+  const getUserQuizVote = useCallback(
     (postId) => {
       if (!userId) return null;
       const post = postsRef.current.find((p) => p.id === postId);
@@ -1000,6 +1055,7 @@ export const PostProvider = ({ children }) => {
       editPost,
       toggleReaction,
       votePoll,
+      voteQuiz,
       addComment,
       deleteComment,
       toggleCommentReaction,
@@ -1009,6 +1065,7 @@ export const PostProvider = ({ children }) => {
       getReactions,
       getUserReaction,
       getUserPollVote,
+      getUserQuizVote,
       getPostById,
       getPostsByType,
     };
@@ -1018,6 +1075,7 @@ export const PostProvider = ({ children }) => {
     editPost,
     toggleReaction,
     votePoll,
+    voteQuiz,
     addComment,
     deleteComment,
     toggleCommentReaction,
@@ -1026,6 +1084,7 @@ export const PostProvider = ({ children }) => {
     getReactions,
     getUserReaction,
     getUserPollVote,
+    getUserQuizVote,
     getPostById,
     getPostsByType,
   ]);

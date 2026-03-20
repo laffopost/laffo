@@ -5,6 +5,7 @@ import CreateStatusForm from "./CreateStatusForm";
 import CreatePollForm from "./CreatePollForm";
 import CreateMediaForm from "./CreateMediaForm";
 import CreateCountdownForm from "./CreateCountdownForm";
+import CreateQuizForm from "./CreateQuizForm";
 import "./AddPostModal.css";
 
 export default function AddPostModal({
@@ -33,7 +34,7 @@ export default function AddPostModal({
   };
 
   // In edit mode, resolve "image"-type posts (stored as non-status/poll/media types)
-  const resolvedType = selectedType === "image" || (editMode && selectedType && selectedType !== "status" && selectedType !== "poll" && selectedType !== "media" && selectedType !== "countdown") ? "image" : selectedType;
+  const resolvedType = selectedType === "image" || (editMode && selectedType && selectedType !== "status" && selectedType !== "poll" && selectedType !== "media" && selectedType !== "countdown" && selectedType !== "quiz") ? "image" : selectedType;
 
   if (!resolvedType) {
     return (
@@ -101,6 +102,14 @@ export default function AddPostModal({
               <h3 className="option-label">Countdown</h3>
               <p className="option-desc">Count down to an event</p>
             </div>
+
+            <div className="option-card" onClick={() => setSelectedType("quiz")}>
+              <div className="option-icon">
+                <span style={{ fontSize: "32px" }}>🧠</span>
+              </div>
+              <h3 className="option-label">Quiz</h3>
+              <p className="option-desc">Test your community's knowledge</p>
+            </div>
           </div>
         </div>
       </div>
@@ -148,6 +157,13 @@ export default function AddPostModal({
         )}
         {resolvedType === "countdown" && (
           <CreateCountdownForm
+            onSubmit={onSubmit}
+            onClose={onClose}
+            onBack={handleBack}
+          />
+        )}
+        {resolvedType === "quiz" && (
+          <CreateQuizForm
             onSubmit={onSubmit}
             onClose={onClose}
             onBack={handleBack}

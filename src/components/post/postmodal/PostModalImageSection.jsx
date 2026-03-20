@@ -20,6 +20,7 @@ import MediaPlayer from "../MediaPlayer";
 import StatusRenderer from "../StatusRenderer";
 import PollRenderer from "../PollRenderer";
 import CountdownRenderer from "../CountdownRenderer";
+import QuizRenderer from "../QuizRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
 import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon } from "../../../utils/icons";
 import FollowListModal from "../../profile/FollowListModal";
@@ -40,6 +41,8 @@ export default function PostModalImageSection({
     posts,
     votePoll,
     getUserPollVote,
+    voteQuiz,
+    getUserQuizVote,
   } = usePosts();
 
   // Always use live data from context so votes update immediately without reload
@@ -503,6 +506,22 @@ export default function PostModalImageSection({
               bgColor={post.bgColor || "#1a1a2e"}
               compact={false}
               className="modal-countdown"
+            />
+          ) : post.type === "quiz" ? (
+            <QuizRenderer
+              question={livePost.question}
+              options={livePost.options || []}
+              correctIndex={livePost.correctIndex ?? 0}
+              explanation={livePost.explanation}
+              bgColor={livePost.bgColor || "#1a1a2e"}
+              voteCounts={livePost.voteCounts}
+              userVote={getUserQuizVote(livePost.id)}
+              onVote={(optionIndex) => {
+                if (!requireAuth("answer a quiz")) return;
+                voteQuiz(livePost.id, optionIndex);
+              }}
+              compact={false}
+              className="modal-quiz"
             />
           ) : isMediaPost ? (
             <MediaPlayer image={post} />

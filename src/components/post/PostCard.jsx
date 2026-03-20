@@ -5,6 +5,7 @@ import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon } fro
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 import CountdownRenderer from "./CountdownRenderer";
+import QuizRenderer from "./QuizRenderer";
 import LinkPreview from "../common/LinkPreview";
 
 const AVAILABLE_REACTIONS = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
@@ -116,6 +117,16 @@ const PostCard = memo(
                 bgColor={post.bgColor || "#1a1a2e"}
                 compact={true}
                 className="post-countdown-thumbnail"
+              />
+            ) : post.type === "quiz" ? (
+              <QuizRenderer
+                question={post.question}
+                options={post.options || []}
+                correctIndex={post.correctIndex ?? 0}
+                bgColor={post.bgColor || "#1a1a2e"}
+                voteCounts={post.voteCounts}
+                compact={true}
+                className="post-quiz-thumbnail"
               />
             ) : post.type === "media" && post.embedUrl ? (
               <div className="media-thumbnail-preview">
