@@ -1,7 +1,6 @@
 .image-card {
   height: fit-content;
   width: 100%;
-  border: 1px solid var(--border-primary);
   background: var(--bg-dark-20);
   border-radius: 12px;
   overflow: hidden;
@@ -290,7 +289,10 @@
   align-items: center;
   justify-content: center;
   gap: 4px;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
   line-height: 1;
 }
 
@@ -335,7 +337,10 @@
   justify-content: center;
   width: 30px;
   height: 30px;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
 }
 
 .reaction-more-btn:hover {
@@ -421,7 +426,10 @@
   align-items: center;
   justify-content: center;
   gap: 2px;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
   flex-shrink: 0;
 }
 
@@ -441,7 +449,10 @@
   height: 30px;
   font-size: 0.72rem;
   gap: 3px;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
 }
 
 .small-comment:hover {
@@ -476,7 +487,10 @@
   height: 30px;
   font-size: 0.72rem;
   font-weight: 600;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
 }
 
 .small-share:hover {

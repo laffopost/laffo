@@ -2,6 +2,53 @@ import { db } from "../firebase/config";
 
 import logger from "./logger";
 
+// Extract @usernames from comment text
+export function extractMentions(text) {
+  const matches = text.match(/@([a-zA-Z0-9_]+)/g) || [];
+  return [...new Set(matches.map((m) => m.slice(1)))];
+}
+
+// Notify each @mentioned user
+export const notifyMentionedUsers = async ({
+  mentionedUsernames,
+  fromUserId,
+  fromUsername,
+  postId,
+  commentText,
+}) => {
+  if (!mentionedUsernames?.length || !fromUserId) return;
+  try {
+    const { getDocs, addDoc, collection, query, where, serverTimestamp } =
+      await import("firebase/firestore");
+
+    await Promise.all(
+      mentionedUsernames.map(async (username) => {
+        if (!username) return;
+        const snap = await getDocs(
+          query(collection(db, "users"), where("username", "==", username)),
+        );
+        if (snap.empty) return;
+        const mentionedUserId = snap.docs[0].id;
+        if (mentionedUserId === fromUserId) return;
+        return addDoc(collection(db, "notifications"), {
+          userId: mentionedUserId,
+          fromUserId,
+          fromUsername: fromUsername || "Anonymous",
+          type: "mention",
+          postId,
+          message: `${fromUsername || "Someone"} mentioned you in a comment`,
+          commentText: commentText?.slice(0, 100) || "",
+          read: false,
+          createdAt: serverTimestamp(),
+        });
+      }),
+    );
+    logger.log(`✅ Mention notifications sent for: ${mentionedUsernames.join(", ")}`);
+  } catch (error) {
+    logger.error("❌ Error notifying mentioned users:", error);
+  }
+};
+
 // Notify all followers when a user creates a new post
 export const notifyFollowersOfNewPost = async ({
   authorId,

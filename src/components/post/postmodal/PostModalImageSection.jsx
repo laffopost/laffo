@@ -19,6 +19,7 @@ import "./PostModalImageSection.css";
 import MediaPlayer from "../MediaPlayer";
 import StatusRenderer from "../StatusRenderer";
 import PollRenderer from "../PollRenderer";
+import CountdownRenderer from "../CountdownRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
 import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon } from "../../../utils/icons";
 import FollowListModal from "../../profile/FollowListModal";
@@ -494,6 +495,14 @@ export default function PostModalImageSection({
               }}
               compact={false}
               className="modal-poll"
+            />
+          ) : post.type === "countdown" ? (
+            <CountdownRenderer
+              targetDate={post.targetDate}
+              emoji={post.emoji || "🎉"}
+              bgColor={post.bgColor || "#1a1a2e"}
+              compact={false}
+              className="modal-countdown"
             />
           ) : isMediaPost ? (
             <MediaPlayer image={post} />

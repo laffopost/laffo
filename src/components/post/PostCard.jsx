@@ -4,6 +4,7 @@ import "./PostCard.css";
 import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
+import CountdownRenderer from "./CountdownRenderer";
 import LinkPreview from "../common/LinkPreview";
 
 const AVAILABLE_REACTIONS = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
@@ -107,6 +108,14 @@ const PostCard = memo(
                 endsAt={post.endsAt}
                 compact={true}
                 className="post-poll-thumbnail"
+              />
+            ) : post.type === "countdown" ? (
+              <CountdownRenderer
+                targetDate={post.targetDate}
+                emoji={post.emoji || "🎉"}
+                bgColor={post.bgColor || "#1a1a2e"}
+                compact={true}
+                className="post-countdown-thumbnail"
               />
             ) : post.type === "media" && post.embedUrl ? (
               <div className="media-thumbnail-preview">

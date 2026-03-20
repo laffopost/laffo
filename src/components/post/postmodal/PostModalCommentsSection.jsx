@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
+import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
   collection,
@@ -8,8 +9,26 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  getDocs,
+  where,
 } from "firebase/firestore";
 import { db } from "../../../firebase/config";
+
+function renderMentions(text, onMentionClick) {
+  if (!text) return text;
+  const parts = text.split(/(@[a-zA-Z0-9_]+)/g);
+  return parts.map((part, i) =>
+    /^@[a-zA-Z0-9_]+$/.test(part) ? (
+      <span
+        key={i}
+        className="mention-chip"
+        onClick={(e) => { e.stopPropagation(); onMentionClick(part.slice(1)); }}
+      >
+        {part}
+      </span>
+    ) : part,
+  );
+}
 
 function fmtDate(ts) {
   if (!ts) return null;
@@ -50,12 +69,58 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const { requireAuth, isLoggedIn } = useRequireAuth();
   const userId = firebaseUser?.uid;
 
+  const navigate = useNavigate();
+
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [showCommentReactionPicker, setShowCommentReactionPicker] = useState(null);
   const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
   const [avatars, setAvatars] = useState({});
   const commentReactionPickerRef = useRef(null);
+  const inputRef = useRef(null);
+  const mentionTimerRef = useRef(null);
+
+  const [mentionSuggestions, setMentionSuggestions] = useState([]);
+  const [showMentions, setShowMentions] = useState(false);
+  const [mentionIndex, setMentionIndex] = useState(0);
+
+  const closeMentions = useCallback(() => {
+    setShowMentions(false);
+    setMentionSuggestions([]);
+    setMentionIndex(0);
+  }, []);
+
+  const handleCommentChange = useCallback((e) => {
+    const val = e.target.value;
+    setNewComment(val);
+    const cursor = e.target.selectionStart;
+    const match = val.slice(0, cursor).match(/@([a-zA-Z0-9_]*)$/);
+    if (!match) { closeMentions(); return; }
+    const q = match[1];
+    setShowMentions(true);
+    setMentionIndex(0);
+    clearTimeout(mentionTimerRef.current);
+    mentionTimerRef.current = setTimeout(async () => {
+      try {
+        const usersQuery = q
+          ? query(collection(db, "users"), where("username", ">=", q), where("username", "<=", q + "\uf8ff"), limit(6))
+          : query(collection(db, "users"), limit(6));
+        const snap = await getDocs(usersQuery);
+        setMentionSuggestions(snap.docs.map((d) => ({ uid: d.id, ...d.data() })).filter((u) => u.username));
+      } catch { setMentionSuggestions([]); }
+    }, 150);
+  }, [db, closeMentions]);
+
+  const selectMention = useCallback((username) => {
+    const input = inputRef.current;
+    const cursor = input?.selectionStart ?? newComment.length;
+    const before = newComment.slice(0, cursor).replace(/@([a-zA-Z0-9_]*)$/, `@${username} `);
+    const after = newComment.slice(cursor);
+    const next = before + after;
+    setNewComment(next);
+    closeMentions();
+    setTimeout(() => { input?.focus(); input?.setSelectionRange(before.length, before.length); }, 0);
+  }, [newComment, closeMentions]);
 
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
@@ -132,6 +197,12 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const handleInputClick = (e) => e.stopPropagation();
 
   const handleInputKeyDown = (e) => {
+    if (showMentions && mentionSuggestions.length > 0) {
+      if (e.key === "ArrowDown") { e.preventDefault(); setMentionIndex((i) => Math.min(i + 1, mentionSuggestions.length - 1)); return; }
+      if (e.key === "ArrowUp") { e.preventDefault(); setMentionIndex((i) => Math.max(i - 1, 0)); return; }
+      if (e.key === "Enter") { e.preventDefault(); selectMention(mentionSuggestions[mentionIndex].username); return; }
+      if (e.key === "Escape") { closeMentions(); return; }
+    }
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       e.stopPropagation();
@@ -225,15 +296,29 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         onSubmit={handleAddComment}
         onClick={handleInputClick}
       >
-        <div className="comment-input-wrapper" onClick={handleInputClick}>
+        <div className="comment-input-wrapper" onClick={handleInputClick} style={{ position: "relative" }}>
+          {showMentions && mentionSuggestions.length > 0 && (
+            <div className="mention-dropdown">
+              {mentionSuggestions.map((user, i) => (
+                <button
+                  key={user.uid}
+                  type="button"
+                  className={`mention-option${i === mentionIndex ? " active" : ""}`}
+                  onMouseDown={(e) => { e.preventDefault(); selectMention(user.username); }}
+                >
+                  {user.avatar && <img src={user.avatar} alt="" className="mention-avatar" />}
+                  <span>@{user.username}</span>
+                </button>
+              ))}
+            </div>
+          )}
           <input
+            ref={inputRef}
             type="text"
             value={newComment}
-            onChange={(e) => setNewComment(e.target.value)}
+            onChange={handleCommentChange}
             onKeyDown={handleInputKeyDown}
-            placeholder={
-              isLoggedIn ? "Add a comment..." : "Log in to comment..."
-            }
+            placeholder={isLoggedIn ? "Add a comment… type @ to mention" : "Log in to comment..."}
             className="comment-input"
             maxLength={200}
             onClick={handleInputClick}
@@ -354,7 +439,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                         </button>
                       )}
                   </div>
-                  <p className="comment-text">{comment.text}</p>
+                  <p className="comment-text">{renderMentions(comment.text, (username) => navigate(`/profile/${username.toLowerCase()}`))}</p>
                   <div className="comment-reactions-row">
                     {reactionEntries.length > 0 && (
                       <div className="comment-reactions-display">

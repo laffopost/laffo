@@ -69,6 +69,8 @@ export default function NotificationsPage() {
         return <UserIcon size={20} />;
       case "new_post":
         return <AddIcon size={20} />;
+      case "mention":
+        return <span style={{ fontSize: "16px", fontWeight: 800, color: "var(--color-primary)" }}>@</span>;
       default:
         return <NotificationIcon size={20} />;
     }

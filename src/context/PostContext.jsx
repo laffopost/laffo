@@ -36,6 +36,8 @@ import { useAuth } from "./AuthContext";
 import {
   createNotificationForPost,
   notifyFollowersOfNewPost,
+  notifyMentionedUsers,
+  extractMentions,
 } from "../utils/notificationUtils";
 
 
@@ -438,6 +440,12 @@ export const PostProvider = ({ children }) => {
           newPost.votes = postData.votes || {};
         }
 
+        if (postData.type === "countdown") {
+          newPost.targetDate = postData.targetDate;
+          newPost.emoji = postData.emoji || "🎉";
+          newPost.bgColor = postData.bgColor || "#1a1a2e";
+        }
+
         log("🔥 PostContext - Final post object being saved:", newPost);
 
         const docRef = await addDoc(collection(db, "posts"), newPost);
@@ -763,6 +771,17 @@ export const PostProvider = ({ children }) => {
             currentUsername: username,
             commentText,
           });
+
+          const mentions = extractMentions(commentText);
+          if (mentions.length > 0) {
+            notifyMentionedUsers({
+              mentionedUsernames: mentions,
+              fromUserId: userId,
+              fromUsername: username,
+              postId: imageId,
+              commentText,
+            });
+          }
         }
 
         log("✅ Comment added to subcollection");
