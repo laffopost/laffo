@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback, memo } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo, memo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -77,6 +77,8 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
   const [avatars, setAvatars] = useState({});
+  const [replyTo, setReplyTo] = useState(null); // { id, author }
+  const [expandedReplies, setExpandedReplies] = useState(new Set());
   const commentReactionPickerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -100,6 +102,37 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
     return () => unsub();
   }, [post?.id]);
+
+  // Build a set of top-level IDs so we can resolve root parents
+  // All replies flatten to level 2 max (no deeper nesting)
+  const { topLevel, repliesByParent, replyCountByParent, topLevelIds } = useMemo(() => {
+    const top = [];
+    const topIds = new Set();
+    const replies = {};
+    const counts = {};
+
+    // First pass: identify top-level comments
+    for (const c of comments) {
+      if (!c.parentId) {
+        top.push(c);
+        topIds.add(c.id);
+      }
+    }
+
+    // Second pass: group all replies under their root parent
+    for (const c of comments) {
+      if (c.parentId) {
+        // If parentId is a top-level comment, use it directly.
+        // If parentId is itself a reply, find the root parent.
+        const rootId = topIds.has(c.parentId) ? c.parentId : c.rootParentId || c.parentId;
+        if (!replies[rootId]) replies[rootId] = [];
+        replies[rootId].push(c);
+        counts[rootId] = (counts[rootId] || 0) + 1;
+      }
+    }
+
+    return { topLevel: top, repliesByParent: replies, replyCountByParent: counts, topLevelIds: topIds };
+  }, [comments]);
 
   // Fetch avatars for unique authors
   useEffect(() => {
@@ -142,15 +175,52 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
       const commentText = newComment.trim();
       const avatar = userProfile?.avatar || firebaseUser?.photoURL || "😂";
+      // replyTo.id is always the root parent (handleReply resolves it)
+      const parentId = replyTo?.id || null;
+      const replyToAuthor = replyTo?.author || null;
+      // rootParentId = same as parentId here since we always resolve to root
+      const rootParentId = parentId;
 
       setNewComment("");
-      addComment(post.id, commentText, avatar).catch((err) => {
+      setReplyTo(null);
+
+      // Auto-expand replies for the parent we just replied to
+      if (parentId) {
+        setExpandedReplies((prev) => new Set(prev).add(parentId));
+      }
+
+      addComment(post.id, commentText, avatar, parentId, replyToAuthor, rootParentId).catch((err) => {
         setNewComment(commentText);
         toast.error(err.message || "Failed to post comment");
       });
     },
-    [newComment, post.id, userProfile, firebaseUser, addComment, requireAuth],
+    [newComment, post.id, userProfile, firebaseUser, addComment, requireAuth, replyTo],
   );
+
+  const handleReply = useCallback((comment) => {
+    if (!requireAuth("reply to a comment")) return;
+    // Always reply under the root parent (max 2 levels)
+    const rootId = comment.parentId
+      ? (comment.rootParentId || comment.parentId)
+      : comment.id;
+    setReplyTo({ id: rootId, author: comment.author });
+    setNewComment(`@${comment.author} `);
+    inputRef.current?.focus?.();
+  }, [requireAuth]);
+
+  const cancelReply = useCallback(() => {
+    setReplyTo(null);
+    setNewComment("");
+  }, []);
+
+  const toggleReplies = useCallback((commentId) => {
+    setExpandedReplies((prev) => {
+      const next = new Set(prev);
+      if (next.has(commentId)) next.delete(commentId);
+      else next.add(commentId);
+      return next;
+    });
+  }, []);
 
   const handleInputClick = (e) => e.stopPropagation();
 
@@ -159,6 +229,9 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       e.preventDefault();
       e.stopPropagation();
       handleAddComment(e);
+    }
+    if (e.key === "Escape" && replyTo) {
+      cancelReply();
     }
   };
 
@@ -211,6 +284,148 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
     [userId],
   );
 
+  // Render a single comment (used for both top-level and replies)
+  const renderComment = (comment, isReply = false) => {
+    const reactions = getCommentReactionCounts(comment);
+    const userReaction = getUserCommentReaction(comment);
+    const reactionEntries = Object.entries(reactions);
+    const isAnonymous =
+      !comment.author ||
+      comment.author.trim().toLowerCase() === "anonymous";
+
+    const avatarUrl = comment.avatar ?? avatars[comment.author] ?? null;
+
+    const avatarNode = avatarUrl ? (
+      <img
+        src={avatarUrl}
+        alt="avatar"
+        className="comment-avatar"
+        style={{
+          width: isReply ? 20 : 24,
+          height: isReply ? 20 : 24,
+          borderRadius: "50%",
+          objectFit: "cover",
+          border: "1.5px solid #8b5cf6",
+          background: "#23234a",
+        }}
+      />
+    ) : null;
+
+    return (
+      <div key={comment.id} className={`comment-item ${isReply ? "comment-reply" : ""}`}>
+        <div className="comment-content">
+          <div
+            className="comment-header"
+            style={{ display: "flex", alignItems: "center", gap: 4 }}
+          >
+            {avatarNode}
+            {isAnonymous ? (
+              <span className="comment-user">{comment.author}</span>
+            ) : (
+              <a
+                className="comment-user clickable-author-modal"
+                href={`/profile/${encodeURIComponent(comment.author)}`}
+                title={`View ${comment.author}'s profile`}
+              >
+                {comment.author}
+              </a>
+            )}
+            {!isAnonymous &&
+              comment.userId &&
+              firebaseUser &&
+              !firebaseUser.isAnonymous &&
+              comment.userId !== firebaseUser.uid && (
+                <button
+                  className="comment-dm-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    window.dispatchEvent(
+                      new CustomEvent("openDM", {
+                        detail: {
+                          uid: comment.userId,
+                          username: comment.author,
+                          avatar: avatarUrl || null,
+                        },
+                      }),
+                    );
+                  }}
+                  title={`DM ${comment.author}`}
+                >
+                  <MessageIcon size={14} />
+                </button>
+              )}
+            <span className="comment-time" style={{ marginLeft: 8 }}>
+              {fmtCommentTime(comment.createdAt) || comment.timestamp || comment.time}
+            </span>
+            {firebaseUser &&
+              !firebaseUser.isAnonymous &&
+              (comment.userId === firebaseUser.uid ||
+                post.uploadedBy === firebaseUser.uid ||
+                post.userId === firebaseUser.uid) && (
+                <button
+                  className="comment-delete-btn"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setConfirmDeleteCommentId(comment.id);
+                  }}
+                  title="Delete comment"
+                >
+                  <DeleteIcon size={13} />
+                </button>
+              )}
+            {(!firebaseUser || comment.userId !== firebaseUser.uid) && (
+              <button
+                className="comment-react-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!requireAuth("react to a comment")) return;
+                  if (showCommentReactionPicker === comment.id) {
+                    setShowCommentReactionPicker(null);
+                  } else {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setPickerPos({ top: rect.top - 8, right: window.innerWidth - rect.right });
+                    setShowCommentReactionPicker(comment.id);
+                  }
+                }}
+                title={userReaction ? "Change reaction" : "Add reaction"}
+              >
+                <EmojiIcon size={13} />
+              </button>
+            )}
+          </div>
+          <p className="comment-text">{renderMentions(comment.text, (username) => navigate(`/profile/${username.toLowerCase()}`))}</p>
+          <div className="comment-reactions-row">
+            {reactionEntries.length > 0 && (
+              <div className="comment-reactions-display">
+                {reactionEntries.map(([emoji, count]) => (
+                  <button
+                    key={emoji}
+                    className={`comment-reaction-bubble ${
+                      userReaction === emoji ? "active" : ""
+                    }`}
+                    onClick={() => {
+                      if (!requireAuth("react to a comment")) return;
+                      toggleCommentReaction(post.id, comment.id, emoji);
+                    }}
+                    title={`${count} reaction${count !== 1 ? "s" : ""}`}
+                  >
+                    {emoji} {count}
+                  </button>
+                ))}
+              </div>
+            )}
+            <button
+              className="comment-reply-btn"
+              onClick={() => handleReply(comment)}
+            >
+              Reply
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="comments-section">
       <div className="comments-close-row">
@@ -248,6 +463,17 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       )}
 
       <h3 className="comments-header">Comments ({comments.length})</h3>
+
+      {/* Reply indicator */}
+      {replyTo && (
+        <div className="comment-reply-indicator">
+          <span>Replying to <strong>@{replyTo.author}</strong></span>
+          <button onClick={cancelReply} className="comment-reply-cancel">
+            <CloseIcon size={12} />
+          </button>
+        </div>
+      )}
+
       <form
         className="add-comment-form"
         onSubmit={handleAddComment}
@@ -260,7 +486,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
             value={newComment}
             onChange={setNewComment}
             onKeyDown={handleInputKeyDown}
-            placeholder={isLoggedIn ? "Add a comment… type @ to mention" : "Log in to comment..."}
+            placeholder={replyTo ? `Reply to @${replyTo.author}...` : isLoggedIn ? "Add a comment… type @ to mention" : "Log in to comment..."}
             className="comment-input"
             maxLength={200}
             onClick={handleInputClick}
@@ -287,142 +513,37 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         </div>
       </form>
       <div className="comments-list">
-        {comments.length === 0 ? (
+        {topLevel.length === 0 && comments.length === 0 ? (
           <div className="no-comments">
             <p>No comments yet. Be the first to comment! <ChatIcon size={16} style={{display: 'inline', marginLeft: '4px'}} /></p>
           </div>
         ) : (
-          comments.map((comment) => {
-            const reactions = getCommentReactionCounts(comment);
-            const userReaction = getUserCommentReaction(comment);
-            const reactionEntries = Object.entries(reactions);
-            const isAnonymous =
-              !comment.author ||
-              comment.author.trim().toLowerCase() === "anonymous";
-
-            const avatarUrl = comment.avatar ?? avatars[comment.author] ?? null;
-
-            const avatarNode = avatarUrl ? (
-              <img
-                src={avatarUrl}
-                alt="avatar"
-                className="comment-avatar"
-                style={{
-                  width: 24,
-                  height: 24,
-                  borderRadius: "50%",
-                  objectFit: "cover",
-                  border: "1.5px solid #8b5cf6",
-                  background: "#23234a",
-                }}
-              />
-            ) : null;
+          topLevel.map((comment) => {
+            const replyCount = replyCountByParent[comment.id] || 0;
+            const replies = repliesByParent[comment.id] || [];
+            const isExpanded = expandedReplies.has(comment.id);
 
             return (
-              <div key={comment.id} className="comment-item">
-                <div className="comment-content">
-                  <div
-                    className="comment-header"
-                    style={{ display: "flex", alignItems: "center", gap: 4 }}
-                  >
-                    {avatarNode}
-                    {isAnonymous ? (
-                      <span className="comment-user">{comment.author}</span>
-                    ) : (
-                      <a
-                        className="comment-user clickable-author-modal"
-                        href={`/profile/${encodeURIComponent(comment.author)}`}
-                        title={`View ${comment.author}'s profile`}
-                      >
-                        {comment.author}
-                      </a>
-                    )}
-                    {!isAnonymous &&
-                      comment.userId &&
-                      firebaseUser &&
-                      !firebaseUser.isAnonymous &&
-                      comment.userId !== firebaseUser.uid && (
-                        <button
-                          className="comment-dm-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.dispatchEvent(
-                              new CustomEvent("openDM", {
-                                detail: {
-                                  uid: comment.userId,
-                                  username: comment.author,
-                                  avatar: avatarUrl || null,
-                                },
-                              }),
-                            );
-                          }}
-                          title={`DM ${comment.author}`}
-                        >
-                          <MessageIcon size={14} />
-                        </button>
-                      )}
-                    <span className="comment-time" style={{ marginLeft: 8 }}>
-                      {fmtCommentTime(comment.createdAt) || comment.timestamp || comment.time}
-                    </span>
-                    {firebaseUser &&
-                      !firebaseUser.isAnonymous &&
-                      (comment.userId === firebaseUser.uid ||
-                        post.uploadedBy === firebaseUser.uid ||
-                        post.userId === firebaseUser.uid) && (
-                        <button
-                          className="comment-delete-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setConfirmDeleteCommentId(comment.id);
-                          }}
-                          title="Delete comment"
-                        >
-                          <DeleteIcon size={13} />
-                        </button>
-                      )}
-                    {(!firebaseUser || comment.userId !== firebaseUser.uid) && (
-                      <button
-                        className="comment-react-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!requireAuth("react to a comment")) return;
-                          if (showCommentReactionPicker === comment.id) {
-                            setShowCommentReactionPicker(null);
-                          } else {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setPickerPos({ top: rect.top - 8, right: window.innerWidth - rect.right });
-                            setShowCommentReactionPicker(comment.id);
-                          }
-                        }}
-                        title={userReaction ? "Change reaction" : "Add reaction"}
-                      >
-                        <EmojiIcon size={13} />
-                      </button>
-                    )}
-                  </div>
-                  <p className="comment-text">{renderMentions(comment.text, (username) => navigate(`/profile/${username.toLowerCase()}`))}</p>
-                  <div className="comment-reactions-row">
-                    {reactionEntries.length > 0 && (
-                      <div className="comment-reactions-display">
-                        {reactionEntries.map(([emoji, count]) => (
-                          <button
-                            key={emoji}
-                            className={`comment-reaction-bubble ${
-                              userReaction === emoji ? "active" : ""
-                            }`}
-                            onClick={() => {
-                              if (!requireAuth("react to a comment")) return;
-                              toggleCommentReaction(post.id, comment.id, emoji);
-                            }}
-                            title={`${count} reaction${count !== 1 ? "s" : ""}`}
-                          >
-                            {emoji} {count}
-                          </button>
-                        ))}
+              <div key={comment.id} className="comment-thread">
+                {renderComment(comment, false)}
+                {replyCount > 0 && (
+                  <div className="comment-replies-section">
+                    <button
+                      className="comment-view-replies-btn"
+                      onClick={() => toggleReplies(comment.id)}
+                    >
+                      <span className="comment-replies-line" />
+                      {isExpanded
+                        ? "Hide replies"
+                        : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"}`}
+                    </button>
+                    {isExpanded && (
+                      <div className="comment-replies-list">
+                        {replies.map((reply) => renderComment(reply, true))}
                       </div>
                     )}
                   </div>
-                </div>
+                )}
               </div>
             );
           })

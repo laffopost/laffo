@@ -894,6 +894,118 @@
   box-shadow: 0 0 6px var(--color-primary-30);
 }
 
+/* ── Reply threading ───────────────────────────────────────────── */
+
+.comment-thread {
+  display: flex;
+  flex-direction: column;
+}
+
+.comment-reply {
+  padding-left: 28px;
+  border-left: 2px solid var(--color-primary-20);
+  margin-left: 12px;
+}
+
+.comment-reply .comment-text {
+  font-size: 0.85rem;
+}
+
+.comment-reply-btn {
+  background: none;
+  border: none;
+  color: var(--text-50);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.15s;
+}
+
+.comment-reply-btn:hover {
+  color: var(--color-primary);
+}
+
+.comment-replies-section {
+  margin-left: 12px;
+  margin-top: 4px;
+}
+
+.comment-view-replies-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text-50);
+  font-size: 0.72rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color 0.15s;
+}
+
+.comment-view-replies-btn:hover {
+  color: var(--color-primary);
+}
+
+.comment-replies-line {
+  display: inline-block;
+  width: 24px;
+  height: 1px;
+  background: var(--color-primary-30);
+  flex-shrink: 0;
+}
+
+.comment-replies-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 6px;
+  animation: fadeInReplies 0.2s ease-out;
+}
+
+@keyframes fadeInReplies {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.comment-reply-indicator {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  margin-bottom: 6px;
+  background: var(--color-primary-10);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 0 8px 8px 0;
+  font-size: 0.78rem;
+  color: var(--text-base);
+  animation: fadeInReplies 0.15s ease-out;
+}
+
+.comment-reply-indicator strong {
+  color: var(--color-primary);
+}
+
+.comment-reply-cancel {
+  background: none;
+  border: none;
+  color: var(--text-50);
+  cursor: pointer;
+  padding: 2px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.comment-reply-cancel:hover {
+  background: var(--color-danger-12);
+  color: var(--color-danger);
+}
+
 /* Confirm modal styles live in src/components/common/ConfirmModal.css */
 
 /* Responsive */

@@ -763,7 +763,7 @@ export const PostProvider = ({ children }) => {
   // PostContext only manages commentCount on the parent post doc.
 
   const addComment = useCallback(
-    async (imageId, commentText, avatar) => {
+    async (imageId, commentText, avatar, parentId = null, replyToAuthor = null, rootParentId = null) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) {
         throw new Error("You must be logged in to comment");
@@ -791,6 +791,9 @@ export const PostProvider = ({ children }) => {
         userId: userId,
         reactions: {},
         createdAt: serverTimestamp(),
+        ...(parentId && { parentId }),
+        ...(replyToAuthor && { replyToAuthor }),
+        ...(rootParentId && { rootParentId }),
       };
 
       // Optimistic: bump local commentCount
