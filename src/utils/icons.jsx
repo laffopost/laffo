@@ -66,10 +66,6 @@ import {
   CloudSun,
   LayoutGrid,
   MessageCircle as MessageCircleIcon,
-  BarChart2,
-  Brain,
-  Timer,
-  Film,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────
@@ -158,10 +154,6 @@ export const Icons = {
   emoji: Smile,
   fire: Flame,
 
-  // Layout
-  list: MoreVertical,
-  grid: Menu,
-
   // Music & Media
   music: Music,
   upload: Upload,
@@ -170,20 +162,7 @@ export const Icons = {
   image: Image,
   eye: Eye,
   sparkle: Star,
-  diamond: Star,
 };
-
-/**
- * Icon component wrapper with default styling
- */
-export function Icon({ name, ...props }) {
-  const IconComponent = Icons[name];
-  if (!IconComponent) {
-    console.warn(`Icon "${name}" not found in Icons object`);
-    return null;
-  }
-  return <IconComponent {...props} />;
-}
 
 // ─────────────────────────────────────────────────────────────────
 // CONVENIENCE EXPORTS
@@ -196,30 +175,16 @@ export const BackIcon = Icons.back;
 export const SendIcon = Icons.send;
 export const AddIcon = Icons.add;
 export const RemoveIcon = Icons.remove;
-export const SuccessIcon = Icons.success;
-export const ErrorIcon = Icons.error;
-export const InfoIcon = Icons.info;
 export const CheckIcon = Icons.check;
 export const HeartIcon = Icons.heart;
 export const ChatIcon = Icons.comment;
-export const SearchIcon = Icons.search;
-export const SettingsIcon = Icons.settings;
-export const UserIcon = Icons.user;
-export const LogoutIcon = Icons.logout;
-export const MenuIcon = Icons.hamburger;
-export const NotificationIcon = Icons.notification;
-export const MoonIcon = Icons.moon;
-export const SunIcon = Icons.sun;
-export const LikeIcon = Icons.like;
 export const ShareIcon = Icons.share;
 export const EmojiIcon = Icons.emoji;
-export const FireIcon = Icons.fire;
 export const ListIcon = Icons.list;
 export const GridIcon = Icons.grid;
 export const ChevronLeftIcon = Icons.chevronLeft;
 export const ChevronRightIcon = Icons.chevronRight;
 export const ChevronDownIcon = Icons.chevronDown;
-export const ShuffleIcon = Icons.shuffle;
 export const MessageIcon = Icons.message;
 export const CalendarIcon = Icons.calendar;
 export const UserProfileIcon = Icons.user;
@@ -235,13 +200,11 @@ export const EyeIcon = Icons.eye;
 export const SparkleIcon = Icons.sparkle;
 export const BookmarkIcon = Icons.bookmark;
 export const EraserIcon = Icons.eraser;
-export const PollIcon = BarChart2;
-export const QuizIcon = Brain;
-export const TimerIcon = Timer;
-export const FilmIcon = Film;
 export const UndoIcon = Icons.undo;
 export const HomeIcon = Icons.home;
 export const GamesIcon = Icons.games;
 export const SportsIcon = Icons.sports;
 export const WeatherIcon = Icons.weather;
 export const GridIcon2 = Icons.grid;
+export const NotificationIcon = Icons.notification;
+export const UserIcon = Icons.user;
