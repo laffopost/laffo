@@ -343,31 +343,28 @@
 
 /* Post info block inside comments panel */
 .comments-post-info {
-  padding: 12px 14px;
-  margin-bottom: 4px;
-  background: rgba(139, 92, 246, 0.07);
-  border: 1px solid var(--color-primary-15);
+  padding: 14px 16px;
+  margin-bottom: 6px;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
   border-radius: var(--radius-md);
 }
 
 .comments-post-title {
-  color: var(--text-base);
+  color: #fff;
   font-size: 1.1rem;
   font-weight: 800;
-  margin: 0 0 4px;
+  margin: 0 0 6px;
   line-height: 1.3;
 }
 
 .comments-post-desc {
-  color: var(--text-base);
-  opacity: 0.82;
-  font-size: 0.88rem;
-  margin: 4px 0 0;
-  line-height: 1.5;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
+  color: rgba(255, 255, 255, 0.88);
+  font-size: 0.9rem;
+  margin: 0;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .comments-post-expiry {
@@ -844,6 +841,8 @@
   border: 1px solid transparent;
   color: rgba(165, 180, 252, 0.5);
   padding: 1px 3px;
+  margin-left: auto;
+  flex-shrink: 0;
   border-radius: var(--radius-md);
   font-size: 0.75rem;
   font-weight: 600;
@@ -859,17 +858,15 @@
 
 .comment-reaction-picker {
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
-  margin-top: 2px;
-  background: var(--gradient-primary-145);
-  border: 1px solid var(--color-primary-40);
-  border-radius: var(--radius-md);
-  padding: 8px;
-  display: flex;
-  gap: 6px;
-  box-shadow: 0 8px 24px var(--bg-dark-50);
-  z-index: 100;
+  gap: 4px;
+  background: var(--bg-overlay, rgba(20, 18, 48, 0.98));
+  border: 1px solid var(--color-primary-20);
+  border-radius: 24px;
+  padding: 4px 8px;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  white-space: nowrap;
+  width: fit-content;
 }
 
 .comment-reaction-option {
@@ -877,20 +874,24 @@
   border: none;
   font-size: 1.1rem;
   cursor: pointer;
-  padding: 4px;
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s, background 0.15s;
+  padding: 0;
 }
 
 .comment-reaction-option:hover {
-  background: var(--color-primary-15);
   transform: scale(1.3);
+  background: var(--color-primary-15);
 }
 
 .comment-reaction-option.selected {
-  background: var(--color-primary-30);
-  border: 2px solid var(--color-primary);
-  box-shadow: 0 0 12px var(--color-primary-30);
+  background: var(--color-primary-25);
+  box-shadow: 0 0 6px var(--color-primary-30);
 }
 
 /* Confirm modal styles live in src/components/common/ConfirmModal.css */
@@ -1155,6 +1156,24 @@
 /* Remove the old close button styles */
 .share-menu-close {
   display: none;
+}
+
+.image-modal-mood {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 8px;
+}
+
+.comments-post-mood {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 6px;
 }
 
 .image-modal-timestamp {

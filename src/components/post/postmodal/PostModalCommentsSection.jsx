@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback, memo } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import {
@@ -73,6 +74,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [showCommentReactionPicker, setShowCommentReactionPicker] = useState(null);
+  const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
   const [avatars, setAvatars] = useState({});
   const commentReactionPickerRef = useRef(null);
@@ -217,8 +219,13 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         </button>
       </div>
       {/* Post description + meta */}
-      {(post.type === "status" || post.description) && (
+      {(post.type === "status" || post.description || post.mood) && (
         <div className="comments-post-info">
+          {post.mood && (
+            <div className="comments-post-mood">
+              is feeling {post.mood.emoji} <strong>{post.mood.label}</strong>
+            </div>
+          )}
           {post.type !== "status" && post.description && (
             <p className="comments-post-desc">{post.description}</p>
           )}
@@ -379,11 +386,13 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                         onClick={(e) => {
                           e.stopPropagation();
                           if (!requireAuth("react to a comment")) return;
-                          setShowCommentReactionPicker(
-                            showCommentReactionPicker === comment.id
-                              ? null
-                              : comment.id,
-                          );
+                          if (showCommentReactionPicker === comment.id) {
+                            setShowCommentReactionPicker(null);
+                          } else {
+                            const rect = e.currentTarget.getBoundingClientRect();
+                            setPickerPos({ top: rect.top - 8, right: window.innerWidth - rect.right });
+                            setShowCommentReactionPicker(comment.id);
+                          }
                         }}
                         title={userReaction ? "Change reaction" : "Add reaction"}
                       >
@@ -412,22 +421,6 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                         ))}
                       </div>
                     )}
-                    {showCommentReactionPicker === comment.id && (
-                      <div className="comment-reaction-picker" ref={commentReactionPickerRef}>
-                        {availableReactions.map((emoji) => (
-                          <button
-                            key={emoji}
-                            className={`comment-reaction-option ${userReaction === emoji ? "selected" : ""}`}
-                            onClick={() => {
-                              if (!requireAuth("react to a comment")) return;
-                              toggleCommentReaction(post.id, comment.id, emoji);
-                            }}
-                          >
-                            {emoji}
-                          </button>
-                        ))}
-                      </div>
-                    )}
                   </div>
                 </div>
               </div>
@@ -443,6 +436,38 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
           onConfirm={() => { deleteComment(post.id, confirmDeleteCommentId); setConfirmDeleteCommentId(null); }}
           onCancel={() => setConfirmDeleteCommentId(null)}
         />
+      )}
+      {showCommentReactionPicker && createPortal(
+        <div
+          className="comment-reaction-picker"
+          ref={commentReactionPickerRef}
+          style={{
+            position: "fixed",
+            top: pickerPos.top,
+            right: pickerPos.right,
+            transform: "translateY(-100%)",
+            zIndex: 99999,
+          }}
+        >
+          {availableReactions.map((emoji) => {
+            const activeComment = comments.find(c => c.id === showCommentReactionPicker);
+            const activeUserReaction = activeComment ? getUserCommentReaction(activeComment) : null;
+            return (
+              <button
+                key={emoji}
+                className={`comment-reaction-option ${activeUserReaction === emoji ? "selected" : ""}`}
+                onClick={() => {
+                  if (!requireAuth("react to a comment")) return;
+                  toggleCommentReaction(post.id, showCommentReactionPicker, emoji);
+                  setShowCommentReactionPicker(null);
+                }}
+              >
+                {emoji}
+              </button>
+            );
+          })}
+        </div>,
+        document.body
       )}
     </div>
   );

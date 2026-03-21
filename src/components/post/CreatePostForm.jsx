@@ -4,10 +4,10 @@ import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon, EraserIcon, UndoIcon, DeleteIcon, EditIcon } from "../../utils/icons";
 import { compressImage } from "../../utils/imageCompression";
+import { ColorPicker } from "../common";
+import { MOODS } from "../../utils/postConstants";
 import "./AddPostModal.css";
 import "./CreatePostForm.css";
-
-import logger from "../../utils/logger";
 const POST_TYPES = [
   { value: "all", label: "General", emoji: "🖼️" },
   { value: "trending", label: "Trending", emoji: "🔥" },
@@ -54,6 +54,7 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
   const isEditMode = !!onSave;
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
+  const [mood, setMood] = useState(null);
   const [formData, setFormData] = useState({
     description: initialData?.description || "",
     author: "",
@@ -169,16 +170,23 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
     if (!ctx) return;
     saveToUndo();
     setIsDrawing(true);
-    const rect = canvasRef.current.getBoundingClientRect();
+    const { x, y } = getCanvasPos(e.clientX, e.clientY);
     ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.moveTo(x, y);
+  };
+
+  const getCanvasPos = (clientX, clientY) => {
+    const canvas = canvasRef.current;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (canvas.width / rect.width),
+      y: (clientY - rect.top) * (canvas.height / rect.height),
+    };
   };
 
   const draw = (e) => {
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    if (eraserMode) setEraserPos({ x, y });
+    const { x, y } = getCanvasPos(e.clientX, e.clientY);
+    if (eraserMode) setEraserPos({ x: e.clientX - canvasRef.current.getBoundingClientRect().left, y: e.clientY - canvasRef.current.getBoundingClientRect().top });
     if (!isDrawing || !ctx) return;
     ctx.lineTo(x, y);
     ctx.strokeStyle = eraserMode ? canvasBgColor : drawColor;
@@ -197,18 +205,18 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
     if (!ctx) return;
     saveToUndo();
     setIsDrawing(true);
-    const rect = canvasRef.current.getBoundingClientRect();
     const touch = e.touches[0];
+    const { x, y } = getCanvasPos(touch.clientX, touch.clientY);
     ctx.beginPath();
-    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.moveTo(x, y);
   };
 
   const drawTouch = (e) => {
     e.preventDefault();
     if (!isDrawing || !ctx) return;
-    const rect = canvasRef.current.getBoundingClientRect();
     const touch = e.touches[0];
-    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    const { x, y } = getCanvasPos(touch.clientX, touch.clientY);
+    ctx.lineTo(x, y);
     ctx.strokeStyle = eraserMode ? canvasBgColor : drawColor;
     ctx.lineWidth = eraserMode ? brushSize * 2 : brushSize;
     ctx.lineCap = "round";
@@ -269,6 +277,7 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
       reactions: initialReactions,
       endsAt,
       isAnonymousPost: postAsAnonymous,
+      mood: mood || null,
     });
     onClose();
   };
@@ -290,6 +299,20 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
         >
           <CloseIcon size={20} />
         </button>
+      </div>
+
+      <div className="form-group">
+        <label>Mood <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+        <div className="status-mood-row">
+          {MOODS.map((m) => (
+            <button key={m.emoji} type="button" title={m.label}
+              className={`status-mood-btn${mood?.emoji === m.emoji ? " active" : ""}`}
+              onClick={() => setMood(mood?.emoji === m.emoji ? null : m)}>
+              {m.emoji}
+            </button>
+          ))}
+        </div>
+        {mood && <span className="status-mood-selected">Feeling {mood.emoji} {mood.label}</span>}
       </div>
 
       <div className="form-group">
@@ -419,63 +442,24 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
 
             <div className="control-group">
               <label>Background:</label>
-              <div className="color-picker-row">
-                {[
-                  "#8b5cf6", "#10b981", "#ef4444", "#f59e0b",
-                  "#3b82f6", "#ec4899", "#000000", "#1a1a2e", "#ffffff",
-                ].map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`color-btn${canvasBgColor === color ? " active" : ""}`}
-                    style={{ background: color }}
-                    onClick={() => handleBgColorChange(color)}
-                  />
-                ))}
-                <label
-                  className={`color-btn color-btn--picker${canvasBgColor === customCanvasBgColor && !["#8b5cf6","#10b981","#ef4444","#f59e0b","#3b82f6","#ec4899","#000000","#1a1a2e","#ffffff"].includes(canvasBgColor) ? " active" : ""}`}
-                  style={{ background: customCanvasBgColor, position: "relative", overflow: "hidden" }}
-                  title="Custom background color"
-                >
-                  <input
-                    type="color"
-                    value={customCanvasBgColor}
-                    onChange={(e) => { setCustomCanvasBgColor(e.target.value); handleBgColorChange(e.target.value); }}
-                    style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
-                  />
-                </label>
-              </div>
+              <ColorPicker
+                colors={["#8b5cf6","#10b981","#ef4444","#f59e0b","#3b82f6","#ec4899","#000000","#1a1a2e","#ffffff"]}
+                value={canvasBgColor}
+                onChange={handleBgColorChange}
+                customColor={customCanvasBgColor}
+                onCustomChange={setCustomCanvasBgColor}
+              />
             </div>
 
             <div className="control-group">
               <label>Draw Color:</label>
-              <div className="color-picker-row">
-                {[
-                  "#ffffff", "#000000", "#ef4444", "#f59e0b",
-                  "#10b981", "#3b82f6", "#8b5cf6", "#ec4899",
-                  "#fbbf24", "#06b6d4",
-                ].map((color) => (
-                  <button
-                    key={color}
-                    type="button"
-                    className={`color-btn${drawColor === color ? " active" : ""}`}
-                    style={{ background: color }}
-                    onClick={() => { setDrawColor(color); setEraserMode(false); }}
-                  />
-                ))}
-                <label
-                  className={`color-btn color-btn--picker${drawColor === customDrawColor && !["#ffffff","#000000","#ef4444","#f59e0b","#10b981","#3b82f6","#8b5cf6","#ec4899","#fbbf24","#06b6d4"].includes(drawColor) ? " active" : ""}`}
-                  style={{ background: customDrawColor, position: "relative", overflow: "hidden" }}
-                  title="Custom draw color"
-                >
-                  <input
-                    type="color"
-                    value={customDrawColor}
-                    onChange={(e) => { setCustomDrawColor(e.target.value); setDrawColor(e.target.value); setEraserMode(false); }}
-                    style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
-                  />
-                </label>
-              </div>
+              <ColorPicker
+                colors={["#ffffff","#000000","#ef4444","#f59e0b","#10b981","#3b82f6","#8b5cf6","#ec4899","#fbbf24","#06b6d4"]}
+                value={drawColor}
+                onChange={(color) => { setDrawColor(color); setEraserMode(false); }}
+                customColor={customDrawColor}
+                onCustomChange={(color) => { setCustomDrawColor(color); setEraserMode(false); }}
+              />
             </div>
 
             <div className="control-group">

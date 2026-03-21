@@ -94,29 +94,31 @@ const PostCard = memo(
         >
           {/* Instagram-style header above the image */}
           <div className="post-card-header">
-            <span
-              className={`image-author-overlay${post.isAnonymousPost ? "" : " clickable-author"}`}
-              onClick={post.isAnonymousPost ? undefined : handleAuthorClick}
-              title={post.isAnonymousPost ? "Anonymous post" : "View profile"}
-              style={{ display: "flex", alignItems: "center", cursor: post.isAnonymousPost ? "default" : "pointer" }}
-            >
-              {authorAvatar && (
-                <img
-                  src={authorAvatar}
-                  alt="avatar"
-                  loading="lazy"
-                  className="post-card-header-avatar"
-                />
+            <div className="post-card-header-left">
+              <span
+                className={`image-author-overlay${post.isAnonymousPost ? "" : " clickable-author"}`}
+                onClick={post.isAnonymousPost ? undefined : handleAuthorClick}
+                title={post.isAnonymousPost ? "Anonymous post" : "View profile"}
+                style={{ display: "flex", alignItems: "center", cursor: post.isAnonymousPost ? "default" : "pointer" }}
+              >
+                {authorAvatar && (
+                  <img
+                    src={authorAvatar}
+                    alt="avatar"
+                    loading="lazy"
+                    className="post-card-header-avatar"
+                  />
+                )}
+                {post.author || "Anonymous"}
+              </span>
+              {post.mood && (
+                <span className="post-card-mood">
+                  is feeling {post.mood.emoji} {post.mood.label}
+                </span>
               )}
-              {post.author || "Anonymous"}
-            </span>
-            <span
-              className={
-                "image-type-badge-overlay" +
-                (post.type === "user" ? " user-type-badge" : "")
-              }
-            >
-              {post.type === "countdown" ? "event" : post.type || "all"}
+            </div>
+            <span className={`image-type-badge-overlay${post.type === "user" ? " user-type-badge" : ""}`}>
+              {post.type === "countdown" ? "event" : post.type || "post"}
             </span>
           </div>
 

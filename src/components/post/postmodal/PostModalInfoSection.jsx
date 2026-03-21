@@ -66,6 +66,11 @@ export default function PostModalInfoSection({ image }) {
   return (
     <div className="image-modal-info">
       <h2>{image.title}</h2>
+      {image.mood && (
+        <div className="image-modal-mood">
+          is feeling {image.mood.emoji} <strong>{image.mood.label}</strong>
+        </div>
+      )}
       <div className="image-modal-desc-row">
         <div className="image-modal-desc">
           {image.description || "No description provided."}

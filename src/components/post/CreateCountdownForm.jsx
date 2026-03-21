@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon } from "../../utils/icons";
+import { ColorPicker } from "../common";
+import { MOODS } from "../../utils/postConstants";
 import CountdownRenderer from "./CountdownRenderer";
 import "./AddPostModal.css";
 
@@ -42,9 +44,11 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
   const [targetDate, setTargetDate] = useState("");
   const [emoji, setEmoji] = useState("🎉");
   const [bgColor, setBgColor] = useState("#000000");
+  const [customBgColor, setCustomBgColor] = useState("#000000");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [error, setError] = useState("");
+  const [mood, setMood] = useState(null);
 
   const author = userProfile?.username || firebaseUser?.displayName || "Anon";
   const authorAvatar = userProfile?.avatar || null;
@@ -81,6 +85,7 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
       image: null,
       endsAt,
       isAnonymousPost: postAsAnonymous,
+      mood: mood || null,
     });
     onClose();
   };
@@ -148,18 +153,22 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
       </div>
 
       <div className="form-group">
-        <label>Background Color</label>
-        <div className="color-picker-row">
-          {BG_COLORS.map((c) => (
-            <button
-              key={c}
-              type="button"
-              className={`color-btn${bgColor === c ? " active" : ""}`}
-              style={{ background: c }}
-              onClick={() => setBgColor(c)}
-            />
+        <label>Mood <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+        <div className="status-mood-row">
+          {MOODS.map((m) => (
+            <button key={m.emoji} type="button" title={m.label}
+              className={`status-mood-btn${mood?.emoji === m.emoji ? " active" : ""}`}
+              onClick={() => setMood(mood?.emoji === m.emoji ? null : m)}>
+              {m.emoji}
+            </button>
           ))}
         </div>
+        {mood && <span className="status-mood-selected">Feeling {mood.emoji} {mood.label}</span>}
+      </div>
+
+      <div className="form-group">
+        <label>Background Color</label>
+        <ColorPicker colors={BG_COLORS} value={bgColor} onChange={setBgColor} customColor={customBgColor} onCustomChange={setCustomBgColor} />
       </div>
 
       <div className="status-preview-section">

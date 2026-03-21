@@ -2,6 +2,8 @@ import { useState } from "react";
 import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon } from "../../utils/icons";
+import { ColorPicker } from "../common";
+import { MOODS } from "../../utils/postConstants";
 import "./AddPostModal.css";
 import "./CreateStatusForm.css";
 
@@ -67,16 +69,6 @@ const FONT_SIZES = [
   { value: "xxl", label: "XXL", px: "2.6rem" },
 ];
 
-const MOODS = [
-  { emoji: "😊", label: "Happy" },
-  { emoji: "🔥", label: "Hyped" },
-  { emoji: "🤔", label: "Thinking" },
-  { emoji: "😢", label: "Sad" },
-  { emoji: "😂", label: "Funny" },
-  { emoji: "💡", label: "Inspired" },
-  { emoji: "😤", label: "Angry" },
-  { emoji: "🥳", label: "Celebrating" },
-];
 
 export default function CreateStatusForm({ onSubmit, onClose, onBack, initialData = null, onSave = null }) {
   const { userProfile, firebaseUser } = useAuth();
@@ -200,56 +192,12 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
 
       <div className="form-group">
         <label>Background Color</label>
-        <div className="color-picker-row">
-          {BG_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className={`color-btn${bgColor === color ? " active" : ""}`}
-              style={{ background: color }}
-              onClick={() => setBgColor(color)}
-            />
-          ))}
-          <label
-            className={`color-btn color-btn--picker${bgColor === customBgColor ? " active" : ""}`}
-            title="Custom color"
-            style={{ background: customBgColor, position: "relative", overflow: "hidden" }}
-          >
-            <input
-              type="color"
-              value={customBgColor}
-              onChange={(e) => { setCustomBgColor(e.target.value); setBgColor(e.target.value); }}
-              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
-            />
-          </label>
-        </div>
+        <ColorPicker colors={BG_COLORS} value={bgColor} onChange={setBgColor} customColor={customBgColor} onCustomChange={setCustomBgColor} />
       </div>
 
       <div className="form-group">
         <label>Text Color</label>
-        <div className="color-picker-row">
-          {TEXT_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className={`color-btn${textColor === color ? " active" : ""}`}
-              style={{ background: color }}
-              onClick={() => setTextColor(color)}
-            />
-          ))}
-          <label
-            className={`color-btn color-btn--picker${textColor === customTextColor ? " active" : ""}`}
-            title="Custom color"
-            style={{ background: customTextColor, position: "relative", overflow: "hidden" }}
-          >
-            <input
-              type="color"
-              value={customTextColor}
-              onChange={(e) => { setCustomTextColor(e.target.value); setTextColor(e.target.value); }}
-              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
-            />
-          </label>
-        </div>
+        <ColorPicker colors={TEXT_COLORS} value={textColor} onChange={setTextColor} customColor={customTextColor} onCustomChange={setCustomTextColor} />
       </div>
 
       <div className="form-group">

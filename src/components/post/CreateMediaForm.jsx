@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon } from "../../utils/icons";
+import { MOODS } from "../../utils/postConstants";
 import "./AddPostModal.css";
 import "./CreateMediaForm.css";
 
@@ -44,6 +45,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
   });
   const [mediaUrlInput, setMediaUrlInput] = useState(initialData?.url || "");
   const [error, setError] = useState("");
+  const [mood, setMood] = useState(null);
 
   useEffect(() => {
     const author = userProfile?.username || firebaseUser?.displayName || "Anon";
@@ -185,6 +187,7 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
       image: thumbnailImage,
       endsAt,
       isAnonymousPost: postAsAnonymous,
+      mood: mood || null,
     };
 
     logger.log("📤 CreateMediaForm - Submitting post data:", postData);
@@ -248,6 +251,20 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
           </div>
         </div>
       )}
+
+      <div className="form-group">
+        <label>Mood <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+        <div className="status-mood-row">
+          {MOODS.map((m) => (
+            <button key={m.emoji} type="button" title={m.label}
+              className={`status-mood-btn${mood?.emoji === m.emoji ? " active" : ""}`}
+              onClick={() => setMood(mood?.emoji === m.emoji ? null : m)}>
+              {m.emoji}
+            </button>
+          ))}
+        </div>
+        {mood && <span className="status-mood-selected">Feeling {mood.emoji} {mood.label}</span>}
+      </div>
 
       <div className="form-group">
         <label htmlFor="description">Caption</label>

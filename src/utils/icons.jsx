@@ -66,6 +66,10 @@ import {
   CloudSun,
   LayoutGrid,
   MessageCircle as MessageCircleIcon,
+  BarChart2,
+  Brain,
+  Timer,
+  Film,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────
@@ -231,6 +235,10 @@ export const EyeIcon = Icons.eye;
 export const SparkleIcon = Icons.sparkle;
 export const BookmarkIcon = Icons.bookmark;
 export const EraserIcon = Icons.eraser;
+export const PollIcon = BarChart2;
+export const QuizIcon = Brain;
+export const TimerIcon = Timer;
+export const FilmIcon = Film;
 export const UndoIcon = Icons.undo;
 export const HomeIcon = Icons.home;
 export const GamesIcon = Icons.games;

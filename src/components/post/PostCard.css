@@ -160,24 +160,36 @@
   text-shadow: 0 0 8px var(--color-success-glow);
 }
 
-.image-type-badge-overlay {
-  font-size: 0.55rem;
-  font-weight: 700;
-  text-transform: uppercase;
+.post-card-header-left {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.post-card-mood {
+  font-size: 0.7rem;
+  color: #8b5cf6;
+  line-height: 1.2;
   white-space: nowrap;
-  flex-shrink: 0;
-  letter-spacing: 0.06em;
-  color: rgba(255,255,255,0.9);
-  background: rgba(139, 92, 246, 0.65);
-  border: 1px solid rgba(139, 92, 246, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.image-type-badge-overlay {
+  font-size: 0.5rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255, 255, 255, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: 3px;
-  padding: 1px 5px;
+  padding: 1px 4px;
 }
 
 .image-type-badge-overlay.user-type-badge {
-  color: var(--color-success);
-  opacity: 1;
-  font-weight: 800;
+  color: rgba(74, 222, 128, 0.5);
+  border-color: rgba(74, 222, 128, 0.2);
 }
 
 .image-badge {

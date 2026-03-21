@@ -69,7 +69,7 @@
   top: calc(100% + 8px);
   right: 0;
   width: 350px;
-  max-height: 400px;
+  max-height: 420px;
   background: var(--bg-overlay);
   border: 2px solid var(--border-divider);
   border-radius: 12px;
@@ -229,19 +229,19 @@
 
 .view-all-btn {
   width: 100%;
-  background: none;
-  border: 1px solid var(--border-divider);
-  color: var(--text-base);
-  padding: 8px 16px;
-  border-radius: 6px;
+  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  border: none;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
   font-size: 0.85rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.2s;
 }
 
 .view-all-btn:hover {
-  background: var(--bg-input);
-  border-color: var(--text-50);
+  opacity: 0.85;
 }
 
 /* Mobile responsiveness */

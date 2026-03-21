@@ -2,6 +2,8 @@ import { useState } from "react";
 import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { AddIcon, RemoveIcon, CloseIcon } from "../../utils/icons";
+import { ColorPicker } from "../common";
+import { MOODS } from "../../utils/postConstants";
 import "./AddPostModal.css";
 import "./CreatePollForm.css";
 import PollRenderer from "./PollRenderer";
@@ -63,6 +65,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
   const [duration, setDuration] = useState("7d");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [multiVote, setMultiVote] = useState(false);
+  const [mood, setMood] = useState(null);
   const [author] = useState(
     userProfile?.username || firebaseUser?.displayName || "Anon",
   );
@@ -121,6 +124,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       authorAvatar: finalAvatar,
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },
       isAnonymousPost: postAsAnonymous,
+      mood: mood || null,
     });
     onClose();
   };
@@ -240,30 +244,22 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       </div>
 
       <div className="form-group">
-        <label>Background Color</label>
-        <div className="color-picker-row">
-          {BG_COLORS.map((color) => (
-            <button
-              key={color}
-              type="button"
-              className={`color-btn${bgColor === color ? " active" : ""}`}
-              style={{ background: color }}
-              onClick={() => setBgColor(color)}
-            />
+        <label>Mood <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+        <div className="status-mood-row">
+          {MOODS.map((m) => (
+            <button key={m.emoji} type="button" title={m.label}
+              className={`status-mood-btn${mood?.emoji === m.emoji ? " active" : ""}`}
+              onClick={() => setMood(mood?.emoji === m.emoji ? null : m)}>
+              {m.emoji}
+            </button>
           ))}
-          <label
-            className={`color-btn color-btn--picker${bgColor === customBgColor ? " active" : ""}`}
-            title="Custom color"
-            style={{ background: customBgColor, position: "relative", overflow: "hidden" }}
-          >
-            <input
-              type="color"
-              value={customBgColor}
-              onChange={(e) => { setCustomBgColor(e.target.value); setBgColor(e.target.value); }}
-              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
-            />
-          </label>
         </div>
+        {mood && <span className="status-mood-selected">Feeling {mood.emoji} {mood.label}</span>}
+      </div>
+
+      <div className="form-group">
+        <label>Background Color</label>
+        <ColorPicker colors={BG_COLORS} value={bgColor} onChange={setBgColor} customColor={customBgColor} onCustomChange={setCustomBgColor} />
       </div>
 
       {!isEditMode && (

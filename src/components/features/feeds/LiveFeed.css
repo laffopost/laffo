@@ -61,7 +61,8 @@
 .feed-item {
   display: flex;
   align-items: flex-start;
-  padding: 4px;
+  gap: 7px;
+  padding: 6px 8px;
   background: var(--color-primary-5);
   border: 1px solid var(--color-primary-15);
   border-radius: 10px;
@@ -145,18 +146,16 @@
   font-size: 0.7rem;
 }
 
-.feed-link {
-  color: var(--color-primary);
-  text-decoration: none;
-  font-size: 1.2rem;
-  transition: all 0.2s;
+
+.feed-chevron {
   flex-shrink: 0;
-  display: flex;
-  align-items: center;
+  color: rgba(255, 255, 255, 0.25);
+  align-self: center;
+  transition: color 0.2s, transform 0.2s;
 }
 
-.feed-link:hover {
-  color: var(--color-success);
+.feed-item:hover .feed-chevron {
+  color: var(--color-primary);
   transform: translateX(2px);
 }
 

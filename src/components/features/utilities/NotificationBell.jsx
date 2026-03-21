@@ -3,7 +3,6 @@ import { useNotifications } from "../../../context/NotificationContext";
 import { useNavigate } from "react-router-dom";
 import "./NotificationBell.css";
 import { NotificationIcon, ChatIcon, HeartIconSmall, MessageIcon, UserIcon, AddIcon } from "../../../utils/icons";
-import logger from "../../../utils/logger";
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const { notifications, unreadCount, markAsRead, markAllAsRead } =
@@ -80,6 +79,8 @@ export default function NotificationBell() {
         return <ChatIcon size={18} />;
       case "follow":
         return <UserIcon size={18} style={{ color: "#a78bfa" }} />;
+      case "mention":
+        return <span style={{ fontSize: 14, fontWeight: 700, color: "#60a5fa" }}>@</span>;
       case "new_post":
         return <AddIcon size={18} style={{ color: "#4ade80" }} />;
       default:

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 import { usePostData } from "../../../context/PostContext";
 import "./LiveFeed.css";
 
@@ -21,15 +22,16 @@ export default function LiveFeed() {
         const activityId = `post-${post.id}`;
         if (!seenIds.has(activityId)) {
           seenIds.add(activityId);
+          const label = post.title || post.question || post.status || post.description || null;
           newActivities.push({
             id: activityId,
             type: "post",
             user: post.author || "Anonymous",
-            action: "posted",
-            title: post.title,
+            action: post.type === "poll" ? "created a poll" : post.type === "quiz" ? "created a quiz" : post.type === "status" ? "posted a status" : post.type === "countdown" ? "added an event" : post.type === "media" ? "shared media" : "posted",
+            title: label,
             timestamp: post.createdAt,
             link: `/image/${post.id}`,
-            emoji: "📸",
+            postType: post.type,
           });
         }
       });
@@ -50,7 +52,7 @@ export default function LiveFeed() {
             type: "game",
             user: score.username,
             action: `won ${gameNames[score.game]}`,
-            emoji: "🏆",
+            postType: "game",
             score: score.score,
             timestamp: score.timestamp,
             link: "/games",
@@ -120,8 +122,10 @@ export default function LiveFeed() {
           <div className="feed-items">
             {activities.map((activity) => (
               <div
-                key={`live-feed-${activity.id}`} // Changed to ensure uniqueness
+                key={`live-feed-${activity.id}`}
                 className="feed-item"
+                onClick={() => activity.link && navigate(activity.link)}
+                style={{ cursor: activity.link ? "pointer" : "default" }}
               >
                 <div className="feed-item-content">
                   <div className="feed-item-text">
@@ -137,9 +141,7 @@ export default function LiveFeed() {
                       <span className="feed-title">"{activity.title}"</span>
                     )}
                     {activity.score && (
-                      <span className="feed-score">
-                        Score: {activity.score}
-                      </span>
+                      <span className="feed-score">Score: {activity.score}</span>
                     )}
                   </div>
                   <div className="feed-timestamp">
@@ -147,19 +149,7 @@ export default function LiveFeed() {
                   </div>
                 </div>
                 {activity.link && (
-                  <a
-                    href={activity.link}
-                    className="feed-link"
-                    title="View"
-                    onClick={(e) => {
-                      if (activity.link.startsWith("/image/")) {
-                        e.preventDefault();
-                        navigate(activity.link);
-                      }
-                    }}
-                  >
-                    →
-                  </a>
+                  <ChevronRight size={15} className="feed-chevron" />
                 )}
               </div>
             ))}

@@ -5,3 +5,4 @@ export { default as AnimatedDotsBackground } from "./AnimatedDotsBackground";
 export { default as ThemeToggle } from "./ThemeToggle";
 export { default as Dropdown } from "./Dropdown";
 export { SkeletonCard, SkeletonGallery, SkeletonLine } from "./Skeleton";
+export { default as ColorPicker } from "./ColorPicker";

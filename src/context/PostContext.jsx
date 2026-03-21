@@ -410,6 +410,7 @@ export const PostProvider = ({ children }) => {
           commentCount: 0,
           endsAt: postData.endsAt || null,
           isAnonymousPost: isAnon,
+          mood: postData.mood || null,
         };
 
         if (postData.type === "user-profile" || postData.type === "user") {
