@@ -197,6 +197,9 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
   return (
     <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        {!isEditMode ? (
+          <button type="button" onClick={onBack} className="btn-back btn-back--top">← Back</button>
+        ) : <div />}
         <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
           {isEditMode ? "Edit Media" : "Share Media"}
         </h3>

@@ -33,7 +33,6 @@
   margin-bottom: 0;
   /* sticky so it stays in view while scrolling posts */
   position: sticky;
-  top: 16px;
 }
 
 /* ─── Hero banner ─── */
@@ -190,7 +189,6 @@
   line-height: 1.45;
 }
 
-
 /* ─── Buttons ─── */
 .profile-edit-btn,
 .profile-logout-btn {
@@ -341,7 +339,9 @@
   vertical-align: middle;
   margin-left: 2px;
   opacity: 0.55;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 
 .profile-stat--clickable:hover .profile-stat-arrow {

@@ -7,6 +7,7 @@ import "./AddPostModal.css";
 const EMOJIS = ["🎉", "🚀", "⏰", "🎂", "🏆", "❤️", "🔥", "🎯", "📅", "💎", "🌟", "⚡"];
 
 const BG_COLORS = [
+  "#000000",
   "#1a1a2e",
   "#23234a",
   "#8b5cf6",
@@ -40,7 +41,7 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
   const [description, setDescription] = useState("");
   const [targetDate, setTargetDate] = useState("");
   const [emoji, setEmoji] = useState("🎉");
-  const [bgColor, setBgColor] = useState("#1a1a2e");
+  const [bgColor, setBgColor] = useState("#000000");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
   const [error, setError] = useState("");
@@ -87,9 +88,8 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
   return (
     <form className="add-image-form" onSubmit={handleSubmit}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
-        <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: 700 }}>
-          Create Event
-        </h3>
+        <button type="button" onClick={onBack} className="btn-back btn-back--top">← Back</button>
+        <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: 700 }}>Create Event</h3>
         <button type="button" onClick={onClose} className="close-btn" title="Close">
           <CloseIcon size={20} />
         </button>

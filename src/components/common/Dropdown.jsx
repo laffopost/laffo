@@ -51,7 +51,7 @@ export default function Dropdown({ label, items, className = "", variant = "defa
       onMouseLeave={handleMouseLeave}
     >
       <button
-        className="dropdown-button"
+        className={`dropdown-button${isOpen ? " open" : ""}`}
         onClick={() => setIsOpen((v) => !v)}
       >
         <span>{label}</span>

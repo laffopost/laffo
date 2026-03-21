@@ -276,3 +276,77 @@
   background: var(--bg-dark-10);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
 }
+
+/* Canvas wrap + eraser cursor */
+.canvas-wrap {
+  position: relative;
+}
+
+.eraser-cursor {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4);
+}
+
+.drawing-canvas.eraser-active {
+  cursor: none;
+}
+
+/* Canvas tool buttons */
+.canvas-tools-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.canvas-tool-btn {
+  flex: 1;
+  min-width: 60px;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border: 1.5px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.canvas-tool-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: rgba(139, 92, 246, 0.5);
+  color: #c4b5fd;
+}
+
+.canvas-tool-btn.active {
+  background: rgba(139, 92, 246, 0.3);
+  border-color: rgba(139, 92, 246, 0.8);
+  color: #c4b5fd;
+}
+
+.canvas-tool-btn--undo:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.canvas-tool-btn--clear {
+  border-color: rgba(239, 68, 68, 0.3);
+  color: rgba(239, 68, 68, 0.7);
+}
+
+.canvas-tool-btn--clear:hover {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.6);
+  color: #ef4444;
+}

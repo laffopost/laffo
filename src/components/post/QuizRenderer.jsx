@@ -1,7 +1,8 @@
 import "./QuizRenderer.css";
 
 function getContrastColor(hex) {
-  if (!hex || hex.length < 7) return "#ffffff";
+  if (!hex || !hex.startsWith("#")) return "#ffffff";
+  if (hex.length < 7) return "#ffffff";
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -58,7 +59,7 @@ export default function QuizRenderer({
     return (
       <div
         className={`quiz-renderer quiz-renderer--compact ${className}`}
-        style={{ backgroundColor: bgColor, color: textColor }}
+        style={{ background: bgColor, color: textColor }}
       >
         <div className="quiz-renderer__badge">🧠 Quiz</div>
         <p className="quiz-renderer__question">{question || "Quiz question"}</p>
@@ -89,7 +90,7 @@ export default function QuizRenderer({
   return (
     <div
       className={`quiz-renderer quiz-renderer--full ${className}`}
-      style={{ backgroundColor: bgColor, color: textColor }}
+      style={{ background: bgColor, color: textColor }}
     >
       <div className="quiz-renderer__badge quiz-renderer__badge--full">🧠 Quiz</div>
       <p className="quiz-renderer__question">{question}</p>

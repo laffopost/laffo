@@ -1,6 +1,10 @@
 @keyframes overlayIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes modalIn {
@@ -173,6 +177,8 @@
   overflow: hidden;
   min-height: 0;
   height: 100%;
+  background-color: #000;
+  border: 1px solid var(--border-primary);
 }
 
 .image-modal-display {
@@ -606,7 +612,9 @@
   transition: background 0.1s;
 }
 
-.mention-option:last-child { border-bottom: none; }
+.mention-option:last-child {
+  border-bottom: none;
+}
 
 .mention-option:hover,
 .mention-option.active {
@@ -1055,7 +1063,10 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
   white-space: nowrap;
   display: flex;
   align-items: center;
@@ -1206,7 +1217,10 @@
   gap: 5px;
   cursor: pointer;
   color: var(--color-primary);
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
 }
 
 .reaction-bubble:hover {
@@ -1251,7 +1265,10 @@
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
   white-space: nowrap;
 }
 

@@ -1,7 +1,8 @@
 import "./PollRenderer.css";
 
 function getContrastColor(hex) {
-  if (!hex || hex.length < 7) return "#ffffff";
+  if (!hex || !hex.startsWith("#")) return "#ffffff";
+  if (hex.length < 7) return "#ffffff";
   const r = parseInt(hex.slice(1, 3), 16);
   const g = parseInt(hex.slice(3, 5), 16);
   const b = parseInt(hex.slice(5, 7), 16);
@@ -64,7 +65,7 @@ export default function PollRenderer({
     return (
       <div
         className={`poll-renderer poll-renderer--compact ${className}`}
-        style={{ backgroundColor: bgColor, color: textColor }}
+        style={{ background: bgColor, color: textColor }}
       >
         <p className="poll-renderer__question">{question || "Poll question"}</p>
         <div className="poll-renderer__compact-options">
@@ -108,7 +109,7 @@ export default function PollRenderer({
   return (
     <div
       className={`poll-renderer poll-renderer--full ${className}`}
-      style={{ backgroundColor: bgColor, color: textColor }}
+      style={{ background: bgColor, color: textColor }}
     >
       <p className="poll-renderer__question">{question}</p>
       {description && (

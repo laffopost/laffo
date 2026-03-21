@@ -12,17 +12,17 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-full, 50%);
-  background: var(--bg-surface, rgba(255, 255, 255, 0.05));
-  border: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
-  transition: var(--transition-fast, all 0.2s ease);
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: background 0.18s, border-color 0.18s;
 }
 
 .theme-toggle-btn:hover .theme-toggle-track {
-  background: var(--bg-surface-hover, rgba(255, 255, 255, 0.1));
-  border-color: var(--color-primary-glow, rgba(139, 92, 246, 0.3));
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.35);
 }
 
 .theme-toggle-thumb {

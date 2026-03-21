@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import { NotificationBell } from "../features/utilities";
 import { ThemeToggle, Dropdown } from "../common";
-import { VolumeUpIcon, VolumeMuteIcon } from "../../utils/icons";
+import { VolumeUpIcon, VolumeMuteIcon, HomeIcon, GamesIcon, SportsIcon, WeatherIcon, GridIcon2, MessageIcon } from "../../utils/icons";
 import laughLogo from "../../assets/laugh.png";
 import "./Header.css";
 import { signOut } from "firebase/auth";
@@ -315,6 +315,40 @@ const Header = memo(function Header() {
           <div className="header-user-section">{userSection}</div>
         </nav>
       </div>
+
+      {/* ── Mobile bottom nav ── */}
+      <nav className="bottom-nav" aria-label="Mobile navigation">
+        <Link to="/" className={`bottom-nav-item${location.pathname === "/" ? " active" : ""}`}>
+          <HomeIcon size={22} />
+          <span>Home</span>
+        </Link>
+        <Link to="/games" className={`bottom-nav-item${location.pathname === "/games" ? " active" : ""}`}>
+          <GamesIcon size={22} />
+          <span>Games</span>
+        </Link>
+        <Link to="/messages" className={`bottom-nav-item${location.pathname === "/messages" ? " active" : ""}`} style={{ position: "relative" }}>
+          <MessageIcon size={22} />
+          {unreadMessageCount > 0 && (
+            <span className="bottom-nav-badge">{unreadMessageCount}</span>
+          )}
+          <span>Messages</span>
+        </Link>
+        <Link to="/sports" className={`bottom-nav-item${location.pathname === "/sports" ? " active" : ""}`}>
+          <SportsIcon size={22} />
+          <span>Sports</span>
+        </Link>
+        <Link to="/weather" className={`bottom-nav-item${location.pathname === "/weather" ? " active" : ""}`}>
+          <WeatherIcon size={22} />
+          <span>Weather</span>
+        </Link>
+        <button
+          className={`bottom-nav-item${["/stocks","/trade","/sponsors"].includes(location.pathname) ? " active" : ""}`}
+          onClick={() => setMobileMenuOpen(v => !v)}
+        >
+          <GridIcon2 size={22} />
+          <span>More</span>
+        </button>
+      </nav>
     </header>
   );
 });

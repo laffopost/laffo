@@ -7,6 +7,8 @@ import "./CreatePollForm.css";
 import QuizRenderer from "./QuizRenderer";
 
 const BG_COLORS = [
+  // Solids — black first (default)
+  "#000000",
   "#1a1a2e",
   "#8b5cf6",
   "#10b981",
@@ -15,6 +17,19 @@ const BG_COLORS = [
   "#3b82f6",
   "#ec4899",
   "#ffffff",
+  // Gradients
+  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+  "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
+];
+
+const DIFFICULTIES = [
+  { value: "easy", label: "Easy", color: "#10b981" },
+  { value: "medium", label: "Medium", color: "#f59e0b" },
+  { value: "hard", label: "Hard", color: "#ef4444" },
 ];
 
 export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
@@ -24,9 +39,11 @@ export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
   const [options, setOptions] = useState(["", "", "", ""]);
   const [correctIndex, setCorrectIndex] = useState(0);
   const [explanation, setExplanation] = useState("");
-  const [bgColor, setBgColor] = useState("#1a1a2e");
+  const [bgColor, setBgColor] = useState("#000000");
+  const [customBgColor, setCustomBgColor] = useState("#ff6b6b");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [error, setError] = useState("");
+  const [difficulty, setDifficulty] = useState("medium");
 
   const author = userProfile?.username || firebaseUser?.displayName || "Anon";
   const authorAvatar = userProfile?.avatar || null;
@@ -66,6 +83,7 @@ export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
       correctIndex,
       explanation: explanation.trim() || null,
       bgColor,
+      difficulty,
       voteCounts: validOptions.map(() => 0),
       votes: {},
       image: null,
@@ -84,6 +102,7 @@ export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
   return (
     <form className="add-image-form" onSubmit={handleSubmit}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
+        <button type="button" onClick={onBack} className="btn-back btn-back--top">← Back</button>
         <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: 700 }}>Create a Quiz</h3>
         <button type="button" onClick={onClose} className="close-btn" title="Close">
           <CloseIcon size={20} />
@@ -172,6 +191,23 @@ export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
       </div>
 
       <div className="form-group">
+        <label>Difficulty</label>
+        <div className="quiz-difficulty-row">
+          {DIFFICULTIES.map((d) => (
+            <button
+              key={d.value}
+              type="button"
+              className={`quiz-difficulty-btn${difficulty === d.value ? " active" : ""}`}
+              style={{ "--diff-color": d.color }}
+              onClick={() => setDifficulty(d.value)}
+            >
+              {d.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
         <label>Background Color</label>
         <div className="color-picker-row">
           {BG_COLORS.map((color) => (
@@ -183,6 +219,18 @@ export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
               onClick={() => setBgColor(color)}
             />
           ))}
+          <label
+            className={`color-btn color-btn--picker${bgColor === customBgColor ? " active" : ""}`}
+            title="Custom color"
+            style={{ background: customBgColor, position: "relative", overflow: "hidden" }}
+          >
+            <input
+              type="color"
+              value={customBgColor}
+              onChange={(e) => { setCustomBgColor(e.target.value); setBgColor(e.target.value); }}
+              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
+            />
+          </label>
         </div>
       </div>
 

@@ -59,6 +59,13 @@ import {
   RefreshCw,
   Music,
   Upload,
+  Eraser,
+  House,
+  Gamepad2,
+  Trophy,
+  CloudSun,
+  LayoutGrid,
+  MessageCircle as MessageCircleIcon,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────
@@ -77,6 +84,13 @@ export const Icons = {
   remove: Minus,
   menu: MoreVertical,
   undo: Undo2,
+  eraser: Eraser,
+  home: House,
+  games: Gamepad2,
+  sports: Trophy,
+  weather: CloudSun,
+  grid: LayoutGrid,
+  messageCircle: MessageCircleIcon,
   shuffle: RefreshCw,
 
   // Status/Feedback
@@ -216,3 +230,10 @@ export const ImageIcon = Icons.image;
 export const EyeIcon = Icons.eye;
 export const SparkleIcon = Icons.sparkle;
 export const BookmarkIcon = Icons.bookmark;
+export const EraserIcon = Icons.eraser;
+export const UndoIcon = Icons.undo;
+export const HomeIcon = Icons.home;
+export const GamesIcon = Icons.games;
+export const SportsIcon = Icons.sports;
+export const WeatherIcon = Icons.weather;
+export const GridIcon2 = Icons.grid;

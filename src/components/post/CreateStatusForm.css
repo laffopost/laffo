@@ -108,3 +108,91 @@
   font-weight: 900;
   font-size: 0.75rem;
 }
+
+/* Font size selector */
+.status-font-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.status-font-btn {
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.status-font-btn.active,
+.status-font-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #c4b5fd;
+}
+
+/* Alignment selector */
+.status-align-row {
+  display: flex;
+  gap: 6px;
+}
+
+.status-align-btn {
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.status-align-btn.active,
+.status-align-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #c4b5fd;
+}
+
+/* Mood selector */
+.status-mood-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.status-mood-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.status-mood-btn.active,
+.status-mood-btn:hover {
+  background: rgba(139, 92, 246, 0.25);
+  border-color: rgba(139, 92, 246, 0.6);
+  transform: scale(1.1);
+}
+
+.status-mood-selected {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 0.78rem;
+  color: #c4b5fd;
+  background: rgba(139, 92, 246, 0.15);
+  border-radius: 20px;
+  padding: 2px 10px;
+}

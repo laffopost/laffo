@@ -7,6 +7,8 @@ import "./CreatePollForm.css";
 import PollRenderer from "./PollRenderer";
 
 const BG_COLORS = [
+  // Solids — black first (default)
+  "#000000",
   "#1a1a2e",
   "#8b5cf6",
   "#10b981",
@@ -15,6 +17,13 @@ const BG_COLORS = [
   "#3b82f6",
   "#ec4899",
   "#ffffff",
+  // Gradients
+  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+  "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
 ];
 
 const DURATIONS = [
@@ -49,9 +58,11 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
   const [description, setDescription] = useState(initialData?.description || "");
   const [options, setOptions] = useState(initialData?.options?.length ? initialData.options : ["", ""]);
   const [error, setError] = useState("");
-  const [bgColor, setBgColor] = useState(initialData?.bgColor || "#1a1a2e");
+  const [bgColor, setBgColor] = useState(initialData?.bgColor || "#000000");
+  const [customBgColor, setCustomBgColor] = useState("#ff6b6b");
   const [duration, setDuration] = useState("7d");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
+  const [multiVote, setMultiVote] = useState(false);
   const [author] = useState(
     userProfile?.username || firebaseUser?.displayName || "Anon",
   );
@@ -83,6 +94,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
         description: description.trim() || null,
         options: validOptions,
         bgColor,
+        multiVote,
       });
       onClose();
       return;
@@ -100,6 +112,7 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       description: description.trim() || null,
       options: validOptions,
       bgColor,
+      multiVote,
       endsAt,
       voteCounts: validOptions.map(() => 0),
       votes: {},
@@ -115,6 +128,9 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
   return (
     <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        {!isEditMode ? (
+          <button type="button" onClick={onBack} className="btn-back btn-back--top">← Back</button>
+        ) : <div />}
         <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
           {isEditMode ? "Edit Poll" : "Create a Poll"}
         </h3>
@@ -213,6 +229,17 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
       </div>
 
       <div className="form-group">
+        <label className="checkbox-label" style={{ marginTop: '4px' }}>
+          <input
+            type="checkbox"
+            checked={multiVote}
+            onChange={() => setMultiVote(v => !v)}
+          />
+          <span>Allow multiple votes per user</span>
+        </label>
+      </div>
+
+      <div className="form-group">
         <label>Background Color</label>
         <div className="color-picker-row">
           {BG_COLORS.map((color) => (
@@ -224,6 +251,18 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
               onClick={() => setBgColor(color)}
             />
           ))}
+          <label
+            className={`color-btn color-btn--picker${bgColor === customBgColor ? " active" : ""}`}
+            title="Custom color"
+            style={{ background: customBgColor, position: "relative", overflow: "hidden" }}
+          >
+            <input
+              type="color"
+              value={customBgColor}
+              onChange={(e) => { setCustomBgColor(e.target.value); setBgColor(e.target.value); }}
+              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
+            />
+          </label>
         </div>
       </div>
 

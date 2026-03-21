@@ -161,17 +161,17 @@
 }
 
 .image-type-badge-overlay {
-  font-size: 0.65rem;
+  font-size: 0.55rem;
   font-weight: 700;
   text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
-  letter-spacing: 0.07em;
-  color: #fff;
-  background: rgba(139, 92, 246, 0.75);
-  border: 1px solid rgba(139, 92, 246, 0.6);
-  border-radius: 4px;
-  padding: 2px 6px;
+  letter-spacing: 0.06em;
+  color: rgba(255,255,255,0.9);
+  background: rgba(139, 92, 246, 0.65);
+  border: 1px solid rgba(139, 92, 246, 0.5);
+  border-radius: 3px;
+  padding: 1px 5px;
 }
 
 .image-type-badge-overlay.user-type-badge {

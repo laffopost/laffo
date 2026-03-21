@@ -83,7 +83,7 @@
   --color-warning:        #fbbf24;
 
   /* Backgrounds */
-  --bg-base:              #0f0f12;
+  --bg-base:              #000000;
   --bg-nav:               rgba(15, 15, 18, 0.98);
   --bg-card:              linear-gradient(145deg, #2a2a3a, #1e1e2e);
   --bg-card-solid:        #23234a;

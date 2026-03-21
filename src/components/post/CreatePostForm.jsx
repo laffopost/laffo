@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import MentionInput from "../common/MentionInput";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
-import { CloseIcon } from "../../utils/icons";
+import { CloseIcon, EraserIcon, UndoIcon, DeleteIcon, EditIcon } from "../../utils/icons";
 import { compressImage } from "../../utils/imageCompression";
 import "./AddPostModal.css";
 import "./CreatePostForm.css";
@@ -63,10 +63,15 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
     type: initialData?.type || "all",
   });
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [canvasBgColor, setCanvasBgColor] = useState("#8b5cf6");
+  const [canvasBgColor, setCanvasBgColor] = useState("#000000");
   const [drawColor, setDrawColor] = useState("#ffffff");
   const [brushSize, setBrushSize] = useState(5);
   const [isDrawing, setIsDrawing] = useState(false);
+  const [eraserMode, setEraserMode] = useState(false);
+  const [undoStack, setUndoStack] = useState([]);
+  const [eraserPos, setEraserPos] = useState(null);
+  const [customCanvasBgColor, setCustomCanvasBgColor] = useState("#ff6b6b");
+  const [customDrawColor, setCustomDrawColor] = useState("#ff6b6b");
 
   const canvasRef = useRef(null);
   const [ctx, setCtx] = useState(null);
@@ -145,8 +150,24 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
     }
   };
 
+  const saveToUndo = () => {
+    if (!canvasRef.current) return;
+    const dataUrl = canvasRef.current.toDataURL();
+    setUndoStack((prev) => [...prev.slice(-9), dataUrl]);
+  };
+
+  const undo = () => {
+    if (undoStack.length === 0 || !ctx) return;
+    const prev = undoStack[undoStack.length - 1];
+    setUndoStack((stack) => stack.slice(0, -1));
+    const img = new Image();
+    img.onload = () => ctx.drawImage(img, 0, 0);
+    img.src = prev;
+  };
+
   const startDrawing = (e) => {
     if (!ctx) return;
+    saveToUndo();
     setIsDrawing(true);
     const rect = canvasRef.current.getBoundingClientRect();
     ctx.beginPath();
@@ -154,17 +175,45 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
   };
 
   const draw = (e) => {
-    if (!isDrawing || !ctx) return;
     const rect = canvasRef.current.getBoundingClientRect();
-    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
-    ctx.strokeStyle = drawColor;
-    ctx.lineWidth = brushSize;
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    if (eraserMode) setEraserPos({ x, y });
+    if (!isDrawing || !ctx) return;
+    ctx.lineTo(x, y);
+    ctx.strokeStyle = eraserMode ? canvasBgColor : drawColor;
+    ctx.lineWidth = eraserMode ? brushSize * 2 : brushSize;
     ctx.lineCap = "round";
+    ctx.lineJoin = "round";
     ctx.stroke();
   };
 
   const stopDrawing = () => {
     setIsDrawing(false);
+  };
+
+  const startDrawingTouch = (e) => {
+    e.preventDefault();
+    if (!ctx) return;
+    saveToUndo();
+    setIsDrawing(true);
+    const rect = canvasRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.beginPath();
+    ctx.moveTo(touch.clientX - rect.left, touch.clientY - rect.top);
+  };
+
+  const drawTouch = (e) => {
+    e.preventDefault();
+    if (!isDrawing || !ctx) return;
+    const rect = canvasRef.current.getBoundingClientRect();
+    const touch = e.touches[0];
+    ctx.lineTo(touch.clientX - rect.left, touch.clientY - rect.top);
+    ctx.strokeStyle = eraserMode ? canvasBgColor : drawColor;
+    ctx.lineWidth = eraserMode ? brushSize * 2 : brushSize;
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
   };
 
   const handleSubmit = (e) => {
@@ -227,6 +276,9 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
   return (
     <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+        {!isEditMode ? (
+          <button type="button" onClick={onBack} className="btn-back btn-back--top">← Back</button>
+        ) : <div />}
         <h3 style={{ margin: 0, fontSize: '1.3rem', fontWeight: 700 }}>
           {isEditMode ? "Edit Post" : "Create an Image Post"}
         </h3>
@@ -329,85 +381,141 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
       {!isEditMode && formData.useCanvas && (
         <div className="canvas-section">
           <div className="canvas-controls">
+            <div className="canvas-tools-row">
+              <button
+                type="button"
+                className={`canvas-tool-btn${!eraserMode ? " active" : ""}`}
+                onClick={() => setEraserMode(false)}
+                title="Draw"
+              >
+                <EditIcon size={14} /> Draw
+              </button>
+              <button
+                type="button"
+                className={`canvas-tool-btn${eraserMode ? " active" : ""}`}
+                onClick={() => setEraserMode(true)}
+                title="Eraser"
+              >
+                <EraserIcon size={14} /> Erase
+              </button>
+              <button
+                type="button"
+                className="canvas-tool-btn canvas-tool-btn--undo"
+                onClick={undo}
+                disabled={undoStack.length === 0}
+                title="Undo"
+              >
+                <UndoIcon size={14} /> Undo
+              </button>
+              <button
+                type="button"
+                onClick={clearCanvas}
+                className="canvas-tool-btn canvas-tool-btn--clear"
+                title="Clear canvas"
+              >
+                <DeleteIcon size={14} /> Clear
+              </button>
+            </div>
+
             <div className="control-group">
               <label>Background:</label>
               <div className="color-picker-row">
                 {[
-                  "#8b5cf6",
-                  "#10b981",
-                  "#ef4444",
-                  "#f59e0b",
-                  "#3b82f6",
-                  "#ec4899",
-                  "#000000",
-                  "#ffffff",
+                  "#8b5cf6", "#10b981", "#ef4444", "#f59e0b",
+                  "#3b82f6", "#ec4899", "#000000", "#1a1a2e", "#ffffff",
                 ].map((color) => (
                   <button
                     key={color}
                     type="button"
-                    className={`color-btn${
-                      canvasBgColor === color ? " active" : ""
-                    }`}
+                    className={`color-btn${canvasBgColor === color ? " active" : ""}`}
                     style={{ background: color }}
                     onClick={() => handleBgColorChange(color)}
                   />
                 ))}
+                <label
+                  className={`color-btn color-btn--picker${canvasBgColor === customCanvasBgColor && !["#8b5cf6","#10b981","#ef4444","#f59e0b","#3b82f6","#ec4899","#000000","#1a1a2e","#ffffff"].includes(canvasBgColor) ? " active" : ""}`}
+                  style={{ background: customCanvasBgColor, position: "relative", overflow: "hidden" }}
+                  title="Custom background color"
+                >
+                  <input
+                    type="color"
+                    value={customCanvasBgColor}
+                    onChange={(e) => { setCustomCanvasBgColor(e.target.value); handleBgColorChange(e.target.value); }}
+                    style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
+                  />
+                </label>
               </div>
             </div>
+
             <div className="control-group">
               <label>Draw Color:</label>
               <div className="color-picker-row">
                 {[
-                  "#ffffff",
-                  "#000000",
-                  "#ef4444",
-                  "#f59e0b",
-                  "#10b981",
-                  "#3b82f6",
-                  "#8b5cf6",
-                  "#ec4899",
+                  "#ffffff", "#000000", "#ef4444", "#f59e0b",
+                  "#10b981", "#3b82f6", "#8b5cf6", "#ec4899",
+                  "#fbbf24", "#06b6d4",
                 ].map((color) => (
                   <button
                     key={color}
                     type="button"
-                    className={`color-btn${
-                      drawColor === color ? " active" : ""
-                    }`}
+                    className={`color-btn${drawColor === color ? " active" : ""}`}
                     style={{ background: color }}
-                    onClick={() => setDrawColor(color)}
+                    onClick={() => { setDrawColor(color); setEraserMode(false); }}
                   />
                 ))}
+                <label
+                  className={`color-btn color-btn--picker${drawColor === customDrawColor && !["#ffffff","#000000","#ef4444","#f59e0b","#10b981","#3b82f6","#8b5cf6","#ec4899","#fbbf24","#06b6d4"].includes(drawColor) ? " active" : ""}`}
+                  style={{ background: customDrawColor, position: "relative", overflow: "hidden" }}
+                  title="Custom draw color"
+                >
+                  <input
+                    type="color"
+                    value={customDrawColor}
+                    onChange={(e) => { setCustomDrawColor(e.target.value); setDrawColor(e.target.value); setEraserMode(false); }}
+                    style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
+                  />
+                </label>
               </div>
             </div>
+
             <div className="control-group">
               <label>Brush Size: {brushSize}px</label>
               <input
                 type="range"
                 min="1"
-                max="20"
+                max="40"
                 value={brushSize}
                 onChange={(e) => setBrushSize(Number(e.target.value))}
                 className="brush-slider"
               />
             </div>
-            <button
-              type="button"
-              onClick={clearCanvas}
-              className="btn-clear-canvas"
-            >
-              🗑️ Clear Canvas
-            </button>
           </div>
-          <canvas
-            ref={canvasRef}
-            width={400}
-            height={400}
-            className="drawing-canvas"
-            onMouseDown={startDrawing}
-            onMouseMove={draw}
-            onMouseUp={stopDrawing}
-            onMouseLeave={stopDrawing}
-          />
+          <div className="canvas-wrap">
+            {eraserMode && eraserPos && (
+              <div
+                className="eraser-cursor"
+                style={{
+                  left: eraserPos.x,
+                  top: eraserPos.y,
+                  width: brushSize * 2,
+                  height: brushSize * 2,
+                }}
+              />
+            )}
+            <canvas
+              ref={canvasRef}
+              width={400}
+              height={400}
+              className={`drawing-canvas${eraserMode ? " eraser-active" : ""}`}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={stopDrawing}
+              onMouseLeave={() => { stopDrawing(); setEraserPos(null); }}
+              onTouchStart={startDrawingTouch}
+              onTouchMove={drawTouch}
+              onTouchEnd={stopDrawing}
+            />
+          </div>
         </div>
       )}
 

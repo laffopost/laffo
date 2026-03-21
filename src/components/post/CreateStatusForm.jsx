@@ -6,14 +6,23 @@ import "./AddPostModal.css";
 import "./CreateStatusForm.css";
 
 const BG_COLORS = [
-  "#ffffff",
+  // Solids — black first (default)
+  "#000000",
+  "#1a1a2e",
   "#8b5cf6",
   "#10b981",
   "#ef4444",
   "#f59e0b",
   "#3b82f6",
   "#ec4899",
-  "#000000",
+  "#ffffff",
+  // Gradients
+  "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+  "linear-gradient(135deg, #f093fb 0%, #f5576c 100%)",
+  "linear-gradient(135deg, #4facfe 0%, #00f2fe 100%)",
+  "linear-gradient(135deg, #43e97b 0%, #38f9d7 100%)",
+  "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
+  "linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%)",
 ];
 const TEXT_COLORS = [
   "#000000",
@@ -50,15 +59,39 @@ const DURATION_MS = {
   "7d": 604800000,
 };
 
+const FONT_SIZES = [
+  { value: "sm", label: "S", px: "0.95rem" },
+  { value: "md", label: "M", px: "1.2rem" },
+  { value: "lg", label: "L", px: "1.6rem" },
+  { value: "xl", label: "XL", px: "2rem" },
+  { value: "xxl", label: "XXL", px: "2.6rem" },
+];
+
+const MOODS = [
+  { emoji: "😊", label: "Happy" },
+  { emoji: "🔥", label: "Hyped" },
+  { emoji: "🤔", label: "Thinking" },
+  { emoji: "😢", label: "Sad" },
+  { emoji: "😂", label: "Funny" },
+  { emoji: "💡", label: "Inspired" },
+  { emoji: "😤", label: "Angry" },
+  { emoji: "🥳", label: "Celebrating" },
+];
+
 export default function CreateStatusForm({ onSubmit, onClose, onBack, initialData = null, onSave = null }) {
   const { userProfile, firebaseUser } = useAuth();
   const isEditMode = !!onSave;
   const [status, setStatus] = useState(initialData?.status || "");
   const [error, setError] = useState("");
-  const [bgColor, setBgColor] = useState(initialData?.bgColor || "#ffffff");
-  const [textColor, setTextColor] = useState(initialData?.textColor || "#000000");
+  const [bgColor, setBgColor] = useState(initialData?.bgColor || "#000000");
+  const [textColor, setTextColor] = useState(initialData?.textColor || "#ffffff");
+  const [customBgColor, setCustomBgColor] = useState("#ff6b6b");
+  const [customTextColor, setCustomTextColor] = useState("#ffdd59");
   const [postAsAnonymous, setPostAsAnonymous] = useState(false);
   const [duration, setDuration] = useState("never");
+  const [fontSize, setFontSize] = useState(initialData?.fontSize || "md");
+  const [textAlign, setTextAlign] = useState(initialData?.textAlign || "center");
+  const [mood, setMood] = useState(initialData?.mood || null);
   const [author] = useState(
     userProfile?.username || firebaseUser?.displayName || "Anon",
   );
@@ -76,6 +109,9 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
         status: status.trim(),
         bgColor,
         textColor,
+        fontSize,
+        textAlign,
+        mood,
       });
       onClose();
       return;
@@ -92,6 +128,9 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
       status: status.trim(),
       bgColor,
       textColor,
+      fontSize,
+      textAlign,
+      mood,
       author: finalAuthor,
       authorAvatar: finalAvatar,
       reactions: { "🔥": 0, "😂": 0, "🙌": 0 },
@@ -105,6 +144,9 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
   return (
     <form className="add-image-form" data-edit-mode={String(isEditMode)} onSubmit={handleSubmit}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+        {!isEditMode ? (
+          <button type="button" onClick={onBack} className="btn-back btn-back--top">← Back</button>
+        ) : <div />}
         <h3 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700 }}>
           {isEditMode ? "Edit Status" : "Post a Status"}
         </h3>
@@ -168,6 +210,18 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
               onClick={() => setBgColor(color)}
             />
           ))}
+          <label
+            className={`color-btn color-btn--picker${bgColor === customBgColor ? " active" : ""}`}
+            title="Custom color"
+            style={{ background: customBgColor, position: "relative", overflow: "hidden" }}
+          >
+            <input
+              type="color"
+              value={customBgColor}
+              onChange={(e) => { setCustomBgColor(e.target.value); setBgColor(e.target.value); }}
+              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
+            />
+          </label>
         </div>
       </div>
 
@@ -183,14 +237,80 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
               onClick={() => setTextColor(color)}
             />
           ))}
+          <label
+            className={`color-btn color-btn--picker${textColor === customTextColor ? " active" : ""}`}
+            title="Custom color"
+            style={{ background: customTextColor, position: "relative", overflow: "hidden" }}
+          >
+            <input
+              type="color"
+              value={customTextColor}
+              onChange={(e) => { setCustomTextColor(e.target.value); setTextColor(e.target.value); }}
+              style={{ opacity: 0, position: "absolute", inset: 0, width: "100%", height: "100%", cursor: "pointer", border: "none", padding: 0 }}
+            />
+          </label>
         </div>
+      </div>
+
+      <div className="form-group">
+        <label>Font Size</label>
+        <div className="status-font-row">
+          {FONT_SIZES.map((f) => (
+            <button
+              key={f.value}
+              type="button"
+              className={`status-font-btn${fontSize === f.value ? " active" : ""}`}
+              onClick={() => setFontSize(f.value)}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Alignment</label>
+        <div className="status-align-row">
+          {[
+            { value: "left", icon: "⬅" },
+            { value: "center", icon: "↔" },
+            { value: "right", icon: "➡" },
+          ].map((a) => (
+            <button
+              key={a.value}
+              type="button"
+              className={`status-align-btn${textAlign === a.value ? " active" : ""}`}
+              onClick={() => setTextAlign(a.value)}
+            >
+              {a.icon}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="form-group">
+        <label>Mood <span style={{ opacity: 0.5, fontWeight: 400 }}>(optional)</span></label>
+        <div className="status-mood-row">
+          {MOODS.map((m) => (
+            <button
+              key={m.emoji}
+              type="button"
+              title={m.label}
+              className={`status-mood-btn${mood?.emoji === m.emoji ? " active" : ""}`}
+              onClick={() => setMood(mood?.emoji === m.emoji ? null : m)}
+            >
+              {m.emoji}
+            </button>
+          ))}
+        </div>
+        {mood && <span className="status-mood-selected">Feeling {mood.emoji} {mood.label}</span>}
       </div>
 
       <div className="status-preview-section">
         <label className="status-preview-label">Preview</label>
         <div
           className="status-preview-box"
-          style={{ backgroundColor: bgColor, color: textColor }}
+          style={{ background: bgColor, color: textColor, textAlign, fontSize: FONT_SIZES.find(f => f.value === fontSize)?.px }}
         >
           <span className="status-preview-text">
             {status || "What's on your mind?"}
