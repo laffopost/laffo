@@ -88,6 +88,7 @@ const PostCard = memo(
 
     return (
       <>
+        <div className="card-border-wrap glow-border glow-border--hover">
         <div
           className={`image-card${isSelected ? " selected" : ""}`}
         >
@@ -347,6 +348,7 @@ const PostCard = memo(
               </div>
             </div>
           </div>
+        </div>
         </div>
       </>
     );

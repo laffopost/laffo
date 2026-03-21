@@ -512,6 +512,7 @@ export default function ProfilePage() {
       />
 
       <div className="profile-page">
+        <div className="profile-main-card-wrap glow-border">
         <div className="profile-main-card">
           {/* ── Hero Banner ── */}
           <div className="profile-hero-banner">
@@ -796,6 +797,7 @@ export default function ProfilePage() {
               </div>
             </div>
           )}
+        </div>
         </div>
 
         <div className="profile-gallery-section">

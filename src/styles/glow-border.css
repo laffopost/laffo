@@ -1,0 +1,46 @@
+/* ── Rotating gradient border ──────────────────────────────────────────
+   Usage: wrap your element in <div class="glow-border"> or
+          <div class="glow-border glow-border--hover-only">
+
+   Variants:
+     (no modifier)          — always spinning
+     .glow-border--hover    — only spins + shows on hover
+   ──────────────────────────────────────────────────────────────────── */
+
+@keyframes glowBorderSpin {
+  to { transform: rotate(360deg); }
+}
+
+.glow-border {
+  position: relative;
+  border-radius: inherit;
+  padding: 1.5px;
+  overflow: hidden;
+}
+
+.glow-border::before {
+  content: '';
+  position: absolute;
+  /* 300×300%, centered — conic center = element center so arm sweeps all edges */
+  inset: -100%;
+  background: conic-gradient(
+    from 252deg,
+    transparent 0deg,
+    rgba(139, 92, 246, 0.9) 50deg,
+    rgba(99, 102, 241, 0.45) 90deg,
+    transparent 130deg
+  );
+  will-change: transform;
+  animation: glowBorderSpin var(--glow-duration, 4s) linear infinite;
+}
+
+/* Hover-only variant — paused + invisible until hover */
+.glow-border--hover::before {
+  opacity: 0;
+  animation-play-state: paused;
+}
+
+.glow-border--hover:hover::before {
+  opacity: 1;
+  animation-play-state: running;
+}
