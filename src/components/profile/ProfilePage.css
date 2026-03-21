@@ -15,23 +15,38 @@
 
 /* ─── Main card wrapper — uses shared .glow-border utility ─── */
 .profile-main-card-wrap {
-  border-radius: 25px;
-  --glow-duration: 5s;
+  border-radius: 22px;
+  --glow-duration: 6s;
+}
+
+.profile-main-card-wrap::before {
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    rgba(139, 92, 246, 0.85) 40deg,
+    rgba(168, 85, 247, 0.6) 70deg,
+    rgba(30, 30, 30, 0.2) 110deg,
+    transparent 160deg,
+    transparent 200deg,
+    rgba(99, 102, 241, 0.7) 240deg,
+    rgba(139, 92, 246, 0.4) 270deg,
+    transparent 310deg
+  ) !important;
 }
 
 /* ─── Main card ─── */
 .profile-main-card {
-  background: rgba(18, 18, 52, 0.95);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border-radius: 24px;
+  background: #0a0a0f;
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border-radius: 21px;
   overflow: hidden;
   border: none;
   box-shadow:
-    0 20px 60px rgba(0, 0, 0, 0.55),
-    0 0 100px rgba(139, 92, 246, 0.07);
+    0 24px 80px rgba(0, 0, 0, 0.8),
+    0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
   margin-bottom: 0;
-  /* sticky so it stays in view while scrolling posts */
   position: sticky;
 }
 
@@ -40,12 +55,12 @@
 .profile-hero-banner {
   height: 100px;
   background: linear-gradient(
-    130deg,
-    #160030 0%,
-    #2d1b69 28%,
-    #4c1d95 55%,
-    #6d28d9 78%,
-    #7c3aed 100%
+    135deg,
+    #000000 0%,
+    #0d0d1a 30%,
+    #1a0a2e 60%,
+    #2e1065 85%,
+    #3b0764 100%
   );
   position: relative;
   overflow: hidden;
