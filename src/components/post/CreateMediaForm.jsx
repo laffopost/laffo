@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon } from "../../utils/icons";
 import "./AddPostModal.css";
@@ -247,12 +248,9 @@ export default function CreateMediaForm({ onSubmit, onClose, onBack, initialData
 
       <div className="form-group">
         <label htmlFor="description">Caption</label>
-        <textarea
-          id="description"
+        <MentionInput
           value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
+          onChange={(val) => setFormData({ ...formData, description: val })}
           placeholder="Write something about this media..."
           maxLength={200}
           rows={3}

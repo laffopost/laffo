@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import MentionInput from "../common/MentionInput";
 import toast from "react-hot-toast";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon } from "../../utils/icons";
@@ -241,12 +242,9 @@ export default function CreatePostForm({ onSubmit, onClose, onBack, initialData 
 
       <div className="form-group">
         <label htmlFor="description">Caption</label>
-        <textarea
-          id="description"
+        <MentionInput
           value={formData.description}
-          onChange={(e) =>
-            setFormData({ ...formData, description: e.target.value })
-          }
+          onChange={(val) => setFormData({ ...formData, description: val })}
           placeholder="What's your post about?"
           maxLength={200}
           rows={3}

@@ -34,13 +34,17 @@
   animation: glowBorderSpin var(--glow-duration, 4s) linear infinite;
 }
 
-/* Hover-only variant — paused + invisible until hover */
+/* Hover-only variant — paused + invisible + NO compositor layer until hover */
 .glow-border--hover::before {
   opacity: 0;
   animation-play-state: paused;
+  will-change: auto;
+  transition: none; /* instant off on mouse-leave */
 }
 
 .glow-border--hover:hover::before {
   opacity: 1;
   animation-play-state: running;
+  will-change: transform;
+  transition: opacity 0.25s ease; /* smooth fade-in on mouse-enter only */
 }

@@ -88,7 +88,7 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
     <form className="add-image-form" onSubmit={handleSubmit}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.75rem" }}>
         <h3 style={{ margin: 0, fontSize: "1.3rem", fontWeight: 700 }}>
-          Create Countdown
+          Create Event
         </h3>
         <button type="button" onClick={onClose} className="close-btn" title="Close">
           <CloseIcon size={20} />
@@ -213,7 +213,7 @@ export default function CreateCountdownForm({ onSubmit, onClose, onBack }) {
           ← Back
         </button>
         <button type="submit" className="btn-submit">
-          Create Countdown ⏳
+          Create Event ⏳
         </button>
       </div>
     </form>

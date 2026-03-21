@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { AddIcon, RemoveIcon, CloseIcon } from "../../utils/icons";
 import "./AddPostModal.css";
@@ -141,9 +142,9 @@ export default function CreatePollForm({ onSubmit, onClose, onBack, initialData 
 
       <div className="form-group">
         <label>Caption</label>
-        <textarea
+        <MentionInput
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={setDescription}
           placeholder="Add more context to your poll..."
           maxLength={200}
           rows={2}

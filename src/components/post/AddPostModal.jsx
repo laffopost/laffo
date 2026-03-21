@@ -99,7 +99,7 @@ export default function AddPostModal({
               <div className="option-icon">
                 <span style={{ fontSize: "32px" }}>⏳</span>
               </div>
-              <h3 className="option-label">Countdown</h3>
+              <h3 className="option-label">Event</h3>
               <p className="option-desc">Count down to an event</p>
             </div>
 

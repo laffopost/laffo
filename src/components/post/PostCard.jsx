@@ -116,7 +116,7 @@ const PostCard = memo(
                 (post.type === "user" ? " user-type-badge" : "")
               }
             >
-              {post.type || "all"}
+              {post.type === "countdown" ? "event" : post.type || "all"}
             </span>
           </div>
 

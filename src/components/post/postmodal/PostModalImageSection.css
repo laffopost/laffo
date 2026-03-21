@@ -55,8 +55,9 @@
 
 /* ── User card ───────────────────────────────────────────────────────────── */
 .postmodal-user-card {
-  width: 92%;
+  width: 70%;
   margin: 0 auto;
+  margin-top: 2rem;
   border-radius: 22px;
   background: linear-gradient(
     160deg,
@@ -191,7 +192,9 @@
   vertical-align: middle;
   margin-left: 1px;
   opacity: 0.55;
-  transition: transform 0.2s, opacity 0.2s;
+  transition:
+    transform 0.2s,
+    opacity 0.2s;
 }
 
 .postmodal-stat-card--clickable:hover .postmodal-stat-arrow {
@@ -512,7 +515,10 @@
   background: none;
   cursor: pointer;
   flex-shrink: 0;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
   padding: 0;
 }
 

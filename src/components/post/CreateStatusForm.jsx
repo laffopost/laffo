@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { CloseIcon } from "../../utils/icons";
 import "./AddPostModal.css";
@@ -119,13 +120,12 @@ export default function CreateStatusForm({ onSubmit, onClose, onBack, initialDat
 
       <div className="form-group">
         <label>Status *</label>
-        <textarea
+        <MentionInput
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={setStatus}
           placeholder="What's on your mind?"
           maxLength={200}
           rows={3}
-          required
         />
         <span className="char-counter">{status.length}/200</span>
       </div>

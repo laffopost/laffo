@@ -1,4 +1,5 @@
 import { useState } from "react";
+import MentionInput from "../common/MentionInput";
 import { useAuth } from "../../context/AuthContext";
 import { AddIcon, RemoveIcon, CloseIcon } from "../../utils/icons";
 import "./AddPostModal.css";
@@ -103,9 +104,9 @@ export default function CreateQuizForm({ onSubmit, onClose, onBack }) {
 
       <div className="form-group">
         <label>Caption</label>
-        <textarea
+        <MentionInput
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={setDescription}
           placeholder="Add context to your quiz..."
           maxLength={200}
           rows={2}

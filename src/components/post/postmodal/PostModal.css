@@ -573,47 +573,54 @@
   color: var(--text-50);
 }
 
-/* ── @mention dropdown ────────────────────────────────── */
+/* ── @mention dropdown (comments) ────────────────────── */
 .mention-dropdown {
   position: absolute;
-  bottom: calc(100% + 4px);
+  bottom: calc(100% + 6px);
   left: 0;
   right: 0;
-  background: var(--bg-surface);
-  border: 1px solid var(--color-primary-25);
-  border-radius: var(--radius-md);
+  background: #12102a;
+  border: 1.5px solid rgba(139, 92, 246, 0.55);
+  border-radius: 12px;
   overflow: hidden;
-  z-index: 50;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  z-index: 9999;
+  box-shadow:
+    0 -8px 32px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(139, 92, 246, 0.15);
 }
 
 .mention-option {
   width: 100%;
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
+  gap: 10px;
+  padding: 9px 12px;
   background: none;
   border: none;
-  color: var(--text-base);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: #fff;
   font-size: 0.85rem;
+  font-weight: 700;
   cursor: pointer;
   text-align: left;
   transition: background 0.1s;
 }
 
+.mention-option:last-child { border-bottom: none; }
+
 .mention-option:hover,
 .mention-option.active {
-  background: var(--color-primary-12);
-  color: var(--color-primary);
+  background: rgba(139, 92, 246, 0.22);
+  color: #c4b5fd;
 }
 
 .mention-avatar {
-  width: 22px;
-  height: 22px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   object-fit: cover;
   flex-shrink: 0;
+  border: 1.5px solid rgba(139, 92, 246, 0.4);
 }
 
 /* ── @mention chip in comment text ───────────────────── */

@@ -7,15 +7,15 @@
 .image-card {
   height: fit-content;
   width: 100%;
-  background: var(--bg-dark-20);
+  background: var(--bg-card-deep);
   border-radius: 12px;
+  border: 1px solid rgba(139, 92, 246, 0.18);
   overflow: hidden;
   cursor: pointer;
   transition:
     transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1),
     box-shadow 0.3s ease,
     border-color 0.3s ease;
-  will-change: transform;
   scroll-snap-align: start;
   position: relative;
 }
@@ -27,9 +27,13 @@
   inset: 0;
   background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
   transform: translate3d(-100%, 0, 0);
-  transition: transform 0.55s ease;
+  transition: none; /* instant reset on mouse-leave — no reverse sweep */
   pointer-events: none;
   z-index: 5;
+}
+
+.image-card:hover::before {
+  transition: transform 0.55s ease; /* sweep only on mouse-enter */
 }
 
 .image-card.selected {
@@ -101,12 +105,8 @@
   justify-content: space-between;
   gap: 8px;
   padding: 8px 11px;
-  background: linear-gradient(
-    180deg,
-    var(--bg-image-bottom) 0%,
-    var(--bg-image-top) 100%
-  );
-  border-bottom: 1px solid var(--color-primary-22);
+  background: rgba(26, 26, 46, 0.98);
+  border-bottom: 1px solid rgba(139, 92, 246, 0.18);
 }
 
 .post-card-header-avatar {
@@ -161,14 +161,17 @@
 }
 
 .image-type-badge-overlay {
-  color: var(--color-primary);
-  font-size: 0.62rem;
+  font-size: 0.65rem;
   font-weight: 700;
-  text-transform: capitalize;
+  text-transform: uppercase;
   white-space: nowrap;
   flex-shrink: 0;
-  letter-spacing: 0.03em;
-  opacity: 0.75;
+  letter-spacing: 0.07em;
+  color: #fff;
+  background: rgba(139, 92, 246, 0.75);
+  border: 1px solid rgba(139, 92, 246, 0.6);
+  border-radius: 4px;
+  padding: 2px 6px;
 }
 
 .image-type-badge-overlay.user-type-badge {
@@ -192,11 +195,7 @@
 }
 
 .image-info {
-  background: linear-gradient(
-    180deg,
-    var(--bg-image-top) 0%,
-    var(--bg-image-bottom) 100%
-  );
+  background: rgba(22, 22, 40, 0.98);
   padding: 8px 11px 9px;
   display: flex;
   flex-direction: column;
