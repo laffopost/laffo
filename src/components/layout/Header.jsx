@@ -194,6 +194,7 @@ const Header = memo(function Header() {
   }
 
   return (
+    <>
     <header className="header">
       <div className="header-container">
         <div className="logo">
@@ -316,6 +317,8 @@ const Header = memo(function Header() {
         </nav>
       </div>
 
+    </header>
+
       {/* ── Mobile bottom nav ── */}
       <nav className="bottom-nav" aria-label="Mobile navigation">
         <Link to="/" className={`bottom-nav-item${location.pathname === "/" ? " active" : ""}`}>
@@ -349,7 +352,7 @@ const Header = memo(function Header() {
           <span>More</span>
         </button>
       </nav>
-    </header>
+    </>
   );
 });
 

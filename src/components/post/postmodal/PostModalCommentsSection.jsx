@@ -51,7 +51,7 @@ function fmtCommentTime(ts) {
 import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon, CloseIcon } from "../../../utils/icons";
+import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon, CloseIcon, EmojiIcon } from "../../../utils/icons";
 import ConfirmModal from "../../common/ConfirmModal";
 import MentionInput from "../../common/MentionInput";
 
@@ -373,6 +373,23 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                           <DeleteIcon size={13} />
                         </button>
                       )}
+                    {(!firebaseUser || comment.userId !== firebaseUser.uid) && (
+                      <button
+                        className="comment-react-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!requireAuth("react to a comment")) return;
+                          setShowCommentReactionPicker(
+                            showCommentReactionPicker === comment.id
+                              ? null
+                              : comment.id,
+                          );
+                        }}
+                        title={userReaction ? "Change reaction" : "Add reaction"}
+                      >
+                        <EmojiIcon size={13} />
+                      </button>
+                    )}
                   </div>
                   <p className="comment-text">{renderMentions(comment.text, (username) => navigate(`/profile/${username.toLowerCase()}`))}</p>
                   <div className="comment-reactions-row">
@@ -386,11 +403,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                             }`}
                             onClick={() => {
                               if (!requireAuth("react to a comment")) return;
-                              toggleCommentReaction(
-                                post.id,
-                                comment.id,
-                                emoji,
-                              );
+                              toggleCommentReaction(post.id, comment.id, emoji);
                             }}
                             title={`${count} reaction${count !== 1 ? "s" : ""}`}
                           >
@@ -399,49 +412,22 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                         ))}
                       </div>
                     )}
-                    <div className="comment-reaction-picker-container">
-                      {(!firebaseUser || comment.userId !== firebaseUser.uid) && (
-                      <button
-                        className="comment-react-btn"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          if (!requireAuth("react to a comment")) return;
-                          setShowCommentReactionPicker(
-                            showCommentReactionPicker === comment.id
-                              ? null
-                              : comment.id,
-                          );
-                        }}
-                      >
-                        {userReaction ? "Change" : "React"}
-                      </button>
-                      )}
-                      {showCommentReactionPicker === comment.id && (
-                        <div
-                          className="comment-reaction-picker"
-                          ref={commentReactionPickerRef}
-                        >
-                          {availableReactions.map((emoji) => (
-                            <button
-                              key={emoji}
-                              className={`comment-reaction-option ${
-                                userReaction === emoji ? "selected" : ""
-                              }`}
-                              onClick={() => {
-                                if (!requireAuth("react to a comment")) return;
-                                toggleCommentReaction(
-                                  post.id,
-                                  comment.id,
-                                  emoji,
-                                );
-                              }}
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    {showCommentReactionPicker === comment.id && (
+                      <div className="comment-reaction-picker" ref={commentReactionPickerRef}>
+                        {availableReactions.map((emoji) => (
+                          <button
+                            key={emoji}
+                            className={`comment-reaction-option ${userReaction === emoji ? "selected" : ""}`}
+                            onClick={() => {
+                              if (!requireAuth("react to a comment")) return;
+                              toggleCommentReaction(post.id, comment.id, emoji);
+                            }}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
