@@ -7,7 +7,9 @@ import {
   query,
   orderBy,
   limit,
+  startAfter,
   onSnapshot,
+  getDocs,
   doc,
   getDoc,
 } from "firebase/firestore";
@@ -90,6 +92,10 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   const navigate = useNavigate();
 
   const [comments, setComments] = useState([]);
+  const [olderComments, setOlderComments] = useState([]);
+  const [oldestDocRef, setOldestDocRef] = useState(null);
+  const [hasOlderComments, setHasOlderComments] = useState(false);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [newComment, setNewComment] = useState("");
   const [showCommentReactionPicker, setShowCommentReactionPicker] =
     useState(null);
@@ -107,27 +113,70 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
-  // Subscribe to comments subcollection in real-time
+  const COMMENTS_PAGE = 10;
+
+  // Subscribe to the most recent 10 comments in real-time
   useEffect(() => {
     if (!post?.id) {
       setComments([]);
+      setOlderComments([]);
+      setOldestDocRef(null);
+      setHasOlderComments(false);
       return;
     }
 
     const commentsRef = collection(db, "posts", post.id, "comments");
-    const q = query(commentsRef, orderBy("createdAt", "asc"), limit(200));
+    // Fetch newest first so limit(10) gives us the 10 most recent
+    const q = query(commentsRef, orderBy("createdAt", "desc"), limit(COMMENTS_PAGE));
 
     const unsub = onSnapshot(q, (snap) => {
       const list = [];
       snap.forEach((d) => list.push({ id: d.id, ...d.data() }));
+      // Reverse so oldest-first display order
+      list.reverse();
       setComments(list);
+      // Track the oldest doc in this window as the cursor for loading more
+      if (snap.docs.length > 0) {
+        setOldestDocRef(snap.docs[snap.docs.length - 1]);
+        setHasOlderComments(snap.docs.length === COMMENTS_PAGE);
+      }
     });
 
     return () => unsub();
   }, [post?.id]);
 
+  const loadOlderComments = useCallback(async () => {
+    if (!post?.id || !oldestDocRef || loadingOlder) return;
+    setLoadingOlder(true);
+    try {
+      const commentsRef = collection(db, "posts", post.id, "comments");
+      const q = query(
+        commentsRef,
+        orderBy("createdAt", "desc"),
+        startAfter(oldestDocRef),
+        limit(COMMENTS_PAGE),
+      );
+      const snap = await getDocs(q);
+      const older = [];
+      snap.forEach((d) => older.push({ id: d.id, ...d.data() }));
+      older.reverse();
+      setOlderComments((prev) => [...older, ...prev]);
+      if (snap.docs.length > 0) {
+        setOldestDocRef(snap.docs[snap.docs.length - 1]);
+      }
+      setHasOlderComments(snap.docs.length === COMMENTS_PAGE);
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [post?.id, oldestDocRef, loadingOlder]);
+
   // Build a set of top-level IDs so we can resolve root parents
   // All replies flatten to level 2 max (no deeper nesting)
+  const allComments = useMemo(
+    () => [...olderComments, ...comments],
+    [olderComments, comments],
+  );
+
   const { topLevel, repliesByParent, replyCountByParent, topLevelIds } =
     useMemo(() => {
       const top = [];
@@ -136,7 +185,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       const counts = {};
 
       // First pass: identify top-level comments
-      for (const c of comments) {
+      for (const c of allComments) {
         if (!c.parentId) {
           top.push(c);
           topIds.add(c.id);
@@ -144,7 +193,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       }
 
       // Second pass: group all replies under their root parent
-      for (const c of comments) {
+      for (const c of allComments) {
         if (c.parentId) {
           // If parentId is a top-level comment, use it directly.
           // If parentId is itself a reply, find the root parent.
@@ -163,12 +212,12 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         replyCountByParent: counts,
         topLevelIds: topIds,
       };
-    }, [comments]);
+    }, [allComments]);
 
   // Fetch avatars for unique authors
   useEffect(() => {
     const uniqueAuthors = [
-      ...new Set(comments.map((c) => c.author).filter(Boolean)),
+      ...new Set(allComments.map((c) => c.author).filter(Boolean)),
     ];
 
     const loadAvatars = async () => {
@@ -195,7 +244,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       loadAvatars();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comments]);
+  }, [allComments]);
 
   const handleAddComment = useCallback(
     async (e) => {
@@ -648,7 +697,16 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         />
       )}
       <div className="comments-list">
-        {topLevel.length === 0 && comments.length === 0 ? (
+        {hasOlderComments && (
+          <button
+            className="comments-load-older-btn"
+            onClick={loadOlderComments}
+            disabled={loadingOlder}
+          >
+            {loadingOlder ? "Loading…" : "Load older comments"}
+          </button>
+        )}
+        {topLevel.length === 0 && allComments.length === 0 ? (
           <div className="no-comments">
             <p>
               No comments yet. Be the first to comment!{" "}

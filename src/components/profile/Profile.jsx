@@ -49,7 +49,6 @@ export default function Profile() {
   const [twitter, setTwitter] = useState("");
   const [solana, setSolana] = useState("");
   const [website, setWebsite] = useState("");
-  const [favoriteSong, setFavoriteSong] = useState("");
   const [location, setLocation] = useState("");
   const [birthday, setBirthday] = useState("");
   const [loggingIn, setLoggingIn] = useState(false);
@@ -178,7 +177,6 @@ export default function Profile() {
         twitter,
         solana,
         website,
-        favoriteSong,
         location,
         birthday,
         avatar: avatarPhoto,
@@ -202,7 +200,6 @@ export default function Profile() {
       setTwitter("");
       setSolana("");
       setWebsite("");
-      setFavoriteSong("");
       setLocation("");
       setBirthday("");
       setIsSignUp(false);
@@ -520,17 +517,7 @@ export default function Profile() {
                         maxLength={200}
                       />
                     </div>
-                    <div>
-                      <label>Favorite Song</label>
-                      <input
-                        type="text"
-                        placeholder="Song"
-                        value={favoriteSong}
-                        onChange={(e) => setFavoriteSong(e.target.value)}
-                        className="profile-auth-input"
-                        maxLength={100}
-                      />
-                    </div>
+
                     <div>
                       <label>Location</label>
                       <input

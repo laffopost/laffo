@@ -58,6 +58,10 @@ export default function ChatUI({
   getOtherUser,
   sendTypingIndicator,
   otherUserTyping,
+  olderMessages = [],
+  hasOlderMessages = false,
+  loadingOlderMessages = false,
+  loadOlderMessages,
   // layout
   variant = "page",
   onClose,
@@ -251,13 +255,22 @@ export default function ChatUI({
             </header>
 
             <div className="chat-messages" ref={messagesContainerRef}>
-              {messages.length === 0 ? (
+              {hasOlderMessages && (
+                <button
+                  className="chat-load-older-btn"
+                  onClick={loadOlderMessages}
+                  disabled={loadingOlderMessages}
+                >
+                  {loadingOlderMessages ? "Loading…" : "Load older messages"}
+                </button>
+              )}
+              {messages.length === 0 && olderMessages.length === 0 ? (
                 <div className="chat-messages-empty">
                   <span className="text-4xl">👋</span>
                   <p>Say hello!</p>
                 </div>
               ) : (
-                messages.map((msg) => (
+                [...olderMessages, ...messages].map((msg) => (
                   <MessageBubble
                     key={msg.id}
                     msg={msg}

@@ -53,6 +53,31 @@
   text-align: center;
 }
 
+.chat-load-older-btn {
+  display: block;
+  width: 100%;
+  padding: 6px 0;
+  background: none;
+  border: 1px dashed var(--color-primary-30);
+  border-radius: 8px;
+  color: var(--color-primary);
+  font-size: 0.73rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s, border-color 0.2s;
+  margin-bottom: 6px;
+}
+
+.chat-load-older-btn:hover:not(:disabled) {
+  background: var(--color-primary-8);
+  border-color: var(--color-primary-60);
+}
+
+.chat-load-older-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 .chat-messages {
   flex: 1;
   overflow-y: auto;

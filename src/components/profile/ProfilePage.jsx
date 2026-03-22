@@ -8,13 +8,14 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
   doc,
+  getDoc,
   getDocs,
   deleteDoc,
   setDoc,
   collection,
   query,
   where,
-  onSnapshot,
+  getCountFromServer,
   serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../firebase/config";
@@ -150,37 +151,28 @@ export default function ProfilePage() {
     };
   }, [routeUsername, userProfile]);
 
-  // Single consolidated follow listener — followers, following, isFollowing
-  useEffect(() => {
+  // Single consolidated follow fetch — use count queries (1 read each) instead of onSnapshot
+  const fetchFollowData = useCallback(async () => {
     if (!publicProfile?.uid) return;
-    const unsubs = [];
+    const [followersSnap, followingSnap] = await Promise.all([
+      getCountFromServer(query(collection(db, "follows"), where("followingId", "==", publicProfile.uid))),
+      getCountFromServer(query(collection(db, "follows"), where("followerId", "==", publicProfile.uid))),
+    ]);
+    setFollowersCount(followersSnap.data().count);
+    setFollowingCount(followingSnap.data().count);
 
-    // Followers count
-    const followersQ = query(
-      collection(db, "follows"),
-      where("followingId", "==", publicProfile.uid),
-    );
-    unsubs.push(onSnapshot(followersQ, (snap) => setFollowersCount(snap.size)));
-
-    // Following count
-    const followingQ = query(
-      collection(db, "follows"),
-      where("followerId", "==", publicProfile.uid),
-    );
-    unsubs.push(onSnapshot(followingQ, (snap) => setFollowingCount(snap.size)));
-
-    // Is current user following this profile?
     if (firebaseUser?.uid && firebaseUser.uid !== publicProfile.uid) {
       const docId = `${firebaseUser.uid}_${publicProfile.uid}`;
-      unsubs.push(
-        onSnapshot(doc(db, "follows", docId), (snap) => setIsFollowing(snap.exists())),
-      );
+      const snap = await getDoc(doc(db, "follows", docId));
+      setIsFollowing(snap.exists());
     } else {
       setIsFollowing(false);
     }
-
-    return () => unsubs.forEach((unsub) => unsub());
   }, [publicProfile?.uid, firebaseUser?.uid]);
+
+  useEffect(() => {
+    fetchFollowData();
+  }, [fetchFollowData]);
 
   // Follow / unfollow handler
   const handleFollowToggle = useCallback(async () => {
@@ -194,6 +186,8 @@ export default function ProfilePage() {
     try {
       if (isFollowing) {
         await deleteDoc(followRef);
+        setIsFollowing(false);
+        setFollowersCount((c) => Math.max(0, c - 1));
         setNotification({ message: `Unfollowed ${publicProfile.username}`, type: "info" });
       } else {
         await setDoc(followRef, {
@@ -201,6 +195,8 @@ export default function ProfilePage() {
           followingId: publicProfile.uid,
           createdAt: serverTimestamp(),
         });
+        setIsFollowing(true);
+        setFollowersCount((c) => c + 1);
         createFollowNotification(publicProfile.uid);
         setNotification({ message: `Following ${publicProfile.username}!`, type: "success" });
       }
@@ -373,7 +369,7 @@ export default function ProfilePage() {
       twitter: publicProfile.twitter || "",
       solana: publicProfile.solana || "",
       website: publicProfile.website || "",
-      favoriteSong: publicProfile.favoriteSong || "",
+
       location: publicProfile.location || "",
       birthday: publicProfile.birthday || "",
       avatar: publicProfile.avatar || "",
@@ -442,49 +438,6 @@ export default function ProfilePage() {
   })();
 
   // ── Song chip renderer ──
-  function renderSong(song) {
-    if (!song) return <span style={{ color: "rgba(255,255,255,0.3)" }}>—</span>;
-    const isSpotify =
-      song.includes("spotify.com") || song.startsWith("spotify:");
-    const isYoutube = song.includes("youtube.com") || song.includes("youtu.be");
-    if (isSpotify) {
-      return (
-        <a
-          href={song}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="profile-song-chip profile-song-chip--spotify"
-        >
-          🎵 Spotify
-        </a>
-      );
-    }
-    if (isYoutube) {
-      return (
-        <a
-          href={song}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="profile-song-chip profile-song-chip--youtube"
-        >
-          ▶️ YouTube
-        </a>
-      );
-    }
-    if (song.startsWith("http")) {
-      return (
-        <a
-          href={song}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="profile-song-chip"
-        >
-          🔗 {song.replace(/^https?:\/\//, "").slice(0, 22)}…
-        </a>
-      );
-    }
-    return song;
-  }
 
   return (
     <>
@@ -642,12 +595,7 @@ export default function ProfilePage() {
           {/* ── About ── */}
           <div className="profile-section">
             <div className="profile-details-grid">
-              <div className="profile-detail-row">
-                <span className="profile-detail-label">🎵 Favorite Song</span>
-                <span className="profile-detail-value">
-                  {renderSong(publicProfile.favoriteSong)}
-                </span>
-              </div>
+
               <div className="profile-detail-row">
                 <span className="profile-detail-label">📍 Location</span>
                 <span className="profile-detail-value">

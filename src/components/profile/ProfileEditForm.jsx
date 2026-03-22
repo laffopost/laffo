@@ -216,18 +216,7 @@ export default function ProfileEditForm({
                       maxLength={200}
                     />
                   </div>
-                  <div className="form-field">
-                    <label>Favorite Song</label>
-                    <input
-                      type="text"
-                      name="favoriteSong"
-                      placeholder="Song title or link"
-                      value={form.favoriteSong}
-                      onChange={handleChange}
-                      className="profile-auth-input"
-                      maxLength={100}
-                    />
-                  </div>
+
                 </div>
               </div>
 

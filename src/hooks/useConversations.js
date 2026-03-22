@@ -6,6 +6,7 @@ import {
   where,
   orderBy,
   limit,
+  startAfter,
   onSnapshot,
   serverTimestamp,
   getDocs,
@@ -40,6 +41,10 @@ export function useConversations({ onConversationStarted } = {}) {
   const [conversations, setConversations] = useState([]);
   const [activeConvo, setActiveConvo] = useState(null);
   const [messages, setMessages] = useState([]);
+  const [olderMessages, setOlderMessages] = useState([]);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+  const oldestMsgDocRef = useRef(null);
   const [newMessage, setNewMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -72,7 +77,9 @@ export function useConversations({ onConversationStarted } = {}) {
   // ── Conversations subscription ────────────────────────────────────
   const currentUid = currentUser?.uid ?? null;
 
-  // ── Online presence — subscribe to other participants' lastSeen ───
+  // ── Online presence — one-time getDoc per user with 5-min in-memory cache ───
+  const presenceCacheRef = useRef({}); // { uid: { online: bool, fetchedAt: number } }
+
   const otherUidsKey = useMemo(() => {
     if (!currentUid || !conversations.length) return "";
     return [...new Set(
@@ -83,15 +90,24 @@ export function useConversations({ onConversationStarted } = {}) {
   useEffect(() => {
     if (!otherUidsKey) return;
     const uids = otherUidsKey.split(",").filter(Boolean);
-    const unsubs = uids.map((uid) =>
-      onSnapshot(doc(db, "users", uid), (snap) => {
+    const now = Date.now();
+    const FIVE_MIN = 5 * 60 * 1000;
+    const toFetch = uids.filter((uid) => {
+      const cached = presenceCacheRef.current[uid];
+      return !cached || now - cached.fetchedAt > FIVE_MIN;
+    });
+    if (!toFetch.length) return;
+    toFetch.forEach(async (uid) => {
+      try {
+        const snap = await getDoc(doc(db, "users", uid));
         if (!snap.exists()) return;
         const ls = snap.data().lastSeen;
         const ms = ls?.seconds ? ls.seconds * 1000 : 0;
-        setOnlineUsers((prev) => ({ ...prev, [uid]: ms ? Date.now() - ms < 5 * 60 * 1000 : false }));
-      })
-    );
-    return () => unsubs.forEach((u) => u());
+        const online = ms ? Date.now() - ms < FIVE_MIN : false;
+        presenceCacheRef.current[uid] = { online, fetchedAt: Date.now() };
+        setOnlineUsers((prev) => ({ ...prev, [uid]: online }));
+      } catch {}
+    });
   }, [otherUidsKey]);
   useEffect(() => {
     if (!currentUid) return;
@@ -129,29 +145,61 @@ export function useConversations({ onConversationStarted } = {}) {
   }, [currentUid]);
 
   // ── Messages subscription ─────────────────────────────────────────
+  const MESSAGES_PAGE = 20;
   const activeConvoId = activeConvo?.id ?? null;
   useEffect(() => {
     if (!activeConvoId) {
       setMessages([]);
+      setOlderMessages([]);
+      setHasOlderMessages(false);
+      oldestMsgDocRef.current = null;
       return;
     }
+    // Load newest 20 descending, reverse for display
     const q = query(
       collection(db, "conversations", activeConvoId, "messages"),
-      orderBy("timestamp", "asc"),
-      limit(200),
+      orderBy("timestamp", "desc"),
+      limit(MESSAGES_PAGE),
     );
     let cancelled = false;
     const unsub = onSnapshot(q, (snap) => {
       if (cancelled) return;
       const msgs = [];
       snap.forEach((d) => msgs.push({ id: d.id, ...d.data() }));
+      msgs.reverse();
       setMessages(msgs);
+      if (snap.docs.length > 0) {
+        oldestMsgDocRef.current = snap.docs[snap.docs.length - 1];
+        setHasOlderMessages(snap.docs.length === MESSAGES_PAGE);
+      }
     });
     return () => {
       cancelled = true;
       setTimeout(() => { try { unsub(); } catch {} }, 0);
     };
   }, [activeConvoId, currentUid]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!activeConvoId || !oldestMsgDocRef.current || loadingOlderMessages) return;
+    setLoadingOlderMessages(true);
+    try {
+      const q = query(
+        collection(db, "conversations", activeConvoId, "messages"),
+        orderBy("timestamp", "desc"),
+        startAfter(oldestMsgDocRef.current),
+        limit(MESSAGES_PAGE),
+      );
+      const snap = await getDocs(q);
+      const older = [];
+      snap.forEach((d) => older.push({ id: d.id, ...d.data() }));
+      older.reverse();
+      setOlderMessages((prev) => [...older, ...prev]);
+      if (snap.docs.length > 0) oldestMsgDocRef.current = snap.docs[snap.docs.length - 1];
+      setHasOlderMessages(snap.docs.length === MESSAGES_PAGE);
+    } finally {
+      setLoadingOlderMessages(false);
+    }
+  }, [activeConvoId, loadingOlderMessages]);
 
   // ── Auto-scroll ───────────────────────────────────────────────────
   useEffect(() => {
@@ -565,6 +613,10 @@ export function useConversations({ onConversationStarted } = {}) {
     // state
     otherUserTyping,
     onlineUsers,
+    olderMessages,
+    hasOlderMessages,
+    loadingOlderMessages,
+    loadOlderMessages,
     // formatTime (re-exported for convenience)
     formatTime,
   };

@@ -5,7 +5,9 @@ import {
   query,
   orderBy,
   limit,
+  startAfter,
   onSnapshot,
+  getDocs,
   serverTimestamp,
 } from "firebase/firestore";
 import { useAuth } from "../../../context/AuthContext";
@@ -118,6 +120,10 @@ const EMOJI_CATEGORIES = {
 export default function FirebaseChat({ collection: collectionName = "chat-messages", title = "Live Chat", variant = "sidebar" }) {
   logger.log("FirebaseChat rendered");
   const [messages, setMessages] = useState([]);
+  const [olderMessages, setOlderMessages] = useState([]);
+  const [hasOlderMessages, setHasOlderMessages] = useState(false);
+  const [loadingOlderMessages, setLoadingOlderMessages] = useState(false);
+  const oldestMsgDocRef = useRef(null);
   const [newMessage, setNewMessage] = useState("");
   const [error, setError] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
@@ -170,12 +176,18 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
     };
   }, [firebaseUser, userProfile, generateUsername, getRandomAvatar]);
 
+  const CHAT_PAGE = 10;
+
   useEffect(() => {
     if (!user) return;
 
+    setOlderMessages([]);
+    setHasOlderMessages(false);
+    oldestMsgDocRef.current = null;
+
     logger.log("FirebaseChat: subscribing to Firestore chat-messages");
     const messagesRef = collection(db, collectionName);
-    const q = query(messagesRef, orderBy("timestamp", "desc"), limit(50));
+    const q = query(messagesRef, orderBy("timestamp", "desc"), limit(CHAT_PAGE));
 
     const unsubscribe = onSnapshot(
       q,
@@ -185,7 +197,12 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
         snapshot.forEach((doc) => {
           newMessages.push({ id: doc.id, ...doc.data() });
         });
-        setMessages(newMessages.reverse());
+        newMessages.reverse();
+        setMessages(newMessages);
+        if (snapshot.docs.length > 0) {
+          oldestMsgDocRef.current = snapshot.docs[snapshot.docs.length - 1];
+          setHasOlderMessages(snapshot.docs.length === CHAT_PAGE);
+        }
         setError(null);
       },
       (err) => {
@@ -199,6 +216,29 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
       unsubscribe();
     };
   }, [user]);
+
+  const loadOlderMessages = useCallback(async () => {
+    if (!oldestMsgDocRef.current || loadingOlderMessages) return;
+    setLoadingOlderMessages(true);
+    try {
+      const messagesRef = collection(db, collectionName);
+      const q = query(
+        messagesRef,
+        orderBy("timestamp", "desc"),
+        startAfter(oldestMsgDocRef.current),
+        limit(CHAT_PAGE),
+      );
+      const snap = await getDocs(q);
+      const older = [];
+      snap.forEach((doc) => older.push({ id: doc.id, ...doc.data() }));
+      older.reverse();
+      setOlderMessages((prev) => [...older, ...prev]);
+      if (snap.docs.length > 0) oldestMsgDocRef.current = snap.docs[snap.docs.length - 1];
+      setHasOlderMessages(snap.docs.length === CHAT_PAGE);
+    } finally {
+      setLoadingOlderMessages(false);
+    }
+  }, [collectionName, loadingOlderMessages]);
 
   useEffect(() => {
     if (chatRef.current && messages.length > 0) {
@@ -297,13 +337,18 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
       <>
         {error && <div className="chat-error">{error}</div>}
         <div ref={chatRef} className="chat-messages">
-          {messages.length === 0 ? (
+          {hasOlderMessages && (
+            <button className="chat-load-older-btn" onClick={loadOlderMessages} disabled={loadingOlderMessages}>
+              {loadingOlderMessages ? "Loading…" : "Load older messages"}
+            </button>
+          )}
+          {messages.length === 0 && olderMessages.length === 0 ? (
             <div className="chat-empty">
               <div className="empty-icon">💬</div>
               <div>Chat while you listen!</div>
             </div>
           ) : (
-            messages.map((msg) => (
+            [...olderMessages, ...messages].map((msg) => (
               <div key={msg.id} className={`chat-message-small ${msg.userId === user?.uid ? "own" : ""}`}>
                 <div className="message-header-row">
                   {msg.userId !== user?.uid ? (
@@ -426,13 +471,18 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
       {error && <div className="chat-error">{error}</div>}
 
       <div ref={chatRef} className="chat-messages">
-        {messages.length === 0 ? (
+        {hasOlderMessages && (
+          <button className="chat-load-older-btn" onClick={loadOlderMessages} disabled={loadingOlderMessages}>
+            {loadingOlderMessages ? "Loading…" : "Load older messages"}
+          </button>
+        )}
+        {messages.length === 0 && olderMessages.length === 0 ? (
           <div className="chat-empty">
             <div className="empty-icon">💬</div>
             <div>Welcome to {title}</div>
           </div>
         ) : (
-          messages.map((msg) => (
+          [...olderMessages, ...messages].map((msg) => (
             <div
               key={msg.id}
               className={`chat-message-small ${

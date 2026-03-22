@@ -72,9 +72,7 @@ export default function ProfileModal({ username, uid, open = true }) {
             <div>
               <b>Birthday:</b> {profile.birthday || "N/A"}
             </div>
-            <div>
-              <b>Favorite Song:</b> {profile.favoriteSong || "N/A"}
-            </div>
+
             <div>
               <b>Solana:</b> {profile.solana || "N/A"}
             </div>

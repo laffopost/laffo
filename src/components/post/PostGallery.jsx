@@ -13,7 +13,7 @@ import { usePosts } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
 import useRequireAuth from "../../hooks/useRequireAuth";
 import { useBookmarks } from "../../hooks/useBookmarks";
-import { collection, query, where, onSnapshot, limit } from "firebase/firestore";
+import { collection, query, where, getDocs, limit } from "firebase/firestore";
 import { db } from "../../firebase/config";
 import "./PostGallery.css";
 
@@ -136,18 +136,18 @@ const PostGallery = memo(function PostGallery({
     return allPosts.filter((p) => p.uploadedBy === filterByUsername && !p.isAnonymousPost);
   }, [allPosts, filterByUsername]);
 
-  // Subscribe to following list for "Following" filter
+  // Fetch following list once for "Following" filter (no real-time needed)
   useEffect(() => {
     if (!firebaseUser?.uid) { setFollowingUids(null); return; }
-    const q = query(
+    let cancelled = false;
+    getDocs(query(
       collection(db, "follows"),
       where("followerId", "==", firebaseUser.uid),
-      limit(500),
-    );
-    const unsub = onSnapshot(q, (snap) => {
-      setFollowingUids(snap.docs.map((d) => d.data().followingId));
-    });
-    return () => unsub();
+      limit(200),
+    )).then((snap) => {
+      if (!cancelled) setFollowingUids(snap.docs.map((d) => d.data().followingId));
+    }).catch(() => {});
+    return () => { cancelled = true; };
   }, [firebaseUser?.uid]);
 
   const filteredPosts = useMemo(() => {
