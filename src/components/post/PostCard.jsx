@@ -1,7 +1,8 @@
 import { memo, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
-import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon } from "../../utils/icons";
+import ReactorsModal from "../common/ReactorsModal";
+import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon, UsersIcon } from "../../utils/icons";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 import CountdownRenderer from "./CountdownRenderer";
@@ -10,12 +11,6 @@ import LinkPreview from "../common/LinkPreview";
 
 const AVAILABLE_REACTIONS = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
-function formatCardDate(ts) {
-  if (!ts) return null;
-  let d = ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
-  if (isNaN(d)) return null;
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
-}
 
 const PostCard = memo(
   ({
@@ -35,11 +30,13 @@ const PostCard = memo(
   }) => {
     const topReactions = useMemo(() => {
       return Object.entries(reactions || {})
+        .filter(([, count]) => count > 0)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 4);
     }, [reactions]);
 
     const [showMoreReactions, setShowMoreReactions] = useState(false);
+    const [showReactors, setShowReactors] = useState(false);
     const moreBtnRef = useRef(null);
     const popoverRef = useRef(null);
 
@@ -252,7 +249,21 @@ const PostCard = memo(
                     <span className="reaction-count-char">{count}</span>
                   </button>
                 ))}
+                <button
+                  className="reaction-who-btn"
+                  title="See who reacted"
+                  onClick={(e) => { e.stopPropagation(); setShowReactors(true); }}
+                >
+                  <UsersIcon size={13} />
+                </button>
               </div>
+            )}
+            {showReactors && (
+              <ReactorsModal
+                reactors={post.reactors || {}}
+                reactionCounts={reactions}
+                onClose={() => setShowReactors(false)}
+              />
             )}
 
             <div className="image-actions-row">

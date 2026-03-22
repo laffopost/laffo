@@ -66,6 +66,7 @@ import {
   CloudSun,
   LayoutGrid,
   MessageCircle as MessageCircleIcon,
+  Users,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────
@@ -208,3 +209,4 @@ export const WeatherIcon = Icons.weather;
 export const GridIcon2 = Icons.grid;
 export const NotificationIcon = Icons.notification;
 export const UserIcon = Icons.user;
+export const UsersIcon = Users;

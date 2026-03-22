@@ -186,14 +186,21 @@ const PostGallery = memo(function PostGallery({
 
   const trendingPosts = useMemo(() => {
     if (filterByUsername) return [];
-    const sevenDaysAgo = Date.now() - 7 * 24 * 60 * 60 * 1000;
+    const now = Date.now();
+    const oneDayAgo = now - 24 * 60 * 60 * 1000;
+
     return allPosts
-      .filter((p) => (p.createdAt?.seconds * 1000 || 0) > sevenDaysAgo)
-      .map((p) => ({
-        ...p,
-        totalReactions: Object.values(getReactions(p.id)).reduce((a, b) => a + b, 0),
-      }))
-      .sort((a, b) => b.totalReactions - a.totalReactions)
+      .filter((p) => (p.createdAt?.seconds * 1000 || 0) > oneDayAgo)
+      .map((p) => {
+        const reactions = Object.values(getReactions(p.id)).reduce((a, b) => a + b, 0);
+        const comments = p.commentCount || 0;
+        const ageMs = now - (p.createdAt?.seconds * 1000 || now);
+        // Recency boost: decays from 1 → 0 over 24h
+        const recencyBoost = Math.max(0, 1 - ageMs / (24 * 60 * 60 * 1000));
+        const score = reactions * 2 + comments + recencyBoost * 10;
+        return { ...p, trendingScore: score };
+      })
+      .sort((a, b) => b.trendingScore - a.trendingScore)
       .slice(0, 8);
   }, [allPosts, filterByUsername, getReactions]);
 

@@ -63,28 +63,6 @@
   flex-shrink: 0;
 }
 
-.comments-close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 8px;
-  background: var(--color-danger-12);
-  border: 1.5px solid rgba(239, 68, 68, 0.25);
-  color: var(--color-danger);
-  cursor: pointer;
-  transition: var(--transition-fast);
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.comments-close-btn:hover {
-  background: var(--color-danger);
-  color: #fff;
-  border-color: var(--color-danger);
-}
-
 .image-modal-delete {
   position: absolute;
   top: 16px;
@@ -343,7 +321,7 @@
 
 /* Post info block inside comments panel */
 .comments-post-info {
-  padding: 14px 16px;
+  padding: 8px 12px;
   margin-bottom: 6px;
   background: rgba(139, 92, 246, 0.1);
   border: 1px solid rgba(139, 92, 246, 0.25);
@@ -359,10 +337,10 @@
 }
 
 .comments-post-desc {
-  color: rgba(255, 255, 255, 0.88);
-  font-size: 0.9rem;
-  margin: 0;
-  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.97);
+  font-size: 1rem;
+  margin: 4px 0 0;
+  line-height: 1.65;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -531,6 +509,31 @@
   min-height: 0;
 }
 
+.comments-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.comments-reactors-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.comments-reactors-btn:hover {
+  color: var(--color-primary);
+  background: var(--color-primary-15);
+}
+
 .comments-header {
   color: var(--text-30);
   font-size: 0.65rem;
@@ -570,6 +573,7 @@
   color: white;
   outline: none;
   font-size: 0.9rem;
+  width: 100%;
 }
 
 .comment-input::placeholder {
@@ -640,6 +644,81 @@
 
 .mention-chip:hover {
   background: var(--color-primary-12);
+}
+
+.comment-gif-btn {
+  background: rgba(139, 92, 246, 0.12);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  color: rgba(165, 180, 252, 0.7);
+  border-radius: 6px;
+  padding: 2px 6px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+  flex-shrink: 0;
+  letter-spacing: 0.03em;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.comment-gif-btn:hover,
+.comment-gif-btn.active {
+  background: rgba(139, 92, 246, 0.28);
+  border-color: rgba(139, 92, 246, 0.6);
+  color: #c4b5fd;
+}
+
+.comment-gif-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 160px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid rgba(139, 92, 246, 0.4);
+}
+
+.comment-gif-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.comment-gif-preview-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  background: rgba(0, 0, 0, 0.65);
+  border: none;
+  color: #fff;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+}
+
+.comment-gif-preview-remove:hover {
+  background: rgba(239, 68, 68, 0.8);
+}
+
+.comment-gif {
+  margin-top: 6px;
+  max-width: 200px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.comment-gif img {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 
 .comment-char-counter {
@@ -820,7 +899,10 @@
   font-weight: 600;
   cursor: pointer;
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
-  transition: background 0.15s, border-color 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    transform 0.1s;
 }
 
 .comment-reaction-bubble:hover {
@@ -834,7 +916,6 @@
   border-color: var(--color-primary-60);
   box-shadow: 0 0 6px var(--color-primary-30);
 }
-
 
 .comment-react-btn {
   background: transparent;
@@ -880,7 +961,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.15s, background 0.15s;
+  transition:
+    transform 0.15s,
+    background 0.15s;
   padding: 0;
 }
 
@@ -966,8 +1049,14 @@
 }
 
 @keyframes fadeInReplies {
-  from { opacity: 0; transform: translateY(-4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .comment-reply-indicator {
@@ -998,7 +1087,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .comment-reply-cancel:hover {
@@ -1284,7 +1375,6 @@
   align-items: center;
   gap: 5px;
   font-size: 0.82rem;
-  color: rgba(255, 255, 255, 0.6);
   margin-bottom: 6px;
 }
 

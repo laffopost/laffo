@@ -31,6 +31,7 @@ import {
   deleteDoc,
   getDocs,
   startAfter,
+  deleteField,
 } from "firebase/firestore";
 import { useAuth } from "./AuthContext";
 import {
@@ -608,6 +609,7 @@ export const PostProvider = ({ children }) => {
             }
           }
 
+          // ── Reaction counts (original logic, must succeed) ──────────
           if (currentReaction === emoji) {
             await updateDoc(imageRef, {
               [`reactions.${emoji}`]: increment(-1),
@@ -618,28 +620,41 @@ export const PostProvider = ({ children }) => {
                 [`reactions.${currentReaction}`]: increment(-1),
               });
             }
-            await updateDoc(imageRef, { [`reactions.${emoji}`]: increment(1) });
+            await updateDoc(imageRef, {
+              [`reactions.${emoji}`]: increment(1),
+            });
+          }
 
-            // Create notification for new like (not when changing reaction)
-            if (shouldCreateNotification && postData && !currentReaction) {
-              const username =
-                userProfileRef.current?.username ||
-                userNameRef.current ||
-                "Anonymous";
-              log("🔔 About to create like notification:", {
-                postData,
-                userId,
-                username,
-              });
-              await createNotificationForPost({
-                type: "like",
-                postId: imageId,
-                postAuthorId: postData.uploadedBy || postData.userId,
-                postTitle: postData.title || postData.text,
-                currentUserId: userId,
-                currentUsername: username,
-              });
-            }
+          // ── Reactors map (best-effort — fails silently if rules not deployed) ──
+          try {
+            const name = userProfileRef.current?.username || userNameRef.current || "User";
+            const avatar = userProfileRef.current?.avatar || "";
+            await updateDoc(imageRef, {
+              [`reactors.${userId}`]: currentReaction === emoji
+                ? deleteField()
+                : { emoji, name, avatar },
+            });
+          } catch { /* silently ignore */ }
+
+          // Create notification for new like (not when changing reaction)
+          if (shouldCreateNotification && postData && !currentReaction) {
+            const username =
+              userProfileRef.current?.username ||
+              userNameRef.current ||
+              "Anonymous";
+            log("🔔 About to create like notification:", {
+              postData,
+              userId,
+              username,
+            });
+            await createNotificationForPost({
+              type: "like",
+              postId: imageId,
+              postAuthorId: postData.uploadedBy || postData.userId,
+              postTitle: postData.title || postData.text,
+              currentUserId: userId,
+              currentUsername: username,
+            });
           }
 
           delete reactionTimeoutRef.current[imageId];
@@ -763,7 +778,7 @@ export const PostProvider = ({ children }) => {
   // PostContext only manages commentCount on the parent post doc.
 
   const addComment = useCallback(
-    async (imageId, commentText, avatar, parentId = null, replyToAuthor = null, rootParentId = null) => {
+    async (imageId, commentText, avatar, parentId = null, replyToAuthor = null, rootParentId = null, gifUrl = null) => {
       if (!userId) return;
       if (firebaseUser?.isAnonymous) {
         throw new Error("You must be logged in to comment");
@@ -794,6 +809,7 @@ export const PostProvider = ({ children }) => {
         ...(parentId && { parentId }),
         ...(replyToAuthor && { replyToAuthor }),
         ...(rootParentId && { rootParentId }),
+        ...(gifUrl && { gifUrl }),
       };
 
       // Optimistic: bump local commentCount

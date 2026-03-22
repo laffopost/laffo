@@ -48,13 +48,16 @@ export function useConversations({ onConversationStarted } = {}) {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [editingMessage, setEditingMessage] = useState(null);
   const [editText, setEditText] = useState("");
+  const [pendingGif, setPendingGif] = useState(null);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
+  const gifBtnRef = useRef(null);
   const cooldownRef = useRef(0);
   const typingTimeoutRef = useRef(null);
   const [otherUserTyping, setOtherUserTyping] = useState(false);
+  const [onlineUsers, setOnlineUsers] = useState({});
 
   // ── Derived current user ──────────────────────────────────────────
   const currentUser = useMemo(() => {
@@ -68,6 +71,28 @@ export function useConversations({ onConversationStarted } = {}) {
 
   // ── Conversations subscription ────────────────────────────────────
   const currentUid = currentUser?.uid ?? null;
+
+  // ── Online presence — subscribe to other participants' lastSeen ───
+  const otherUidsKey = useMemo(() => {
+    if (!currentUid || !conversations.length) return "";
+    return [...new Set(
+      conversations.flatMap((c) => c.participants?.filter((p) => p !== currentUid) ?? [])
+    )].sort().join(",");
+  }, [currentUid, conversations]);
+
+  useEffect(() => {
+    if (!otherUidsKey) return;
+    const uids = otherUidsKey.split(",").filter(Boolean);
+    const unsubs = uids.map((uid) =>
+      onSnapshot(doc(db, "users", uid), (snap) => {
+        if (!snap.exists()) return;
+        const ls = snap.data().lastSeen;
+        const ms = ls?.seconds ? ls.seconds * 1000 : 0;
+        setOnlineUsers((prev) => ({ ...prev, [uid]: ms ? Date.now() - ms < 5 * 60 * 1000 : false }));
+      })
+    );
+    return () => unsubs.forEach((u) => u());
+  }, [otherUidsKey]);
   useEffect(() => {
     if (!currentUid) return;
     const q = query(
@@ -278,7 +303,8 @@ export function useConversations({ onConversationStarted } = {}) {
   const handleSend = useCallback(
     async (e) => {
       e.preventDefault();
-      if (!newMessage.trim() || !activeConvo || !currentUser) return;
+      if (!newMessage.trim() && !pendingGif) return;
+      if (!activeConvo || !currentUser) return;
       if (firebaseUser?.isAnonymous) {
         toast.error("Please log in to send messages");
         return;
@@ -292,7 +318,9 @@ export function useConversations({ onConversationStarted } = {}) {
       cooldownRef.current = now;
 
       const text = newMessage.trim().slice(0, 500);
+      const gif = pendingGif;
       setNewMessage("");
+      setPendingGif(null);
 
       try {
         await addDoc(
@@ -302,10 +330,11 @@ export function useConversations({ onConversationStarted } = {}) {
             senderId: currentUser.uid,
             senderName: currentUser.name,
             timestamp: serverTimestamp(),
+            ...(gif && { gifUrl: gif.url }),
           },
         );
         await updateDoc(doc(db, "conversations", activeConvo.id), {
-          lastMessage: text.slice(0, 50),
+          lastMessage: gif && !text ? "🎬 GIF" : text.slice(0, 50),
           lastMessageAt: serverTimestamp(),
           lastSenderId: currentUser.uid,
           [`read_${currentUser.uid}`]: true,
@@ -321,9 +350,10 @@ export function useConversations({ onConversationStarted } = {}) {
           `Failed to send message: ${error.message || "Unknown error"}`,
         );
         setNewMessage(text);
+        setPendingGif(gif);
       }
     },
-    [newMessage, activeConvo, currentUser, firebaseUser],
+    [newMessage, pendingGif, activeConvo, currentUser, firebaseUser],
   );
 
   // ── handleSearchUsers (debounced 300 ms) ─────────────────────────
@@ -511,10 +541,13 @@ export function useConversations({ onConversationStarted } = {}) {
     setEditingMessage,
     editText,
     setEditText,
+    pendingGif,
+    setPendingGif,
     // refs
     messagesEndRef,
     messagesContainerRef,
     inputRef,
+    gifBtnRef,
     // actions
     openConversation,
     startConversation,
@@ -531,6 +564,7 @@ export function useConversations({ onConversationStarted } = {}) {
     sendTypingIndicator,
     // state
     otherUserTyping,
+    onlineUsers,
     // formatTime (re-exported for convenience)
     formatTime,
   };

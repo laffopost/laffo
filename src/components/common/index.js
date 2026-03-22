@@ -6,3 +6,4 @@ export { default as ThemeToggle } from "./ThemeToggle";
 export { default as Dropdown } from "./Dropdown";
 export { SkeletonCard, SkeletonGallery, SkeletonLine } from "./Skeleton";
 export { default as ColorPicker } from "./ColorPicker";
+export { default as GifPicker } from "./GifPicker";

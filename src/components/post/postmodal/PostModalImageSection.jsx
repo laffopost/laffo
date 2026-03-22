@@ -22,8 +22,9 @@ import PollRenderer from "../PollRenderer";
 import CountdownRenderer from "../CountdownRenderer";
 import QuizRenderer from "../QuizRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon } from "../../../utils/icons";
+import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon } from "../../../utils/icons";
 import FollowListModal from "../../profile/FollowListModal";
+import ReactorsModal from "../../common/ReactorsModal";
 
 export default function PostModalImageSection({
   post,
@@ -50,6 +51,7 @@ export default function PostModalImageSection({
 
   const [showShareMenu, setShowShareMenu] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
+  const [showReactors, setShowReactors] = useState(false);
   const [activeTab, setActiveTab] = useState("post");
   const [userData, setUserData] = useState(post.userProfileData || null);
   const shareMenuRef = useRef(null);
@@ -561,6 +563,23 @@ export default function PostModalImageSection({
                 <span className="no-reactions">No reactions yet</span>
               )}
             </div>
+
+            {displayedReactions.length > 0 && (
+              <button
+                className="reactions-who-btn"
+                title="See who reacted"
+                onClick={() => setShowReactors(true)}
+              >
+                <UsersIcon size={15} />
+              </button>
+            )}
+            {showReactors && (
+              <ReactorsModal
+                reactors={post.reactors || {}}
+                reactionCounts={reactions}
+                onClose={() => setShowReactors(false)}
+              />
+            )}
 
             <div className="reaction-actions-group">
               <div className="reaction-add-container" ref={reactionPickerRef}>

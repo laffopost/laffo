@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Link } from "react-router-dom";
 import { EmojiPicker } from "../utilities";
 import { formatTime } from "../../../utils/formatters";
+import { GifPicker } from "../../common";
 import {
   DeleteIcon,
   CloseIcon,
@@ -35,6 +36,10 @@ export default function ChatUI({
   setEditText,
   showEmojiPicker,
   setShowEmojiPicker,
+  pendingGif,
+  setPendingGif,
+  gifBtnRef,
+  onlineUsers = {},
   messagesEndRef,
   messagesContainerRef,
   inputRef,
@@ -58,6 +63,8 @@ export default function ChatUI({
   onClose,
 }) {
   const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const inputWrapperRef = useRef(null);
 
   const askConfirm = (title, message, onConfirm) =>
     setConfirm({ title, message, onConfirm });
@@ -160,6 +167,7 @@ export default function ChatUI({
                       </span>
                     )}
                     {isUnread && <span className="chat-avatar-badge" />}
+                    {onlineUsers[other.uid] && <span className="chat-online-dot" title="Online" />}
                   </div>
                   <div className="chat-convo-info">
                     <span className="chat-convo-name">{other.name}</span>
@@ -209,7 +217,10 @@ export default function ChatUI({
                         </span>
                       )}
                       <div className="chat-header-user-info">
-                        <span className="chat-username">{other.name}</span>
+                        <span className="chat-username">
+                          {other.name}
+                          {onlineUsers[other.uid] && <span className="chat-online-dot chat-online-dot--inline" title="Online" />}
+                        </span>
                         {variant === "page" && (
                           <Link
                             to={`/profile/${other.name}`}
@@ -217,6 +228,9 @@ export default function ChatUI({
                           >
                             View Profile
                           </Link>
+                        )}
+                        {onlineUsers[other.uid] && (
+                          <span className="chat-online-label">Online now</span>
                         )}
                       </div>
                     </>
@@ -272,7 +286,13 @@ export default function ChatUI({
             </div>
 
             <form className="chat-input-form" onSubmit={handleSend}>
-              <div className="chat-input-wrap">
+              {pendingGif && (
+                <div className="chat-gif-preview">
+                  <img src={pendingGif.url} alt="GIF" />
+                  <button type="button" className="chat-gif-preview-remove" onClick={() => setPendingGif(null)}>✕</button>
+                </div>
+              )}
+              <div className="chat-input-wrap" ref={inputWrapperRef}>
                 <input
                   ref={inputRef}
                   type="text"
@@ -291,14 +311,30 @@ export default function ChatUI({
                 >
                   <EmojiIcon size={20} />
                 </button>
+                <button
+                  type="button"
+                  ref={gifBtnRef}
+                  className="chat-gif-btn"
+                  onClick={() => setShowGifPicker((v) => !v)}
+                  title="Add GIF"
+                >
+                  GIF
+                </button>
               </div>
               <button
                 type="submit"
                 className="chat-send-btn"
-                disabled={!newMessage.trim()}
+                disabled={!newMessage.trim() && !pendingGif}
               >
                 <SendIcon size={20} />
               </button>
+              {showGifPicker && (
+                <GifPicker
+                  anchorRef={inputWrapperRef}
+                  onSelect={(gif) => { setPendingGif(gif); setShowGifPicker(false); }}
+                  onClose={() => setShowGifPicker(false)}
+                />
+              )}
             </form>
           </>
         ) : (
@@ -386,10 +422,15 @@ function MessageBubble({
             </div>
           ) : (
             <>
-              <p>
-                {msg.text}
-                {msg.edited && <span className="chat-edited"> (edited)</span>}
-              </p>
+              {msg.gifUrl && (
+                <img src={msg.gifUrl} alt="GIF" className="chat-msg-gif" />
+              )}
+              {msg.text && (
+                <p>
+                  {msg.text}
+                  {msg.edited && <span className="chat-edited"> (edited)</span>}
+                </p>
+              )}
               <LinkPreview text={msg.text} />
               {isOwn && (
                 <div className="chat-msg-actions">

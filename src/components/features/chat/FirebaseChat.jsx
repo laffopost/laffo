@@ -10,6 +10,7 @@ import {
 } from "firebase/firestore";
 import { useAuth } from "../../../context/AuthContext";
 import { db } from "../../../firebase/config";
+import { GifPicker } from "../../common";
 import "./FirebaseChat.css";
 
 import logger from "../../../utils/logger";
@@ -120,11 +121,15 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
   const [newMessage, setNewMessage] = useState("");
   const [error, setError] = useState(null);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [pendingGif, setPendingGif] = useState(null);
   const [minimized, setMinimized] = useState(false);
 
   const chatRef = useRef(null);
   const inputRef = useRef(null);
   const emojiPickerRef = useRef(null);
+  const gifBtnRef = useRef(null);
+  const inputWrapperRef = useRef(null);
   const lastMessageTimeRef = useRef(0);
   const CHAT_COOLDOWN_MS = 2000; // 2 seconds between messages
 
@@ -227,7 +232,8 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
   const handleSendMessage = useCallback(
     async (e) => {
       e.preventDefault();
-      if (!newMessage.trim() || !user) return;
+      if (!newMessage.trim() && !pendingGif) return;
+      if (!user) return;
 
       // Block anonymous users from chatting
       if (firebaseUser?.isAnonymous) {
@@ -244,6 +250,7 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
         return;
       }
 
+      const gif = pendingGif;
       try {
         lastMessageTimeRef.current = now;
         const messagesRef = collection(db, collectionName);
@@ -252,9 +259,11 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
           userId: user.uid,
           userName: user.name,
           timestamp: serverTimestamp(),
+          ...(gif && { gifUrl: gif.url }),
         });
 
         setNewMessage("");
+        setPendingGif(null);
         inputRef.current?.focus();
         setError(null);
       } catch (err) {
@@ -262,7 +271,7 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
         setError("Failed to send message");
       }
     },
-    [newMessage, user, firebaseUser],
+    [newMessage, pendingGif, user, firebaseUser],
   );
 
   const handleEmojiClick = useCallback((emoji) => {
@@ -313,13 +322,20 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                   )}
                   <span className="message-time">{formatTime(msg.timestamp)}</span>
                 </div>
-                <div className="message-text">{msg.text}</div>
+                {msg.gifUrl && <img src={msg.gifUrl} alt="GIF" className="chat-msg-gif" />}
+                {msg.text && <div className="message-text">{msg.text}</div>}
               </div>
             ))
           )}
         </div>
         <form onSubmit={handleSendMessage} className="chat-input-form">
-          <div className="chat-input-wrapper">
+          {pendingGif && (
+            <div className="chat-gif-preview">
+              <img src={pendingGif.url} alt="GIF" />
+              <button type="button" className="chat-gif-preview-remove" onClick={() => setPendingGif(null)}>✕</button>
+            </div>
+          )}
+          <div className="chat-input-wrapper" ref={inputWrapperRef}>
             <input
               ref={inputRef}
               type="text"
@@ -332,6 +348,7 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
             />
             <div className="chat-actions">
               <button type="button" className="emoji-toggle-btn" onClick={() => setShowEmojiPicker(!showEmojiPicker)} title="Add emoji">😊</button>
+              <button type="button" ref={gifBtnRef} className="chat-gif-btn" onClick={() => setShowGifPicker((v) => !v)} title="Add GIF">GIF</button>
               <button type="submit" className="chat-send-btn" title="Send">➤</button>
             </div>
           </div>
@@ -350,6 +367,13 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                 ))}
               </div>
             </div>
+          )}
+          {showGifPicker && (
+            <GifPicker
+              anchorRef={inputWrapperRef}
+              onSelect={(gif) => { setPendingGif(gif); setShowGifPicker(false); }}
+              onClose={() => setShowGifPicker(false)}
+            />
           )}
         </form>
       </>
@@ -442,14 +466,21 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                   {formatTime(msg.timestamp)}
                 </span>
               </div>
-              <div className="message-text">{msg.text}</div>
+              {msg.gifUrl && <img src={msg.gifUrl} alt="GIF" className="chat-msg-gif" />}
+              {msg.text && <div className="message-text">{msg.text}</div>}
             </div>
           ))
         )}
       </div>
 
       <form onSubmit={handleSendMessage} className="chat-input-form">
-        <div className="chat-input-wrapper">
+        {pendingGif && (
+          <div className="chat-gif-preview">
+            <img src={pendingGif.url} alt="GIF" />
+            <button type="button" className="chat-gif-preview-remove" onClick={() => setPendingGif(null)}>✕</button>
+          </div>
+        )}
+        <div className="chat-input-wrapper" ref={inputWrapperRef}>
           <input
             ref={inputRef}
             type="text"
@@ -472,6 +503,15 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
               title="Add emoji"
             >
               😊
+            </button>
+            <button
+              type="button"
+              ref={gifBtnRef}
+              className="chat-gif-btn"
+              onClick={() => setShowGifPicker((v) => !v)}
+              title="Add GIF"
+            >
+              GIF
             </button>
             <button type="submit" className="chat-send-btn" title="Send">
               ➤
@@ -501,6 +541,13 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
               ))}
             </div>
           </div>
+        )}
+        {showGifPicker && (
+          <GifPicker
+            anchorRef={inputWrapperRef}
+            onSelect={(gif) => { setPendingGif(gif); setShowGifPicker(false); }}
+            onClose={() => setShowGifPicker(false)}
+          />
         )}
       </form>
     </div>

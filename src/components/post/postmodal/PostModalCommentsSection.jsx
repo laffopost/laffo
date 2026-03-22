@@ -21,24 +21,35 @@ function renderMentions(text, onMentionClick) {
       <span
         key={i}
         className="mention-chip"
-        onClick={(e) => { e.stopPropagation(); onMentionClick(part.slice(1)); }}
+        onClick={(e) => {
+          e.stopPropagation();
+          onMentionClick(part.slice(1));
+        }}
       >
         {part}
       </span>
-    ) : part,
+    ) : (
+      part
+    ),
   );
 }
 
 function fmtDate(ts) {
   if (!ts) return null;
-  const d = ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+  const d =
+    ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
   if (isNaN(d)) return null;
-  return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" });
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
 }
 
 function fmtCommentTime(ts) {
   if (!ts) return "";
-  const d = ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
+  const d =
+    ts.toDate?.() ?? (ts.seconds ? new Date(ts.seconds * 1000) : new Date(ts));
   if (isNaN(d)) return "";
   return d.toLocaleString("en-US", {
     month: "short",
@@ -52,19 +63,26 @@ function fmtCommentTime(ts) {
 import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { DeleteIcon, ChatIcon, EditIcon, SendIcon, CalendarIcon, MessageIcon, CloseIcon, EmojiIcon } from "../../../utils/icons";
+import {
+  DeleteIcon,
+  ChatIcon,
+  EditIcon,
+  SendIcon,
+  CalendarIcon,
+  MessageIcon,
+  CloseIcon,
+  EmojiIcon,
+} from "../../../utils/icons";
 import ConfirmModal from "../../common/ConfirmModal";
 import MentionInput from "../../common/MentionInput";
+import GifPicker from "../../common/GifPicker";
+import "../../common/GifPicker.css";
 
 const PostModalCommentsSection = memo(function PostModalCommentsSection({
   post,
   onClose,
 }) {
-  const {
-    addComment,
-    deleteComment,
-    toggleCommentReaction,
-  } = usePosts();
+  const { addComment, deleteComment, toggleCommentReaction } = usePosts();
   const { userProfile, firebaseUser } = useAuth();
   const { requireAuth, isLoggedIn } = useRequireAuth();
   const userId = firebaseUser?.uid;
@@ -73,14 +91,19 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [showCommentReactionPicker, setShowCommentReactionPicker] = useState(null);
+  const [showCommentReactionPicker, setShowCommentReactionPicker] =
+    useState(null);
   const [pickerPos, setPickerPos] = useState({ top: 0, left: 0 });
   const [confirmDeleteCommentId, setConfirmDeleteCommentId] = useState(null);
   const [avatars, setAvatars] = useState({});
   const [replyTo, setReplyTo] = useState(null); // { id, author }
   const [expandedReplies, setExpandedReplies] = useState(new Set());
+  const [showGifPicker, setShowGifPicker] = useState(false);
+  const [pendingGif, setPendingGif] = useState(null); // { url, preview, title }
   const commentReactionPickerRef = useRef(null);
   const inputRef = useRef(null);
+  const gifBtnRef = useRef(null);
+  const inputWrapperRef = useRef(null);
 
   const availableReactions = ["😂", "🚀", "💎", "🔥", "❤️", "👍", "🎉", "💰"];
 
@@ -105,34 +128,42 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
 
   // Build a set of top-level IDs so we can resolve root parents
   // All replies flatten to level 2 max (no deeper nesting)
-  const { topLevel, repliesByParent, replyCountByParent, topLevelIds } = useMemo(() => {
-    const top = [];
-    const topIds = new Set();
-    const replies = {};
-    const counts = {};
+  const { topLevel, repliesByParent, replyCountByParent, topLevelIds } =
+    useMemo(() => {
+      const top = [];
+      const topIds = new Set();
+      const replies = {};
+      const counts = {};
 
-    // First pass: identify top-level comments
-    for (const c of comments) {
-      if (!c.parentId) {
-        top.push(c);
-        topIds.add(c.id);
+      // First pass: identify top-level comments
+      for (const c of comments) {
+        if (!c.parentId) {
+          top.push(c);
+          topIds.add(c.id);
+        }
       }
-    }
 
-    // Second pass: group all replies under their root parent
-    for (const c of comments) {
-      if (c.parentId) {
-        // If parentId is a top-level comment, use it directly.
-        // If parentId is itself a reply, find the root parent.
-        const rootId = topIds.has(c.parentId) ? c.parentId : c.rootParentId || c.parentId;
-        if (!replies[rootId]) replies[rootId] = [];
-        replies[rootId].push(c);
-        counts[rootId] = (counts[rootId] || 0) + 1;
+      // Second pass: group all replies under their root parent
+      for (const c of comments) {
+        if (c.parentId) {
+          // If parentId is a top-level comment, use it directly.
+          // If parentId is itself a reply, find the root parent.
+          const rootId = topIds.has(c.parentId)
+            ? c.parentId
+            : c.rootParentId || c.parentId;
+          if (!replies[rootId]) replies[rootId] = [];
+          replies[rootId].push(c);
+          counts[rootId] = (counts[rootId] || 0) + 1;
+        }
       }
-    }
 
-    return { topLevel: top, repliesByParent: replies, replyCountByParent: counts, topLevelIds: topIds };
-  }, [comments]);
+      return {
+        topLevel: top,
+        repliesByParent: replies,
+        replyCountByParent: counts,
+        topLevelIds: topIds,
+      };
+    }, [comments]);
 
   // Fetch avatars for unique authors
   useEffect(() => {
@@ -170,7 +201,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
     async (e) => {
       e.preventDefault();
       e.stopPropagation();
-      if (!newComment.trim()) return;
+      if (!newComment.trim() && !pendingGif) return;
       if (!requireAuth("comment on a post")) return;
 
       const commentText = newComment.trim();
@@ -178,35 +209,55 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       // replyTo.id is always the root parent (handleReply resolves it)
       const parentId = replyTo?.id || null;
       const replyToAuthor = replyTo?.author || null;
-      // rootParentId = same as parentId here since we always resolve to root
       const rootParentId = parentId;
+      const gifUrl = pendingGif?.url || null;
 
       setNewComment("");
       setReplyTo(null);
+      setPendingGif(null);
 
-      // Auto-expand replies for the parent we just replied to
       if (parentId) {
         setExpandedReplies((prev) => new Set(prev).add(parentId));
       }
 
-      addComment(post.id, commentText, avatar, parentId, replyToAuthor, rootParentId).catch((err) => {
+      addComment(
+        post.id,
+        commentText,
+        avatar,
+        parentId,
+        replyToAuthor,
+        rootParentId,
+        gifUrl,
+      ).catch((err) => {
         setNewComment(commentText);
         toast.error(err.message || "Failed to post comment");
       });
     },
-    [newComment, post.id, userProfile, firebaseUser, addComment, requireAuth, replyTo],
+    [
+      newComment,
+      pendingGif,
+      post.id,
+      userProfile,
+      firebaseUser,
+      addComment,
+      requireAuth,
+      replyTo,
+    ],
   );
 
-  const handleReply = useCallback((comment) => {
-    if (!requireAuth("reply to a comment")) return;
-    // Always reply under the root parent (max 2 levels)
-    const rootId = comment.parentId
-      ? (comment.rootParentId || comment.parentId)
-      : comment.id;
-    setReplyTo({ id: rootId, author: comment.author });
-    setNewComment(`@${comment.author} `);
-    inputRef.current?.focus?.();
-  }, [requireAuth]);
+  const handleReply = useCallback(
+    (comment) => {
+      if (!requireAuth("reply to a comment")) return;
+      // Always reply under the root parent (max 2 levels)
+      const rootId = comment.parentId
+        ? comment.rootParentId || comment.parentId
+        : comment.id;
+      setReplyTo({ id: rootId, author: comment.author });
+      setNewComment(`@${comment.author} `);
+      inputRef.current?.focus?.();
+    },
+    [requireAuth],
+  );
 
   const cancelReply = useCallback(() => {
     setReplyTo(null);
@@ -290,8 +341,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
     const userReaction = getUserCommentReaction(comment);
     const reactionEntries = Object.entries(reactions);
     const isAnonymous =
-      !comment.author ||
-      comment.author.trim().toLowerCase() === "anonymous";
+      !comment.author || comment.author.trim().toLowerCase() === "anonymous";
 
     const avatarUrl = comment.avatar ?? avatars[comment.author] ?? null;
 
@@ -312,7 +362,10 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
     ) : null;
 
     return (
-      <div key={comment.id} className={`comment-item ${isReply ? "comment-reply" : ""}`}>
+      <div
+        key={comment.id}
+        className={`comment-item ${isReply ? "comment-reply" : ""}`}
+      >
         <div className="comment-content">
           <div
             className="comment-header"
@@ -355,7 +408,9 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                 </button>
               )}
             <span className="comment-time" style={{ marginLeft: 8 }}>
-              {fmtCommentTime(comment.createdAt) || comment.timestamp || comment.time}
+              {fmtCommentTime(comment.createdAt) ||
+                comment.timestamp ||
+                comment.time}
             </span>
             {firebaseUser &&
               !firebaseUser.isAnonymous &&
@@ -383,7 +438,10 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
                     setShowCommentReactionPicker(null);
                   } else {
                     const rect = e.currentTarget.getBoundingClientRect();
-                    setPickerPos({ top: rect.top - 8, right: window.innerWidth - rect.right });
+                    setPickerPos({
+                      top: rect.top - 8,
+                      right: window.innerWidth - rect.right,
+                    });
                     setShowCommentReactionPicker(comment.id);
                   }
                 }}
@@ -393,7 +451,18 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
               </button>
             )}
           </div>
-          <p className="comment-text">{renderMentions(comment.text, (username) => navigate(`/profile/${username.toLowerCase()}`))}</p>
+          {comment.text && (
+            <p className="comment-text">
+              {renderMentions(comment.text, (username) =>
+                navigate(`/profile/${username.toLowerCase()}`),
+              )}
+            </p>
+          )}
+          {comment.gifUrl && (
+            <div className="comment-gif">
+              <img src={comment.gifUrl} alt="GIF" loading="lazy" />
+            </div>
+          )}
           <div className="comment-reactions-row">
             {reactionEntries.length > 0 && (
               <div className="comment-reactions-display">
@@ -429,8 +498,8 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
   return (
     <div className="comments-section">
       <div className="comments-close-row">
-        <button className="comments-close-btn" onClick={onClose} title="Close">
-          <CloseIcon size={14} />
+        <button className="close-btn" onClick={onClose} title="Close">
+          <CloseIcon size={18} />
         </button>
       </div>
       {/* Post description + meta */}
@@ -453,9 +522,25 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
           )}
           {fmtDate(post.createdAt) && (
             <p className="comments-post-date">
-              <CalendarIcon size={14} style={{display: 'inline', marginRight: '4px', verticalAlign: 'middle'}} /> {fmtDate(post.createdAt)}
+              <CalendarIcon
+                size={14}
+                style={{
+                  display: "inline",
+                  marginRight: "4px",
+                  verticalAlign: "middle",
+                }}
+              />{" "}
+              {fmtDate(post.createdAt)}
               {post.edited && fmtDate(post.updatedAt) && (
-                <span> · <EditIcon size={12} style={{display: 'inline', marginRight: '4px'}} /> Edited {fmtDate(post.updatedAt)}</span>
+                <span>
+                  {" "}
+                  ·{" "}
+                  <EditIcon
+                    size={12}
+                    style={{ display: "inline", marginRight: "4px" }}
+                  />{" "}
+                  Edited {fmtDate(post.updatedAt)}
+                </span>
               )}
             </p>
           )}
@@ -467,7 +552,9 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
       {/* Reply indicator */}
       {replyTo && (
         <div className="comment-reply-indicator">
-          <span>Replying to <strong>@{replyTo.author}</strong></span>
+          <span>
+            Replying to <strong>@{replyTo.author}</strong>
+          </span>
           <button onClick={cancelReply} className="comment-reply-cancel">
             <CloseIcon size={12} />
           </button>
@@ -479,14 +566,39 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         onSubmit={handleAddComment}
         onClick={handleInputClick}
       >
-        <div className="comment-input-wrapper" onClick={handleInputClick} style={{ position: "relative" }}>
+        {pendingGif && (
+          <div className="comment-gif-preview">
+            <img src={pendingGif.preview} alt={pendingGif.title} />
+            <button
+              className="comment-gif-preview-remove"
+              onClick={(e) => {
+                e.preventDefault();
+                setPendingGif(null);
+              }}
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        <div
+          ref={inputWrapperRef}
+          className="comment-input-wrapper"
+          onClick={handleInputClick}
+          style={{ position: "relative" }}
+        >
           <MentionInput
             ref={inputRef}
             multiline={false}
             value={newComment}
             onChange={setNewComment}
             onKeyDown={handleInputKeyDown}
-            placeholder={replyTo ? `Reply to @${replyTo.author}...` : isLoggedIn ? "Add a comment… type @ to mention" : "Log in to comment..."}
+            placeholder={
+              replyTo
+                ? `Reply to @${replyTo.author}...`
+                : isLoggedIn
+                  ? "Comment, @mention, ..."
+                  : "Log in to comment..."
+            }
             className="comment-input"
             maxLength={200}
             onClick={handleInputClick}
@@ -503,19 +615,48 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
             </span>
           )}
           <button
+            type="button"
+            ref={gifBtnRef}
+            className={`comment-gif-btn${pendingGif ? " active" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              if (!requireAuth("add a GIF")) return;
+              setShowGifPicker((v) => !v);
+            }}
+            title="Add GIF"
+          >
+            GIF
+          </button>
+          <button
             type="submit"
             className="comment-submit"
-            disabled={!newComment.trim()}
+            disabled={!newComment.trim() && !pendingGif}
             onClick={handleInputClick}
           >
             <SendIcon size={16} />
           </button>
         </div>
       </form>
+      {showGifPicker && (
+        <GifPicker
+          anchorRef={inputWrapperRef}
+          onSelect={(gif) => {
+            setPendingGif(gif);
+            setShowGifPicker(false);
+          }}
+          onClose={() => setShowGifPicker(false)}
+        />
+      )}
       <div className="comments-list">
         {topLevel.length === 0 && comments.length === 0 ? (
           <div className="no-comments">
-            <p>No comments yet. Be the first to comment! <ChatIcon size={16} style={{display: 'inline', marginLeft: '4px'}} /></p>
+            <p>
+              No comments yet. Be the first to comment!{" "}
+              <ChatIcon
+                size={16}
+                style={{ display: "inline", marginLeft: "4px" }}
+              />
+            </p>
           </div>
         ) : (
           topLevel.map((comment) => {
@@ -554,42 +695,54 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
         <ConfirmModal
           title="Delete Comment?"
           message="This action cannot be undone."
-          onConfirm={() => { deleteComment(post.id, confirmDeleteCommentId); setConfirmDeleteCommentId(null); }}
+          onConfirm={() => {
+            deleteComment(post.id, confirmDeleteCommentId);
+            setConfirmDeleteCommentId(null);
+          }}
           onCancel={() => setConfirmDeleteCommentId(null)}
         />
       )}
-      {showCommentReactionPicker && createPortal(
-        <div
-          className="comment-reaction-picker"
-          ref={commentReactionPickerRef}
-          style={{
-            position: "fixed",
-            top: pickerPos.top,
-            right: pickerPos.right,
-            transform: "translateY(-100%)",
-            zIndex: 99999,
-          }}
-        >
-          {availableReactions.map((emoji) => {
-            const activeComment = comments.find(c => c.id === showCommentReactionPicker);
-            const activeUserReaction = activeComment ? getUserCommentReaction(activeComment) : null;
-            return (
-              <button
-                key={emoji}
-                className={`comment-reaction-option ${activeUserReaction === emoji ? "selected" : ""}`}
-                onClick={() => {
-                  if (!requireAuth("react to a comment")) return;
-                  toggleCommentReaction(post.id, showCommentReactionPicker, emoji);
-                  setShowCommentReactionPicker(null);
-                }}
-              >
-                {emoji}
-              </button>
-            );
-          })}
-        </div>,
-        document.body
-      )}
+      {showCommentReactionPicker &&
+        createPortal(
+          <div
+            className="comment-reaction-picker"
+            ref={commentReactionPickerRef}
+            style={{
+              position: "fixed",
+              top: pickerPos.top,
+              right: pickerPos.right,
+              transform: "translateY(-100%)",
+              zIndex: 99999,
+            }}
+          >
+            {availableReactions.map((emoji) => {
+              const activeComment = comments.find(
+                (c) => c.id === showCommentReactionPicker,
+              );
+              const activeUserReaction = activeComment
+                ? getUserCommentReaction(activeComment)
+                : null;
+              return (
+                <button
+                  key={emoji}
+                  className={`comment-reaction-option ${activeUserReaction === emoji ? "selected" : ""}`}
+                  onClick={() => {
+                    if (!requireAuth("react to a comment")) return;
+                    toggleCommentReaction(
+                      post.id,
+                      showCommentReactionPicker,
+                      emoji,
+                    );
+                    setShowCommentReactionPicker(null);
+                  }}
+                >
+                  {emoji}
+                </button>
+              );
+            })}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 });

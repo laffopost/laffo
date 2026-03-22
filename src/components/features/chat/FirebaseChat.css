@@ -241,6 +241,63 @@
   transform: translateY(0);
 }
 
+.chat-gif-btn {
+  background: var(--color-primary-20);
+  border: 1px solid var(--border-primary);
+  color: var(--color-primary);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-gif-btn:hover {
+  background: var(--color-primary-40);
+  transform: scale(1.05);
+}
+
+.chat-gif-preview {
+  position: relative;
+  padding: 6px 8px 0;
+}
+
+.chat-gif-preview img {
+  max-height: 80px;
+  border-radius: 6px;
+  display: block;
+}
+
+.chat-gif-preview-remove {
+  position: absolute;
+  top: 2px;
+  right: 4px;
+  background: rgba(0,0,0,0.7);
+  border: none;
+  color: #fff;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  font-size: 0.6rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.chat-msg-gif {
+  max-width: 180px;
+  border-radius: 8px;
+  display: block;
+  margin-top: 4px;
+}
+
 .emoji-picker-container {
   position: absolute;
   bottom: 100%;
