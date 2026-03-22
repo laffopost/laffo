@@ -7,7 +7,8 @@ import { VolumeUpIcon, VolumeMuteIcon, HomeIcon, GamesIcon, SportsIcon, WeatherI
 import laughLogo from "../../assets/laugh.png";
 import "./Header.css";
 import { signOut } from "firebase/auth";
-import { auth } from "../../firebase/config";
+import { auth, db } from "../../firebase/config";
+import { doc, setDoc } from "firebase/firestore";
 
 const MOTTOS = [
   "Because laughter is the best investment.",
@@ -92,6 +93,10 @@ const Header = memo(function Header() {
   // Log out handler
   const handleLogout = async () => {
     try {
+      // Clear presence before signing out so other users see offline immediately
+      if (firebaseUser && !firebaseUser.isAnonymous) {
+        await setDoc(doc(db, "users", firebaseUser.uid), { lastSeen: new Date(0) }, { merge: true }).catch(() => {});
+      }
       await signOut(auth);
       navigate("/profile", { replace: true });
     } catch (_err) {

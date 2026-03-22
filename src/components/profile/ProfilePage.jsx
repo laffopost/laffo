@@ -434,7 +434,7 @@ export default function ProfilePage() {
       : typeof ls === "string" || typeof ls === "number"
         ? new Date(ls).getTime()
         : null;
-    return ms ? Date.now() - ms < 5 * 60 * 1000 : false;
+    return ms > 0 && Date.now() - ms < 3 * 60 * 1000;
   })();
 
   // ── Song chip renderer ──

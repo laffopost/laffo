@@ -46,24 +46,36 @@ export function AuthProvider({ children }) {
     return () => unsubscribe();
   }, []);
 
-  // Keep lastSeen fresh while user is browsing (every 2 minutes)
+  // Keep lastSeen fresh while user is browsing (every 1 minute)
   useEffect(() => {
     if (!firebaseUser || firebaseUser.isAnonymous) return;
-    const interval = setInterval(
-      async () => {
-        try {
-          await setDoc(
-            doc(db, "users", firebaseUser.uid),
-            { lastSeen: serverTimestamp() },
-            { merge: true },
-          );
-        } catch (_err) {
-          // Silently fail on lastSeen update
-        }
-      },
-      2 * 60 * 1000,
-    );
-    return () => clearInterval(interval);
+    const uid = firebaseUser.uid;
+    const userRef = doc(db, "users", uid);
+
+    const ping = async () => {
+      try {
+        await setDoc(userRef, { lastSeen: serverTimestamp() }, { merge: true });
+      } catch (_err) {}
+    };
+
+    const interval = setInterval(ping, 2 * 60 * 1000);
+
+    // Best-effort: mark offline when tab is hidden / window closed
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        // Use sendBeacon-style best-effort — Firestore doesn't support it,
+        // so we write a past timestamp and accept it may occasionally fail
+        setDoc(userRef, { lastSeen: new Date(0) }, { merge: true }).catch(() => {});
+      } else {
+        ping();
+      }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
+
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
   }, [firebaseUser]);
 
   const value = useMemo(

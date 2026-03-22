@@ -92,10 +92,10 @@ export function useConversations({ onConversationStarted } = {}) {
     if (!otherUidsKey) return;
     const uids = otherUidsKey.split(",").filter(Boolean);
     const now = Date.now();
-    const FIVE_MIN = 5 * 60 * 1000;
+    const THREE_MIN = 3 * 60 * 1000;
     const toFetch = uids.filter((uid) => {
       const cached = presenceCacheRef.current[uid];
-      return !cached || now - cached.fetchedAt > FIVE_MIN;
+      return !cached || now - cached.fetchedAt > THREE_MIN;
     });
     if (!toFetch.length) return;
     toFetch.forEach(async (uid) => {
@@ -104,7 +104,7 @@ export function useConversations({ onConversationStarted } = {}) {
         if (!snap.exists()) return;
         const ls = snap.data().lastSeen;
         const ms = ls?.seconds ? ls.seconds * 1000 : 0;
-        const online = ms ? Date.now() - ms < FIVE_MIN : false;
+        const online = ms > 0 && Date.now() - ms < THREE_MIN;
         presenceCacheRef.current[uid] = { online, fetchedAt: Date.now() };
         setOnlineUsers((prev) => ({ ...prev, [uid]: online }));
       } catch {}
