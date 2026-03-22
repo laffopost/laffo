@@ -40,21 +40,24 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isSignedIn() && isValidChatMessage();
       allow delete: if isOwner(resource.data.userId);
-      allow update: if false;
+      allow update: if isSignedIn()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']);
     }
 
     match /games-chat/{messageId} {
       allow read: if isRealUser();
       allow create: if isRealUser() && isValidChatMessage();
       allow delete: if isRealUser() && isOwner(resource.data.userId);
-      allow update: if false;
+      allow update: if isSignedIn()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']);
     }
 
     match /music-chat/{messageId} {
       allow read: if true;
       allow create: if isSignedIn() && isValidChatMessage();
       allow delete: if isOwner(resource.data.userId);
-      allow update: if false;
+      allow update: if isSignedIn()
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']);
     }
 
     // ── App state ─────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ import {
   EditIcon,
   CheckIcon,
   ChatIcon,
+  ReplyIcon,
 } from "../../../utils/icons";
 import LinkPreview from "../../common/LinkPreview";
 import ConfirmModal from "../../common/ConfirmModal";
@@ -58,6 +59,8 @@ export default function ChatUI({
   getOtherUser,
   sendTypingIndicator,
   otherUserTyping,
+  replyTo = null,
+  setReplyTo,
   olderMessages = [],
   hasOlderMessages = false,
   loadingOlderMessages = false,
@@ -69,6 +72,15 @@ export default function ChatUI({
   const [confirm, setConfirm] = useState(null); // { title, message, onConfirm }
   const [showGifPicker, setShowGifPicker] = useState(false);
   const inputWrapperRef = useRef(null);
+
+  const allMsgs = [...olderMessages, ...messages];
+  const lastOwnMsg = [...allMsgs].reverse().find(m => m.senderId === currentUser?.uid);
+  const otherUid = activeConvo?.participants?.find(p => p !== currentUser?.uid);
+  const otherLastRead = activeConvo?.lastRead?.[otherUid];
+  const otherLastReadMs = otherLastRead?.toMillis?.() ?? (typeof otherLastRead === 'number' ? otherLastRead : 0);
+  // Only "seen" if the other user's lastRead is AFTER the last message we sent
+  const lastOwnMsgMs = lastOwnMsg?.timestamp?.toMillis?.() ?? (typeof lastOwnMsg?.timestamp === 'number' ? lastOwnMsg.timestamp : 0);
+  const isSeen = otherLastReadMs > 0 && lastOwnMsgMs > 0 && otherLastReadMs >= lastOwnMsgMs;
 
   const askConfirm = (title, message, onConfirm) =>
     setConfirm({ title, message, onConfirm });
@@ -285,6 +297,8 @@ export default function ChatUI({
                     handleDeleteMessage={handleDeleteMessage}
                     handleReaction={handleReaction}
                     askConfirm={askConfirm}
+                    onReply={(m) => setReplyTo({ id: m.id, text: m.text, userName: m.senderName || "User" })}
+                    showSeen={lastOwnMsg?.id === msg.id && isSeen}
                   />
                 ))
               )}
@@ -298,6 +312,15 @@ export default function ChatUI({
               <div ref={messagesEndRef} />
             </div>
 
+            {replyTo && (
+              <div className="chat-reply-bar">
+                <div className="chat-reply-bar-content">
+                  <span className="chat-reply-bar-name">{replyTo.userName}</span>
+                  <span className="chat-reply-bar-text">{replyTo.text?.slice(0, 60) || "GIF"}</span>
+                </div>
+                <button className="chat-reply-bar-close" onClick={() => setReplyTo(null)} type="button">✕</button>
+              </div>
+            )}
             <form className="chat-input-form" onSubmit={handleSend}>
               {pendingGif && (
                 <div className="chat-gif-preview">
@@ -381,25 +404,35 @@ function MessageBubble({
   handleDeleteMessage,
   handleReaction,
   askConfirm,
+  onReply,
+  showSeen,
 }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const reactions = msg.reactions ?? {};
   const reactionEntries = Object.entries(reactions).filter(([, uids]) => uids.length > 0);
 
-  return (
-    <div className={`chat-msg${isOwn ? " own" : ""}`}>
-      {/* Reaction trigger — sits beside the bubble, always accessible */}
-      <div className="chat-msg-react-wrap">
+  const ActionBar = (
+    <div className={`chat-msg-actions-bar${isOwn ? " own" : ""}`}>
+      <button
+        className="chat-msg-action-btn"
+        title="Reply"
+        onClick={() => onReply?.(msg)}
+      >
+        <ReplyIcon size={14} />
+      </button>
+      <div className="chat-msg-action-react-wrap">
         <button
-          className="chat-msg-react-trigger"
+          className="chat-msg-action-btn"
           title="React"
           onClick={() => setShowReactionPicker((v) => !v)}
         >
-          <EmojiIcon size={18} />
+          <EmojiIcon size={14} />
         </button>
         {showReactionPicker && (
-          <div className={`chat-reaction-picker${isOwn ? " own" : ""}`}
-               onMouseLeave={() => setShowReactionPicker(false)}>
+          <div
+            className={`chat-reaction-picker${isOwn ? " own" : ""}`}
+            onMouseLeave={() => setShowReactionPicker(false)}
+          >
             {QUICK_REACTIONS.map((emoji) => (
               <button
                 key={emoji}
@@ -412,6 +445,13 @@ function MessageBubble({
           </div>
         )}
       </div>
+    </div>
+  );
+
+  return (
+    <div className={`chat-msg${isOwn ? " own" : ""}`}>
+      {/* Received: actions left of bubble */}
+      {!isOwn && ActionBar}
 
       <div className="chat-bubble-col">
         <div className="chat-bubble">
@@ -435,6 +475,12 @@ function MessageBubble({
             </div>
           ) : (
             <>
+              {msg.replyTo && (
+                <div className="chat-reply-quote">
+                  <span className="chat-reply-quote-name">{msg.replyTo.userName}</span>
+                  <span className="chat-reply-quote-text">{msg.replyTo.text?.slice(0, 80) || "GIF"}</span>
+                </div>
+              )}
               {msg.gifUrl && (
                 <img src={msg.gifUrl} alt="GIF" className="chat-msg-gif" />
               )}
@@ -457,7 +503,14 @@ function MessageBubble({
               )}
             </>
           )}
-          <span className="chat-msg-time">{formatTime(msg.timestamp)}</span>
+          <span className="chat-msg-time">
+            {formatTime(msg.timestamp)}
+            {isOwn && (
+              <span className={`chat-msg-tick${showSeen ? " seen" : ""}`}>
+                {showSeen ? " Seen ✓✓" : " ✓"}
+              </span>
+            )}
+          </span>
         </div>
 
         {reactionEntries.length > 0 && (
@@ -475,6 +528,9 @@ function MessageBubble({
           </div>
         )}
       </div>
+
+      {/* Own: actions right of bubble */}
+      {isOwn && ActionBar}
     </div>
   );
 }

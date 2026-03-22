@@ -54,6 +54,7 @@ export function useConversations({ onConversationStarted } = {}) {
   const [editingMessage, setEditingMessage] = useState(null);
   const [editText, setEditText] = useState("");
   const [pendingGif, setPendingGif] = useState(null);
+  const [replyTo, setReplyTo] = useState(null);
 
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
@@ -261,6 +262,9 @@ export function useConversations({ onConversationStarted } = {}) {
         updateDoc(doc(db, "conversations", convo.id), {
           [`read_${currentUid}`]: true,
         }).catch(() => {});
+        updateDoc(doc(db, "conversations", convo.id), {
+          [`lastRead.${currentUid}`]: serverTimestamp(),
+        }).catch(() => {});
       }
     },
     [currentUid],
@@ -379,13 +383,16 @@ export function useConversations({ onConversationStarted } = {}) {
             senderName: currentUser.name,
             timestamp: serverTimestamp(),
             ...(gif && { gifUrl: gif.url }),
+            ...(replyTo && { replyTo }),
           },
         );
+        setReplyTo(null);
         await updateDoc(doc(db, "conversations", activeConvo.id), {
           lastMessage: gif && !text ? "🎬 GIF" : text.slice(0, 50),
           lastMessageAt: serverTimestamp(),
           lastSenderId: currentUser.uid,
           [`read_${currentUser.uid}`]: true,
+          [`lastRead.${currentUser.uid}`]: serverTimestamp(),
           ...Object.fromEntries(
             activeConvo.participants
               .filter((p) => p !== currentUser.uid)
@@ -401,7 +408,7 @@ export function useConversations({ onConversationStarted } = {}) {
         setPendingGif(gif);
       }
     },
-    [newMessage, pendingGif, activeConvo, currentUser, firebaseUser],
+    [newMessage, pendingGif, replyTo, activeConvo, currentUser, firebaseUser],
   );
 
   // ── handleSearchUsers (debounced 300 ms) ─────────────────────────
@@ -591,6 +598,8 @@ export function useConversations({ onConversationStarted } = {}) {
     setEditText,
     pendingGif,
     setPendingGif,
+    replyTo,
+    setReplyTo,
     // refs
     messagesEndRef,
     messagesContainerRef,

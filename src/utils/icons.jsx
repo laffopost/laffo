@@ -202,6 +202,7 @@ export const SparkleIcon = Icons.sparkle;
 export const BookmarkIcon = Icons.bookmark;
 export const EraserIcon = Icons.eraser;
 export const UndoIcon = Icons.undo;
+export const ReplyIcon = Icons.undo;
 export const HomeIcon = Icons.home;
 export const GamesIcon = Icons.games;
 export const SportsIcon = Icons.sports;

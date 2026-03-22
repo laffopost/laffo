@@ -9,6 +9,10 @@ import {
   onSnapshot,
   getDocs,
   serverTimestamp,
+  doc,
+  updateDoc,
+  arrayUnion,
+  arrayRemove,
 } from "firebase/firestore";
 import { useAuth } from "../../../context/AuthContext";
 import { db } from "../../../firebase/config";
@@ -130,6 +134,8 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
   const [showGifPicker, setShowGifPicker] = useState(false);
   const [pendingGif, setPendingGif] = useState(null);
   const [minimized, setMinimized] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
+  const [activeReactionMsgId, setActiveReactionMsgId] = useState(null);
 
   const chatRef = useRef(null);
   const inputRef = useRef(null);
@@ -300,10 +306,12 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
           userName: user.name,
           timestamp: serverTimestamp(),
           ...(gif && { gifUrl: gif.url }),
+          ...(replyTo && { replyTo }),
         });
 
         setNewMessage("");
         setPendingGif(null);
+        setReplyTo(null);
         inputRef.current?.focus();
         setError(null);
       } catch (err) {
@@ -311,13 +319,31 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
         setError("Failed to send message");
       }
     },
-    [newMessage, pendingGif, user, firebaseUser],
+    [newMessage, pendingGif, replyTo, user, firebaseUser],
   );
 
   const handleEmojiClick = useCallback((emoji) => {
     setNewMessage((prev) => prev + emoji);
     setShowEmojiPicker(false);
   }, []);
+
+  const handleReaction = useCallback(async (msgId, emoji) => {
+    if (!user) return;
+    const msgRef = doc(db, collectionName, msgId);
+    const allMsgs = [...olderMessages, ...messages];
+    const msg = allMsgs.find(m => m.id === msgId);
+    const reactions = msg?.reactions ?? {};
+    const alreadyOnThis = (reactions[emoji] ?? []).includes(user.uid);
+    const update = {};
+    for (const [e, uids] of Object.entries(reactions)) {
+      if (e !== emoji && uids.includes(user.uid)) {
+        update[`reactions.${e}`] = arrayRemove(user.uid);
+      }
+    }
+    update[`reactions.${emoji}`] = alreadyOnThis ? arrayRemove(user.uid) : arrayUnion(user.uid);
+    await updateDoc(msgRef, update).catch(() => {});
+    setActiveReactionMsgId(null);
+  }, [user, collectionName, olderMessages, messages]);
 
   const isLoggedIn = !loading && firebaseUser && !firebaseUser.isAnonymous;
   const isInline = variant === "inline";
@@ -350,6 +376,12 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
           ) : (
             [...olderMessages, ...messages].map((msg) => (
               <div key={msg.id} className={`chat-message-small ${msg.userId === user?.uid ? "own" : ""}`}>
+                {msg.replyTo && (
+                  <div className="chat-reply-quote">
+                    <span className="chat-reply-quote-name">{msg.replyTo.userName}</span>
+                    <span className="chat-reply-quote-text">{msg.replyTo.text?.slice(0, 80) || "GIF"}</span>
+                  </div>
+                )}
                 <div className="message-header-row">
                   {msg.userId !== user?.uid ? (
                     <button
@@ -366,13 +398,40 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                     <span className="message-username">{msg.userName}</span>
                   )}
                   <span className="message-time">{formatTime(msg.timestamp)}</span>
+                  <button className="chat-msg-reply-btn" title="Reply" onClick={() => setReplyTo({ id: msg.id, text: msg.text, userName: msg.userName })}>↩</button>
+                  <button className="chat-msg-react-trigger-small" title="React" onClick={() => setActiveReactionMsgId(activeReactionMsgId === msg.id ? null : msg.id)}>😊</button>
                 </div>
+                {activeReactionMsgId === msg.id && (
+                  <div className="chat-reaction-picker-small" onMouseLeave={() => setActiveReactionMsgId(null)}>
+                    {["👍","❤️","😂","🔥","😮","💎"].map(emoji => (
+                      <button key={emoji} className="chat-reaction-option" onClick={() => handleReaction(msg.id, emoji)}>{emoji}</button>
+                    ))}
+                  </div>
+                )}
                 {msg.gifUrl && <img src={msg.gifUrl} alt="GIF" className="chat-msg-gif" />}
                 {msg.text && <div className="message-text">{msg.text}</div>}
+                {msg.reactions && Object.entries(msg.reactions).filter(([,uids]) => uids.length > 0).length > 0 && (
+                  <div className="chat-reactions-small">
+                    {Object.entries(msg.reactions).filter(([,uids]) => uids.length > 0).map(([emoji, uids]) => (
+                      <button key={emoji} className={`chat-reaction-pill-small${uids.includes(user?.uid) ? " active" : ""}`} onClick={() => handleReaction(msg.id, emoji)}>
+                        {emoji}{uids.length > 1 && ` ${uids.length}`}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             ))
           )}
         </div>
+        {replyTo && (
+          <div className="chat-reply-bar">
+            <div className="chat-reply-bar-content">
+              <span className="chat-reply-bar-name">{replyTo.userName}</span>
+              <span className="chat-reply-bar-text">{replyTo.text?.slice(0, 60) || "GIF"}</span>
+            </div>
+            <button className="chat-reply-bar-close" type="button" onClick={() => setReplyTo(null)}>✕</button>
+          </div>
+        )}
         <form onSubmit={handleSendMessage} className="chat-input-form">
           {pendingGif && (
             <div className="chat-gif-preview">
@@ -489,6 +548,12 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                 msg.userId === user?.uid ? "own" : ""
               }`}
             >
+              {msg.replyTo && (
+                <div className="chat-reply-quote">
+                  <span className="chat-reply-quote-name">{msg.replyTo.userName}</span>
+                  <span className="chat-reply-quote-text">{msg.replyTo.text?.slice(0, 80) || "GIF"}</span>
+                </div>
+              )}
               <div className="message-header-row">
                 {msg.userId !== user?.uid && !firebaseUser?.isAnonymous ? (
                   <button
@@ -515,14 +580,41 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                 <span className="message-time">
                   {formatTime(msg.timestamp)}
                 </span>
+                <button className="chat-msg-reply-btn" title="Reply" onClick={() => setReplyTo({ id: msg.id, text: msg.text, userName: msg.userName })}>↩</button>
+                <button className="chat-msg-react-trigger-small" title="React" onClick={() => setActiveReactionMsgId(activeReactionMsgId === msg.id ? null : msg.id)}>😊</button>
               </div>
+              {activeReactionMsgId === msg.id && (
+                <div className="chat-reaction-picker-small" onMouseLeave={() => setActiveReactionMsgId(null)}>
+                  {["👍","❤️","😂","🔥","😮","💎"].map(emoji => (
+                    <button key={emoji} className="chat-reaction-option" onClick={() => handleReaction(msg.id, emoji)}>{emoji}</button>
+                  ))}
+                </div>
+              )}
               {msg.gifUrl && <img src={msg.gifUrl} alt="GIF" className="chat-msg-gif" />}
               {msg.text && <div className="message-text">{msg.text}</div>}
+              {msg.reactions && Object.entries(msg.reactions).filter(([,uids]) => uids.length > 0).length > 0 && (
+                <div className="chat-reactions-small">
+                  {Object.entries(msg.reactions).filter(([,uids]) => uids.length > 0).map(([emoji, uids]) => (
+                    <button key={emoji} className={`chat-reaction-pill-small${uids.includes(user?.uid) ? " active" : ""}`} onClick={() => handleReaction(msg.id, emoji)}>
+                      {emoji}{uids.length > 1 && ` ${uids.length}`}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
           ))
         )}
       </div>
 
+      {replyTo && (
+        <div className="chat-reply-bar">
+          <div className="chat-reply-bar-content">
+            <span className="chat-reply-bar-name">{replyTo.userName}</span>
+            <span className="chat-reply-bar-text">{replyTo.text?.slice(0, 60) || "GIF"}</span>
+          </div>
+          <button className="chat-reply-bar-close" type="button" onClick={() => setReplyTo(null)}>✕</button>
+        </div>
+      )}
       <form onSubmit={handleSendMessage} className="chat-input-form">
         {pendingGif && (
           <div className="chat-gif-preview">

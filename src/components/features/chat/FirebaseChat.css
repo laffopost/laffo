@@ -646,3 +646,135 @@
     gap: 5px;
   }
 }
+
+/* Reaction picker (small variant for public chat) */
+.chat-reaction-picker-small {
+  display: flex;
+  gap: 4px;
+  background: var(--bg-card-solid);
+  border: 1px solid var(--bg-input);
+  border-radius: 20px;
+  padding: 4px 8px;
+  box-shadow: 0 4px 16px var(--bg-dark-30);
+  margin: 2px 0;
+  flex-wrap: wrap;
+}
+.chat-msg-react-trigger-small {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0 3px;
+  opacity: 0.5;
+  transition: opacity 0.15s;
+  line-height: 1;
+}
+.chat-msg-react-trigger-small:hover { opacity: 1; }
+
+/* Reaction pills (small) */
+.chat-reactions-small {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 3px;
+}
+.chat-reaction-pill-small {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid var(--bg-input);
+  border-radius: 12px;
+  padding: 1px 6px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  color: var(--text-base);
+}
+.chat-reaction-pill-small.active {
+  background: var(--color-primary-15);
+  border-color: var(--color-primary-40);
+}
+.chat-reaction-pill-small:hover {
+  background: var(--color-primary-8);
+  border-color: var(--color-primary-30);
+}
+
+/* Reply button on message */
+.chat-msg-reply-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.9rem;
+  padding: 0 3px;
+  opacity: 0;
+  transition: opacity 0.15s, color 0.15s;
+  line-height: 1;
+}
+.chat-message-small:hover .chat-msg-reply-btn { opacity: 1; }
+.chat-msg-reply-btn:hover { color: var(--color-primary); }
+
+/* Reply bar above input */
+.chat-reply-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px;
+  background: var(--color-primary-8);
+  border-left: 3px solid var(--color-primary);
+  border-radius: 6px;
+  margin-bottom: 4px;
+}
+.chat-reply-bar-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.chat-reply-bar-name {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.chat-reply-bar-text {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.chat-reply-bar-close {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 1px 3px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.chat-reply-bar-close:hover { color: var(--text-base); }
+
+/* Reply quote inside message */
+.chat-reply-quote {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 3px 7px;
+  background: rgba(255,255,255,0.06);
+  border-left: 2px solid var(--color-primary-60);
+  border-radius: 3px;
+  margin-bottom: 4px;
+  max-width: 100%;
+}
+.chat-reply-quote-name {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-primary);
+}
+.chat-reply-quote-text {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
