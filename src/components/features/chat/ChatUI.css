@@ -1058,7 +1058,10 @@
   color: rgba(255, 255, 255, 0.35);
   margin-left: 3px;
   letter-spacing: -1px;
+  font-weight: 400;
 }
 .chat-msg-tick.seen {
   color: #a78bfa;
+  font-weight: 700;
+  letter-spacing: -0.5px;
 }

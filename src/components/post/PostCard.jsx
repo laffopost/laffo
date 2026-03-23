@@ -219,16 +219,18 @@ const PostCard = memo(
             <div className={`animated-image-bg bg-${sectionType}`}></div>
           </div>
           <div className="image-info">
-            <div className="image-info-title-row">
-              {post.type === "user" ? (
-                <h4 onClick={onClick}>{post.author}</h4>
-              ) : post.type !== "status" && post.description ? (
-                <p className="image-info-desc" onClick={onClick}>{post.description}</p>
-              ) : null}
-              {post.edited && (
-                <span className="post-edited-chip">edited</span>
-              )}
-            </div>
+            {(post.type === "user" || (post.type !== "status" && post.description) || post.edited) && (
+              <div className="image-info-title-row">
+                {post.type === "user" ? (
+                  <h4 onClick={onClick}>{post.author}</h4>
+                ) : post.type !== "status" && post.description ? (
+                  <p className="image-info-desc" onClick={onClick}>{post.description}</p>
+                ) : null}
+                {post.edited && (
+                  <span className="post-edited-chip">edited</span>
+                )}
+              </div>
+            )}
             <LinkPreview text={post.description || post.status || ""} />
 
             {topReactions.length > 0 && (

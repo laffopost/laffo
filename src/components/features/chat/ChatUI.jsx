@@ -73,10 +73,6 @@ export default function ChatUI({
   const [showGifPicker, setShowGifPicker] = useState(false);
   const inputWrapperRef = useRef(null);
 
-  const allMsgs = [...olderMessages, ...messages];
-  const lastOwnMsg = [...allMsgs]
-    .reverse()
-    .find((m) => m.senderId === currentUser?.uid);
   const otherUid = activeConvo?.participants?.find(
     (p) => p !== currentUser?.uid,
   );
@@ -84,12 +80,6 @@ export default function ChatUI({
   const otherLastReadMs =
     otherLastRead?.toMillis?.() ??
     (typeof otherLastRead === "number" ? otherLastRead : 0);
-  // Only "seen" if the other user's lastRead is AFTER the last message we sent
-  const lastOwnMsgMs =
-    lastOwnMsg?.timestamp?.toMillis?.() ??
-    (typeof lastOwnMsg?.timestamp === "number" ? lastOwnMsg.timestamp : 0);
-  const isSeen =
-    otherLastReadMs > 0 && lastOwnMsgMs > 0 && otherLastReadMs >= lastOwnMsgMs;
 
   const askConfirm = (title, message, onConfirm) =>
     setConfirm({ title, message, onConfirm });
@@ -303,31 +293,36 @@ export default function ChatUI({
                   <p>Say hello!</p>
                 </div>
               ) : (
-                [...olderMessages, ...messages].map((msg) => (
-                  <MessageBubble
-                    key={msg.id}
-                    msg={msg}
-                    isOwn={msg.senderId === currentUser.uid}
-                    currentUid={currentUser.uid}
-                    editingMessage={editingMessage}
-                    editText={editText}
-                    setEditText={setEditText}
-                    handleEditMessage={handleEditMessage}
-                    cancelEditing={cancelEditing}
-                    startEditing={startEditing}
-                    handleDeleteMessage={handleDeleteMessage}
-                    handleReaction={handleReaction}
-                    askConfirm={askConfirm}
-                    onReply={(m) =>
-                      setReplyTo({
-                        id: m.id,
-                        text: m.text,
-                        userName: m.senderName || "User",
-                      })
-                    }
-                    showSeen={lastOwnMsg?.id === msg.id && isSeen}
-                  />
-                ))
+                [...olderMessages, ...messages].map((msg) => {
+                  const isOwn = msg.senderId === currentUser.uid;
+                  const msgMs = msg.timestamp?.toMillis?.() ?? (typeof msg.timestamp === 'number' ? msg.timestamp : 0);
+                  const showSeen = isOwn && otherLastReadMs > 0 && msgMs > 0 && msgMs <= otherLastReadMs;
+                  return (
+                    <MessageBubble
+                      key={msg.id}
+                      msg={msg}
+                      isOwn={isOwn}
+                      currentUid={currentUser.uid}
+                      editingMessage={editingMessage}
+                      editText={editText}
+                      setEditText={setEditText}
+                      handleEditMessage={handleEditMessage}
+                      cancelEditing={cancelEditing}
+                      startEditing={startEditing}
+                      handleDeleteMessage={handleDeleteMessage}
+                      handleReaction={handleReaction}
+                      askConfirm={askConfirm}
+                      onReply={(m) =>
+                        setReplyTo({
+                          id: m.id,
+                          text: m.text,
+                          userName: m.senderName || "User",
+                        })
+                      }
+                      showSeen={showSeen}
+                    />
+                  );
+                })
               )}
               {otherUserTyping && (
                 <div className="chat-typing-indicator">
