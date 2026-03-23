@@ -625,6 +625,17 @@
   font-weight: 600;
 }
 
+.card-view-count {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.72rem;
+  font-weight: 500;
+  pointer-events: none;
+  user-select: none;
+}
+
 .action-icon {
   display: flex;
   align-items: center;

@@ -2,7 +2,7 @@ import { memo, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import ReactorsModal from "../common/ReactorsModal";
-import { EditIcon, ChatIcon, EmojiIcon, MusicIcon, BookmarkIcon, UsersIcon, UserPlusIcon, UserCheckIcon } from "../../utils/icons";
+import { EditIcon, ChatIcon, EmojiIcon, MusicIcon, BookmarkIcon, UsersIcon, UserPlusIcon, UserCheckIcon, EyeIcon } from "../../utils/icons";
 import { useFollow } from "../../hooks/useFollow";
 import PostShareButton from "./PostShareButton";
 import StatusRenderer from "./StatusRenderer";
@@ -306,6 +306,15 @@ const PostCard = memo(
                 <ChatIcon size={15} />
                 <span className="comment-count">{post.commentCount || 0}</span>
               </button>
+
+              {post.viewCount > 0 && (
+                <span className="card-view-count">
+                  <EyeIcon size={13} />
+                  {post.viewCount >= 1000
+                    ? `${(post.viewCount / 1000).toFixed(1)}k`
+                    : post.viewCount}
+                </span>
+              )}
 
               <div
                 className="reaction-more-btn-wrapper"

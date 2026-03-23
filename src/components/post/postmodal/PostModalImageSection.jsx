@@ -5,6 +5,8 @@ import { useAuth } from "../../../context/AuthContext";
 import {
   doc,
   getDoc,
+  updateDoc,
+  increment,
   collection,
   query,
   where,
@@ -18,7 +20,7 @@ import PollRenderer from "../PollRenderer";
 import CountdownRenderer from "../CountdownRenderer";
 import QuizRenderer from "../QuizRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon, BookmarkIcon, UserPlusIcon, UserCheckIcon } from "../../../utils/icons";
+import { EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon, BookmarkIcon, UserPlusIcon, UserCheckIcon, EyeIcon } from "../../../utils/icons";
 import PostShareButton from "../PostShareButton";
 import { useBookmarks } from "../../../hooks/useBookmarks";
 import { useFollow } from "../../../hooks/useFollow";
@@ -97,6 +99,15 @@ export default function PostModalImageSection({
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // Increment view count once per session per post
+  useEffect(() => {
+    if (!post?.id) return;
+    const key = `viewed_${post.id}`;
+    if (sessionStorage.getItem(key)) return;
+    sessionStorage.setItem(key, "1");
+    updateDoc(doc(db, "posts", post.id), { viewCount: increment(1) }).catch(() => {});
+  }, [post?.id]);
 
   // Followers / following counts for the user tab
   useEffect(() => {
@@ -488,6 +499,13 @@ export default function PostModalImageSection({
                 reactionCounts={reactions}
                 onClose={() => setShowReactors(false)}
               />
+            )}
+
+            {(livePost.viewCount > 0) && (
+              <span className="postmodal-view-count">
+                <EyeIcon size={14} />
+                {livePost.viewCount.toLocaleString()}
+              </span>
             )}
 
             <div className="reaction-actions-group">
