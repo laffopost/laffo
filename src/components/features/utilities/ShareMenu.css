@@ -1,54 +1,189 @@
 .gallery-share-menu-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--bg-overlay);
-  z-index: 9999;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10100;
   display: flex;
   align-items: center;
   justify-content: center;
+  backdrop-filter: blur(4px);
 }
 
 .gallery-share-menu {
-  background: var(--bg-card-solid);
-  border: 1.5px solid var(--color-success);
-  border-radius: 12px;
-  box-shadow: 0 4px 24px var(--color-success-15);
-  min-width: 180px;
-  padding: 1rem 0.5rem;
+  background: #16152b;
+  border-radius: 16px;
+  border: 1px solid rgba(139, 92, 246, 0.35);
+  box-shadow:
+    0 0 0 1px rgba(139, 92, 246, 0.15),
+    0 0 24px rgba(139, 92, 246, 0.18),
+    0 20px 60px rgba(0, 0, 0, 0.7);
+  min-width: 220px;
+  padding: 16px 10px 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 2px;
 }
 
-.gallery-share-menu .share-option {
+.share-menu-title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-description);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 0 8px 8px;
+  margin: 0;
+}
+
+.share-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   background: none;
   border: none;
-  color: var(--color-success);
-  font-weight: 600;
-  font-size: 1rem;
-  padding: 8px 12px;
+  color: var(--text-primary);
+  font-weight: 500;
+  font-size: 0.88rem;
+  padding: 9px 10px;
   text-align: left;
   cursor: pointer;
+  border-radius: 10px;
+  transition: background 0.15s, color 0.15s;
+  width: 100%;
+}
+
+.share-option:hover {
+  background: rgba(139, 92, 246, 0.1);
+  color: #fff;
+}
+
+.share-option--dm {
+  color: #a78bfa;
+  font-weight: 600;
+}
+
+.share-option--close {
+  color: var(--text-description);
+  font-size: 0.82rem;
+  justify-content: center;
+}
+
+.share-option--close:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.share-option-icon {
+  width: 28px;
+  height: 28px;
   border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.share-option-icon--purple { background: rgba(139, 92, 246, 0.18); color: #a78bfa; }
+.share-option-icon--x      { background: #000; color: #fff; }
+.share-option-icon--telegram { background: #229ED9; color: #fff; }
+.share-option-icon--discord  { background: #5865F2; color: #fff; }
+.share-option-icon--reddit   { background: #FF4500; color: #fff; }
+
+.share-divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  margin: 6px 4px;
+}
+
+/* DM mode */
+.share-back-btn {
+  background: none;
+  border: none;
+  color: #a78bfa;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 8px;
+  text-align: left;
+  margin-bottom: 6px;
+}
+
+.share-dm-input {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 9px;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  width: 100%;
+  outline: none;
+  margin-bottom: 6px;
+  box-sizing: border-box;
+}
+
+.share-dm-input:focus {
+  border-color: var(--color-primary);
+}
+
+.share-dm-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--text-description);
+  padding: 4px 8px 2px;
+  margin: 0;
+}
+
+.share-dm-status {
+  font-size: 0.78rem;
+  color: var(--text-description);
+  text-align: center;
+  padding: 8px 0;
+  margin: 0;
+}
+
+.share-dm-result {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: none;
+  border: none;
+  border-radius: 9px;
+  padding: 7px 8px;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  color: var(--text-primary);
+  font-size: 0.85rem;
+  font-weight: 500;
   transition: background 0.15s;
 }
 
-.gallery-share-menu .share-option:hover {
-  background: var(--color-success-10);
-  color: var(--text-base);
+.share-dm-result:hover {
+  background: rgba(139, 92, 246, 0.1);
 }
 
-.gallery-share-menu .share-option.close {
-  color: var(--color-danger);
-  border-top: 1px solid var(--border-divider);
-  margin-top: 8px;
+.share-dm-result:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.share-dm-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1.5px solid rgba(139, 92, 246, 0.4);
+  flex-shrink: 0;
+}
+
+.share-dm-avatar--placeholder {
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 0.72rem;
   font-weight: 700;
-}
-
-.gallery-share-menu .share-option.close:hover {
-  background: var(--color-danger-10);
-  color: var(--text-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }

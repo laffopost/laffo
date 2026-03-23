@@ -1,5 +1,6 @@
 import { memo } from "react";
 import CreatePostButton from "./CreatePostButton";
+import UserSearch from "../common/UserSearch";
 
 const FILTERS = [
   { value: "all", label: "All", emoji: "🖼️" },
@@ -44,6 +45,7 @@ const GalleryFilters = memo(function GalleryFilters({
           onChange={(e) => onSearchChange(e.target.value)}
           aria-label="Search posts by title, author, or content"
         />
+        <UserSearch />
         <button
           className="random-post-btn"
           onClick={onRandom}

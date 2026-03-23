@@ -67,6 +67,8 @@ import {
   LayoutGrid,
   MessageCircle as MessageCircleIcon,
   Users,
+  UserPlus,
+  UserCheck,
 } from "lucide-react";
 
 // ─────────────────────────────────────────────────────────────────
@@ -211,3 +213,7 @@ export const GridIcon2 = Icons.grid;
 export const NotificationIcon = Icons.notification;
 export const UserIcon = Icons.user;
 export const UsersIcon = Users;
+export const SearchIcon = Icons.search;
+export const UserPlusIcon = UserPlus;
+export const UserCheckIcon = UserCheck;
+export const LinkIcon = Icons.link;

@@ -1,18 +1,14 @@
-import { useState, useRef, useEffect, useCallback, useMemo } from "react";
-import toast from "react-hot-toast";
+import { useState, useRef, useEffect, useMemo } from "react";
+
 import { usePosts } from "../../../context/PostContext";
 import { useAuth } from "../../../context/AuthContext";
-import { useNotifications } from "../../../context/NotificationContext";
 import {
   doc,
   getDoc,
-  setDoc,
-  deleteDoc,
   collection,
   query,
   where,
   onSnapshot,
-  serverTimestamp,
 } from "firebase/firestore";
 import { db } from "../../../firebase/config";
 import "./PostModalImageSection.css";
@@ -22,8 +18,10 @@ import PollRenderer from "../PollRenderer";
 import CountdownRenderer from "../CountdownRenderer";
 import QuizRenderer from "../QuizRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon, BookmarkIcon } from "../../../utils/icons";
+import { EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon, BookmarkIcon, UserPlusIcon, UserCheckIcon } from "../../../utils/icons";
+import PostShareButton from "../PostShareButton";
 import { useBookmarks } from "../../../hooks/useBookmarks";
+import { useFollow } from "../../../hooks/useFollow";
 import FollowListModal from "../../profile/FollowListModal";
 import ReactorsModal from "../../common/ReactorsModal";
 
@@ -50,22 +48,17 @@ export default function PostModalImageSection({
   // Always use live data from context so votes update immediately without reload
   const livePost = posts.find((p) => p.id === post.id) || post;
 
-  const [showShareMenu, setShowShareMenu] = useState(false);
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const [showReactors, setShowReactors] = useState(false);
   const [activeTab, setActiveTab] = useState("post");
   const [userData, setUserData] = useState(post.userProfileData || null);
-  const shareMenuRef = useRef(null);
   const reactionPickerRef = useRef(null);
 
-  const { firebaseUser } = useAuth();
-  const { createFollowNotification } = useNotifications();
+  const { firebaseUser, userProfile } = useAuth();
   const { requireAuth } = useRequireAuth();
   const { isBookmarked, toggleBookmark } = useBookmarks();
+  const { isFollowing, loading: followLoading, canFollow, toggle: toggleFollow } = useFollow(post.uploadedBy);
 
-  // Follow state for the user tab
-  const [isFollowing, setIsFollowing] = useState(false);
-  const [followLoading, setFollowLoading] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [followListMode, setFollowListMode] = useState(null);
@@ -91,34 +84,6 @@ export default function PostModalImageSection({
     setShowReactionPicker(false);
   };
 
-  const copyLink = () => {
-    const link = `${window.location.origin}/image/${post.id}`;
-    navigator.clipboard.writeText(link);
-    toast.success("Link copied to clipboard!");
-  };
-
-  const shareToSocial = (platform) => {
-    const text = `Check out this post on LaughCoin!`;
-    const url = `${window.location.origin}/image/${post.id}`;
-    const links = {
-      twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-        text,
-      )}&url=${encodeURIComponent(url)}`,
-      telegram: `https://t.me/share/url?url=${encodeURIComponent(
-        url,
-      )}&text=${encodeURIComponent(text)}`,
-      discord: `https://discord.com/channels/@me?message=${encodeURIComponent(
-        `${text} ${url}`,
-      )}`,
-      reddit: `https://reddit.com/submit?url=${encodeURIComponent(
-        url,
-      )}&title=${encodeURIComponent(text)}`,
-    };
-    if (links[platform]) {
-      window.open(links[platform], "_blank");
-    }
-    setShowShareMenu(false);
-  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -128,75 +93,21 @@ export default function PostModalImageSection({
       ) {
         setShowReactionPicker(false);
       }
-      if (
-        shareMenuRef.current &&
-        !shareMenuRef.current.contains(event.target)
-      ) {
-        setShowShareMenu(false);
-      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // Single consolidated follow listener — replaces 3 separate listeners
+  // Followers / following counts for the user tab
   useEffect(() => {
     if (!post.uploadedBy) return;
     const unsubs = [];
-
-    // Followers count
-    const followersQ = query(
-      collection(db, "follows"),
-      where("followingId", "==", post.uploadedBy),
-    );
+    const followersQ = query(collection(db, "follows"), where("followingId", "==", post.uploadedBy));
     unsubs.push(onSnapshot(followersQ, (snap) => setFollowersCount(snap.size)));
-
-    // Following count
-    const followingQ = query(
-      collection(db, "follows"),
-      where("followerId", "==", post.uploadedBy),
-    );
+    const followingQ = query(collection(db, "follows"), where("followerId", "==", post.uploadedBy));
     unsubs.push(onSnapshot(followingQ, (snap) => setFollowingCount(snap.size)));
-
-    // Is current user following this author?
-    if (firebaseUser?.uid && firebaseUser.uid !== post.uploadedBy) {
-      const docId = `${firebaseUser.uid}_${post.uploadedBy}`;
-      unsubs.push(
-        onSnapshot(doc(db, "follows", docId), (snap) => setIsFollowing(snap.exists())),
-      );
-    } else {
-      setIsFollowing(false);
-    }
-
-    return () => unsubs.forEach((unsub) => unsub());
-  }, [post.uploadedBy, firebaseUser?.uid]);
-
-  // Follow / unfollow handler
-  const handleFollowToggle = useCallback(async () => {
-    if (!firebaseUser?.uid || !post.uploadedBy || followLoading) return;
-    if (firebaseUser.isAnonymous) return;
-
-    const docId = `${firebaseUser.uid}_${post.uploadedBy}`;
-    const followRef = doc(db, "follows", docId);
-
-    setFollowLoading(true);
-    try {
-      if (isFollowing) {
-        await deleteDoc(followRef);
-      } else {
-        await setDoc(followRef, {
-          followerId: firebaseUser.uid,
-          followingId: post.uploadedBy,
-          createdAt: serverTimestamp(),
-        });
-        createFollowNotification(post.uploadedBy);
-      }
-    } catch (_err) {
-      // silently fail
-    } finally {
-      setFollowLoading(false);
-    }
-  }, [firebaseUser, post.uploadedBy, isFollowing, followLoading, createFollowNotification]);
+    return () => unsubs.forEach((u) => u());
+  }, [post.uploadedBy]);
 
   useEffect(() => {
     let ignore = false;
@@ -354,20 +265,16 @@ export default function PostModalImageSection({
             >
               <UserProfileIcon size={14} style={{display: 'inline', marginRight: '4px'}} /> Profile
             </button>
-            {firebaseUser &&
-              !firebaseUser.isAnonymous &&
-              post.uploadedBy &&
-              post.uploadedBy !== firebaseUser.uid && (
+            {canFollow && (
                 <>
                   <button
                     className={`postmodal-user-follow-btn ${isFollowing ? "postmodal-user-follow-btn--following" : ""}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleFollowToggle();
-                    }}
+                    onClick={(e) => { e.stopPropagation(); toggleFollow(); }}
                     disabled={followLoading}
                   >
-                    {followLoading ? "..." : isFollowing ? "Following" : "Follow"}
+                    {followLoading ? "..." : isFollowing
+                      ? <><UserCheckIcon size={13} /> Following</>
+                      : <><UserPlusIcon size={13} /> Follow</>}
                   </button>
                   <button
                     className="postmodal-user-dm-btn"
@@ -636,58 +543,7 @@ export default function PostModalImageSection({
                 <BookmarkIcon size={16} />
               </button>
 
-              <div className="reaction-share-container" ref={shareMenuRef}>
-                <button
-                  className="reaction-share-btn"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setShowShareMenu(!showShareMenu);
-                  }}
-                  title="Share"
-                >
-                  <ShareIcon size={16} />
-                </button>
-                {showShareMenu && (
-                  <div className="reaction-share-menu">
-                    <button onClick={copyLink} className="share-option">
-                      <span>🔗</span> Copy Link
-                    </button>
-                    <button
-                      onClick={() => shareToSocial("twitter")}
-                      className="share-option"
-                    >
-                      <span>🐦</span> Twitter
-                    </button>
-                    <button
-                      onClick={() => shareToSocial("telegram")}
-                      className="share-option"
-                    >
-                      <span>✈️</span> Telegram
-                    </button>
-                    <button
-                      onClick={() => shareToSocial("discord")}
-                      className="share-option"
-                    >
-                      <span>💬</span> Discord
-                    </button>
-                    <button
-                      onClick={() => shareToSocial("reddit")}
-                      className="share-option"
-                    >
-                      <span>🤖</span> Reddit
-                    </button>
-                    <button
-                      className="share-close-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowShareMenu(false);
-                      }}
-                    >
-                      Close
-                    </button>
-                  </div>
-                )}
-              </div>
+              <PostShareButton post={post} variant="modal" />
             </div>
           </div>
         </>

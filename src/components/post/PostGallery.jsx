@@ -7,7 +7,6 @@ import PostCard from "./PostCard";
 import GallerySection from "./GallerySection";
 import GalleryFilters, { FILTERS } from "./GalleryFilters";
 import PostNotFound from "./PostNotFound";
-import { ShareMenu } from "../features/utilities";
 import { SkeletonGallery } from "../common";
 import { usePosts } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
@@ -45,7 +44,6 @@ const PostGallery = memo(function PostGallery({
   const [selectedPost, setSelectedPost] = useState(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
-  const [sharePost, setSharePost] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
   const [activeFilter, setActiveFilter] = useState(initialFilter);
@@ -339,7 +337,7 @@ const PostGallery = memo(function PostGallery({
         post={post}
         sectionType={sectionType}
         onClick={() => handlePostClick(post)}
-        onShare={(p) => setSharePost(p)}
+
         onComment={handlePostClick}
         onReactionClick={guardedToggleReaction}
         reactions={getReactions(post.id)}
@@ -512,7 +510,6 @@ const PostGallery = memo(function PostGallery({
         />
       )}
 
-      <ShareMenu sharePost={sharePost} onClose={() => setSharePost(null)} />
     </>
   );
 });

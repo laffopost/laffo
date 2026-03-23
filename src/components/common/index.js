@@ -7,3 +7,4 @@ export { default as Dropdown } from "./Dropdown";
 export { SkeletonCard, SkeletonGallery, SkeletonLine } from "./Skeleton";
 export { default as ColorPicker } from "./ColorPicker";
 export { default as GifPicker } from "./GifPicker";
+export { default as UserSearch } from "./UserSearch";

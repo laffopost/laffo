@@ -2,7 +2,9 @@ import { memo, useMemo, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import "./PostCard.css";
 import ReactorsModal from "../common/ReactorsModal";
-import { EditIcon, ChatIcon, ShareIcon, EmojiIcon, MusicIcon, BookmarkIcon, UsersIcon } from "../../utils/icons";
+import { EditIcon, ChatIcon, EmojiIcon, MusicIcon, BookmarkIcon, UsersIcon, UserPlusIcon, UserCheckIcon } from "../../utils/icons";
+import { useFollow } from "../../hooks/useFollow";
+import PostShareButton from "./PostShareButton";
 import StatusRenderer from "./StatusRenderer";
 import PollRenderer from "./PollRenderer";
 import CountdownRenderer from "./CountdownRenderer";
@@ -17,7 +19,7 @@ const PostCard = memo(
     post,
     onClick,
     sectionType,
-    onShare,
+
     onComment,
     reactions,
     onReactionClick,
@@ -82,6 +84,7 @@ const PostCard = memo(
     };
 
     const authorAvatar = post.authorAvatar;
+    const { isFollowing, loading: followLoading, canFollow, toggle: toggleFollow } = useFollow(post.uploadedBy);
 
     return (
       <>
@@ -114,6 +117,16 @@ const PostCard = memo(
                 </span>
               )}
             </div>
+            {canFollow && (
+              <button
+                className={`post-card-follow-btn${isFollowing ? " following" : ""}`}
+                onClick={(e) => { e.stopPropagation(); toggleFollow(); }}
+                disabled={followLoading}
+                title={isFollowing ? "Unfollow" : "Follow"}
+              >
+                {isFollowing ? <UserCheckIcon size={13} /> : <UserPlusIcon size={13} />}
+              </button>
+            )}
             <span className={`image-type-badge-overlay${post.type === "user" ? " user-type-badge" : ""}`}>
               {post.type === "countdown" ? "event" : post.type || "post"}
             </span>
@@ -350,16 +363,7 @@ const PostCard = memo(
               )}
 
               <div className="share-container-gallery">
-                <button
-                  className="image-action-btn small-share"
-                  title="Share"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onShare(post);
-                  }}
-                >
-                  <ShareIcon size={15} />
-                </button>
+                <PostShareButton post={post} variant="card" />
               </div>
             </div>
           </div>
