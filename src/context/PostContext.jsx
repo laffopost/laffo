@@ -590,6 +590,22 @@ export const PostProvider = ({ children }) => {
         JSON.stringify(newReactions),
       );
 
+      // ── Optimistic update: update reaction counts instantly ──────────
+      const optimisticUpdate = (prev) =>
+        prev.map((img) => {
+          if (img.id !== imageId) return img;
+          const reactions = { ...(img.reactions || {}) };
+          if (currentReaction) {
+            reactions[currentReaction] = Math.max(0, (reactions[currentReaction] || 0) - 1);
+          }
+          if (currentReaction !== emoji) {
+            reactions[emoji] = (reactions[emoji] || 0) + 1;
+          }
+          return { ...img, reactions };
+        });
+      setPosts(optimisticUpdate);
+      setUserPosts(optimisticUpdate);
+
       if (reactionTimeoutRef.current[imageId]) {
         clearTimeout(reactionTimeoutRef.current[imageId]);
       }
@@ -597,47 +613,36 @@ export const PostProvider = ({ children }) => {
       reactionTimeoutRef.current[imageId] = setTimeout(async () => {
         try {
           const imageRef = doc(db, "posts", imageId);
-          let shouldCreateNotification = false;
-          let postData = null;
 
-          // Get post data for notification (use ref to avoid stale closure)
-          if (!currentReaction && emoji && userProfileRef.current?.username) {
-            const postDoc = await getDoc(imageRef);
-            if (postDoc.exists()) {
-              postData = postDoc.data();
-              shouldCreateNotification = true;
-            }
-          }
+          // ── Fetch notification data and write reaction in parallel ───
+          const reactionUpdate = currentReaction === emoji
+            ? { [`reactions.${emoji}`]: increment(-1) }
+            : {
+                ...(currentReaction ? { [`reactions.${currentReaction}`]: increment(-1) } : {}),
+                [`reactions.${emoji}`]: increment(1),
+              };
 
-          // ── Reaction counts (original logic, must succeed) ──────────
-          if (currentReaction === emoji) {
-            await updateDoc(imageRef, {
-              [`reactions.${emoji}`]: increment(-1),
-            });
-          } else {
-            if (currentReaction) {
-              await updateDoc(imageRef, {
-                [`reactions.${currentReaction}`]: increment(-1),
-              });
-            }
-            await updateDoc(imageRef, {
-              [`reactions.${emoji}`]: increment(1),
-            });
-          }
+          const needsNotification = !currentReaction && emoji && userProfileRef.current?.username;
+          const [, postDoc] = await Promise.all([
+            updateDoc(imageRef, reactionUpdate),
+            needsNotification ? getDoc(imageRef) : Promise.resolve(null),
+          ]);
 
-          // ── Reactors map (best-effort — fails silently if rules not deployed) ──
+          // ── Reactors map (best-effort) ───────────────────────────────
           try {
             const name = userProfileRef.current?.username || userNameRef.current || "User";
             const avatar = userProfileRef.current?.avatar || "";
-            await updateDoc(imageRef, {
+            updateDoc(imageRef, {
               [`reactors.${userId}`]: currentReaction === emoji
                 ? deleteField()
                 : { emoji, name, avatar },
-            });
+            }).catch(() => {});
           } catch { /* silently ignore */ }
 
+          const postData = postDoc?.exists?.() ? postDoc.data() : null;
+
           // Create notification for new like (not when changing reaction)
-          if (shouldCreateNotification && postData && !currentReaction) {
+          if (needsNotification && postData && !currentReaction) {
             const username =
               userProfileRef.current?.username ||
               userNameRef.current ||
@@ -658,10 +663,6 @@ export const PostProvider = ({ children }) => {
           }
 
           delete reactionTimeoutRef.current[imageId];
-          // Prune completed keys to prevent unbounded growth
-          if (Object.keys(reactionTimeoutRef.current).length > 100) {
-            reactionTimeoutRef.current = {};
-          }
         } catch (err) {
           logError("❌ Reaction error:", err);
           setUserReactions((prev) => ({ ...prev, [imageId]: currentReaction }));
@@ -973,23 +974,17 @@ export const PostProvider = ({ children }) => {
 
   const stats = useMemo(() => {
     log("📊 Calculating stats");
-    const totalPosts = posts.length;
-    // Count unique real authors — anonymous posts use uploadedBy for uniqueness
+    let totalReacts = 0;
     const userSet = new Set();
-    posts.forEach((p) => {
-      if (p.isAnonymousPost) {
-        userSet.add(p.uploadedBy); // still count the person, just not as "Anonymous"
-      } else {
-        userSet.add((p.author || "").trim().toLowerCase() || p.uploadedBy);
+    for (const p of posts) {
+      userSet.add(p.isAnonymousPost
+        ? p.uploadedBy
+        : (p.author || "").trim().toLowerCase() || p.uploadedBy);
+      if (p.reactions) {
+        for (const v of Object.values(p.reactions)) totalReacts += v;
       }
-    });
-    const totalUsers = userSet.size;
-    const totalReacts = posts.reduce((sum, p) => {
-      if (!p.reactions) return sum;
-      return sum + Object.values(p.reactions).reduce((a, b) => a + b, 0);
-    }, 0);
-
-    return { totalPosts, totalUsers, totalReacts };
+    }
+    return { totalPosts: posts.length, totalUsers: userSet.size, totalReacts };
   }, [posts]);
 
   // Load more posts (cursor-based pagination using startAfter)
