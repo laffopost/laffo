@@ -91,17 +91,15 @@ const Header = memo(function Header() {
   };
 
   // Log out handler
-  const handleLogout = async () => {
-    try {
-      // Clear presence before signing out so other users see offline immediately
-      if (firebaseUser && !firebaseUser.isAnonymous) {
-        await setDoc(doc(db, "users", firebaseUser.uid), { lastSeen: new Date(0) }, { merge: true }).catch(() => {});
-      }
-      await signOut(auth);
-      navigate("/profile", { replace: true });
-    } catch (_err) {
-      // Optionally handle error
+  const handleLogout = () => {
+    // Mark offline best-effort (fire and forget)
+    if (firebaseUser && !firebaseUser.isAnonymous) {
+      setDoc(doc(db, "users", firebaseUser.uid), { lastSeen: new Date(0) }, { merge: true }).catch(() => {});
     }
+    // Redirect FIRST — page unloads before Firestore listeners receive
+    // permission-denied, preventing the SDK internal assertion crash.
+    window.location.href = "/";
+    signOut(auth).catch(() => {});
   };
 
   // --- User avatar/username logic ---

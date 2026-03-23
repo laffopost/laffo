@@ -17,6 +17,7 @@ import {
 import { useAuth } from "../../../context/AuthContext";
 import { db } from "../../../firebase/config";
 import { GifPicker } from "../../common";
+import { EmojiIcon } from "../../../utils/icons";
 import "./FirebaseChat.css";
 
 import logger from "../../../utils/logger";
@@ -399,7 +400,7 @@ export default function FirebaseChat({ collection: collectionName = "chat-messag
                   )}
                   <span className="message-time">{formatTime(msg.timestamp)}</span>
                   <button className="chat-msg-reply-btn" title="Reply" onClick={() => setReplyTo({ id: msg.id, text: msg.text, userName: msg.userName })}>↩</button>
-                  <button className="chat-msg-react-trigger-small" title="React" onClick={() => setActiveReactionMsgId(activeReactionMsgId === msg.id ? null : msg.id)}>😊</button>
+                  <button className="chat-msg-react-trigger-small" title="React" onClick={() => setActiveReactionMsgId(activeReactionMsgId === msg.id ? null : msg.id)}><EmojiIcon size={11} /></button>
                 </div>
                 {activeReactionMsgId === msg.id && (
                   <div className="chat-reaction-picker-small" onMouseLeave={() => setActiveReactionMsgId(null)}>

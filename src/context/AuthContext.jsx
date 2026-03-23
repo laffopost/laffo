@@ -17,6 +17,9 @@ export function AuthProvider({ children }) {
         const result = await signInAnonymously(auth);
         setFirebaseUser(result.user);
         setUserProfile(null);
+      } else if (user.isAnonymous) {
+        setFirebaseUser(user);
+        setUserProfile(null);
       } else {
         setFirebaseUser(user);
         try {

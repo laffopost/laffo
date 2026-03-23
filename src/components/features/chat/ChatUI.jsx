@@ -74,13 +74,22 @@ export default function ChatUI({
   const inputWrapperRef = useRef(null);
 
   const allMsgs = [...olderMessages, ...messages];
-  const lastOwnMsg = [...allMsgs].reverse().find(m => m.senderId === currentUser?.uid);
-  const otherUid = activeConvo?.participants?.find(p => p !== currentUser?.uid);
+  const lastOwnMsg = [...allMsgs]
+    .reverse()
+    .find((m) => m.senderId === currentUser?.uid);
+  const otherUid = activeConvo?.participants?.find(
+    (p) => p !== currentUser?.uid,
+  );
   const otherLastRead = activeConvo?.lastRead?.[otherUid];
-  const otherLastReadMs = otherLastRead?.toMillis?.() ?? (typeof otherLastRead === 'number' ? otherLastRead : 0);
+  const otherLastReadMs =
+    otherLastRead?.toMillis?.() ??
+    (typeof otherLastRead === "number" ? otherLastRead : 0);
   // Only "seen" if the other user's lastRead is AFTER the last message we sent
-  const lastOwnMsgMs = lastOwnMsg?.timestamp?.toMillis?.() ?? (typeof lastOwnMsg?.timestamp === 'number' ? lastOwnMsg.timestamp : 0);
-  const isSeen = otherLastReadMs > 0 && lastOwnMsgMs > 0 && otherLastReadMs >= lastOwnMsgMs;
+  const lastOwnMsgMs =
+    lastOwnMsg?.timestamp?.toMillis?.() ??
+    (typeof lastOwnMsg?.timestamp === "number" ? lastOwnMsg.timestamp : 0);
+  const isSeen =
+    otherLastReadMs > 0 && lastOwnMsgMs > 0 && otherLastReadMs >= lastOwnMsgMs;
 
   const askConfirm = (title, message, onConfirm) =>
     setConfirm({ title, message, onConfirm });
@@ -91,7 +100,10 @@ export default function ChatUI({
         <ConfirmModal
           title={confirm.title}
           message={confirm.message}
-          onConfirm={() => { confirm.onConfirm(); setConfirm(null); }}
+          onConfirm={() => {
+            confirm.onConfirm();
+            setConfirm(null);
+          }}
           onCancel={() => setConfirm(null)}
         />
       )}
@@ -100,11 +112,7 @@ export default function ChatUI({
         <div className="chat-sidebar-header">
           <h3>Messages</h3>
           {variant === "overlay" && (
-            <button
-              className="close-btn"
-              onClick={onClose}
-              title="Close"
-            >
+            <button className="close-btn" onClick={onClose} title="Close">
               <CloseIcon size={20} />
             </button>
           )}
@@ -119,7 +127,9 @@ export default function ChatUI({
             placeholder="Search users..."
             className="chat-search-input"
           />
-          {(searching || searchResults.length > 0 || searchQuery.length >= 2) && (
+          {(searching ||
+            searchResults.length > 0 ||
+            searchQuery.length >= 2) && (
             <div className="chat-search-results">
               {searching && (
                 <div className="chat-search-status">Searching...</div>
@@ -131,11 +141,7 @@ export default function ChatUI({
                   onClick={() => startConversation(user)}
                 >
                   {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt=""
-                      className="chat-avatar-img"
-                    />
+                    <img src={user.avatar} alt="" className="chat-avatar-img" />
                   ) : (
                     <span className="chat-avatar-placeholder">
                       {user.username?.[0]?.toUpperCase() || "U"}
@@ -176,18 +182,26 @@ export default function ChatUI({
                 >
                   <div className="chat-avatar-wrap">
                     {other.avatar ? (
-                      <img src={other.avatar} alt="" className="chat-avatar-img" />
+                      <img
+                        src={other.avatar}
+                        alt=""
+                        className="chat-avatar-img"
+                      />
                     ) : (
                       <span className="chat-avatar-placeholder">
                         {other.name?.[0]?.toUpperCase() || "U"}
                       </span>
                     )}
                     {isUnread && <span className="chat-avatar-badge" />}
-                    {onlineUsers[other.uid] && <span className="chat-online-dot" title="Online" />}
+                    {onlineUsers[other.uid] && (
+                      <span className="chat-online-dot" title="Online" />
+                    )}
                   </div>
                   <div className="chat-convo-info">
                     <span className="chat-convo-name">{other.name}</span>
-                    <span className={`chat-convo-preview${isUnread ? " unread" : ""}`}>
+                    <span
+                      className={`chat-convo-preview${isUnread ? " unread" : ""}`}
+                    >
                       {convo.lastMessage || "No messages yet"}
                     </span>
                   </div>
@@ -235,7 +249,12 @@ export default function ChatUI({
                       <div className="chat-header-user-info">
                         <span className="chat-username">
                           {other.name}
-                          {onlineUsers[other.uid] && <span className="chat-online-dot chat-online-dot--inline" title="Online" />}
+                          {onlineUsers[other.uid] && (
+                            <span
+                              className="chat-online-dot chat-online-dot--inline"
+                              title="Online"
+                            />
+                          )}
                         </span>
                         {variant === "page" && (
                           <Link
@@ -255,11 +274,13 @@ export default function ChatUI({
               </div>
               <button
                 className="chat-delete-btn"
-                onClick={() => askConfirm(
-                  "Delete Conversation?",
-                  "All messages will be permanently deleted. This cannot be undone.",
-                  () => deleteConversation(activeConvo.id),
-                )}
+                onClick={() =>
+                  askConfirm(
+                    "Delete Conversation?",
+                    "All messages will be permanently deleted. This cannot be undone.",
+                    () => deleteConversation(activeConvo.id),
+                  )
+                }
                 title="Delete conversation"
               >
                 <DeleteIcon size={20} />
@@ -297,7 +318,13 @@ export default function ChatUI({
                     handleDeleteMessage={handleDeleteMessage}
                     handleReaction={handleReaction}
                     askConfirm={askConfirm}
-                    onReply={(m) => setReplyTo({ id: m.id, text: m.text, userName: m.senderName || "User" })}
+                    onReply={(m) =>
+                      setReplyTo({
+                        id: m.id,
+                        text: m.text,
+                        userName: m.senderName || "User",
+                      })
+                    }
                     showSeen={lastOwnMsg?.id === msg.id && isSeen}
                   />
                 ))
@@ -315,17 +342,33 @@ export default function ChatUI({
             {replyTo && (
               <div className="chat-reply-bar">
                 <div className="chat-reply-bar-content">
-                  <span className="chat-reply-bar-name">{replyTo.userName}</span>
-                  <span className="chat-reply-bar-text">{replyTo.text?.slice(0, 60) || "GIF"}</span>
+                  <span className="chat-reply-bar-name">
+                    {replyTo.userName}
+                  </span>
+                  <span className="chat-reply-bar-text">
+                    {replyTo.text?.slice(0, 60) || "GIF"}
+                  </span>
                 </div>
-                <button className="chat-reply-bar-close" onClick={() => setReplyTo(null)} type="button">✕</button>
+                <button
+                  className="chat-reply-bar-close"
+                  onClick={() => setReplyTo(null)}
+                  type="button"
+                >
+                  ✕
+                </button>
               </div>
             )}
             <form className="chat-input-form" onSubmit={handleSend}>
               {pendingGif && (
                 <div className="chat-gif-preview">
                   <img src={pendingGif.url} alt="GIF" />
-                  <button type="button" className="chat-gif-preview-remove" onClick={() => setPendingGif(null)}>✕</button>
+                  <button
+                    type="button"
+                    className="chat-gif-preview-remove"
+                    onClick={() => setPendingGif(null)}
+                  >
+                    ✕
+                  </button>
                 </div>
               )}
               <div className="chat-input-wrap" ref={inputWrapperRef}>
@@ -333,7 +376,10 @@ export default function ChatUI({
                   ref={inputRef}
                   type="text"
                   value={newMessage}
-                  onChange={(e) => { setNewMessage(e.target.value); sendTypingIndicator?.(); }}
+                  onChange={(e) => {
+                    setNewMessage(e.target.value);
+                    sendTypingIndicator?.();
+                  }}
                   placeholder="Type a message..."
                   maxLength={500}
                   className="chat-input"
@@ -345,7 +391,7 @@ export default function ChatUI({
                   onClick={() => setShowEmojiPicker(true)}
                   title="Add emoji"
                 >
-                  <EmojiIcon size={20} />
+                  <EmojiIcon size={16} />
                 </button>
                 <button
                   type="button"
@@ -367,7 +413,10 @@ export default function ChatUI({
               {showGifPicker && (
                 <GifPicker
                   anchorRef={inputWrapperRef}
-                  onSelect={(gif) => { setPendingGif(gif); setShowGifPicker(false); }}
+                  onSelect={(gif) => {
+                    setPendingGif(gif);
+                    setShowGifPicker(false);
+                  }}
                   onClose={() => setShowGifPicker(false)}
                 />
               )}
@@ -409,7 +458,9 @@ function MessageBubble({
 }) {
   const [showReactionPicker, setShowReactionPicker] = useState(false);
   const reactions = msg.reactions ?? {};
-  const reactionEntries = Object.entries(reactions).filter(([, uids]) => uids.length > 0);
+  const reactionEntries = Object.entries(reactions).filter(
+    ([, uids]) => uids.length > 0,
+  );
 
   const ActionBar = (
     <div className={`chat-msg-actions-bar${isOwn ? " own" : ""}`}>
@@ -437,7 +488,10 @@ function MessageBubble({
               <button
                 key={emoji}
                 className="chat-reaction-option"
-                onClick={() => { handleReaction(msg.id, emoji); setShowReactionPicker(false); }}
+                onClick={() => {
+                  handleReaction(msg.id, emoji);
+                  setShowReactionPicker(false);
+                }}
               >
                 {emoji}
               </button>
@@ -450,8 +504,7 @@ function MessageBubble({
 
   return (
     <div className={`chat-msg${isOwn ? " own" : ""}`}>
-      {/* Received: actions left of bubble */}
-      {!isOwn && ActionBar}
+      {ActionBar}
 
       <div className="chat-bubble-col">
         <div className="chat-bubble">
@@ -464,21 +517,41 @@ function MessageBubble({
                 autoFocus
                 maxLength={500}
                 onKeyDown={(e) => {
-                  if (e.key === "Enter") { e.preventDefault(); handleEditMessage(msg.id, editText); }
-                  else if (e.key === "Escape") { cancelEditing(); }
+                  if (e.key === "Enter") {
+                    e.preventDefault();
+                    handleEditMessage(msg.id, editText);
+                  } else if (e.key === "Escape") {
+                    cancelEditing();
+                  }
                 }}
               />
               <div className="chat-edit-actions">
-                <button type="button" onClick={() => handleEditMessage(msg.id, editText)} className="chat-edit-save"><CheckIcon size={18} /></button>
-                <button type="button" onClick={cancelEditing} className="chat-edit-cancel"><CloseIcon size={18} /></button>
+                <button
+                  type="button"
+                  onClick={() => handleEditMessage(msg.id, editText)}
+                  className="chat-edit-save"
+                >
+                  <CheckIcon size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={cancelEditing}
+                  className="chat-edit-cancel"
+                >
+                  <CloseIcon size={18} />
+                </button>
               </div>
             </div>
           ) : (
             <>
               {msg.replyTo && (
                 <div className="chat-reply-quote">
-                  <span className="chat-reply-quote-name">{msg.replyTo.userName}</span>
-                  <span className="chat-reply-quote-text">{msg.replyTo.text?.slice(0, 80) || "GIF"}</span>
+                  <span className="chat-reply-quote-name">
+                    {msg.replyTo.userName}
+                  </span>
+                  <span className="chat-reply-quote-text">
+                    {msg.replyTo.text?.slice(0, 80) || "GIF"}
+                  </span>
                 </div>
               )}
               {msg.gifUrl && (
@@ -493,12 +566,26 @@ function MessageBubble({
               <LinkPreview text={msg.text} />
               {isOwn && (
                 <div className="chat-msg-actions">
-                  <button onClick={() => startEditing(msg)} className="chat-action-btn" title="Edit"><EditIcon size={16} /></button>
                   <button
-                    onClick={() => askConfirm("Delete Message?", "This message will be permanently deleted.", () => handleDeleteMessage(msg.id))}
+                    onClick={() => startEditing(msg)}
+                    className="chat-action-btn"
+                    title="Edit"
+                  >
+                    <EditIcon size={16} />
+                  </button>
+                  <button
+                    onClick={() =>
+                      askConfirm(
+                        "Delete Message?",
+                        "This message will be permanently deleted.",
+                        () => handleDeleteMessage(msg.id),
+                      )
+                    }
                     className="chat-action-btn"
                     title="Delete"
-                  ><DeleteIcon size={16} /></button>
+                  >
+                    <DeleteIcon size={16} />
+                  </button>
                 </div>
               )}
             </>
@@ -507,7 +594,7 @@ function MessageBubble({
             {formatTime(msg.timestamp)}
             {isOwn && (
               <span className={`chat-msg-tick${showSeen ? " seen" : ""}`}>
-                {showSeen ? " Seen ✓✓" : " ✓"}
+                {showSeen ? "✓✓" : " ✓"}
               </span>
             )}
           </span>
@@ -522,15 +609,13 @@ function MessageBubble({
                 onClick={() => handleReaction(msg.id, emoji)}
                 title={`${uids.length} reaction${uids.length !== 1 ? "s" : ""}`}
               >
-                {emoji}{uids.length > 1 && ` ${uids.length}`}
+                {emoji}
+                {uids.length > 1 && ` ${uids.length}`}
               </button>
             ))}
           </div>
         )}
       </div>
-
-      {/* Own: actions right of bubble */}
-      {isOwn && ActionBar}
     </div>
   );
 }
