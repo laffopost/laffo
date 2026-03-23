@@ -24,6 +24,7 @@ const PostGallery = memo(function PostGallery({
   showHeader = false,
   onPostDelete,
   initialFilter = "all",
+  hideFilters = false,
 }) {
   const {
     posts,
@@ -388,7 +389,7 @@ const PostGallery = memo(function PostGallery({
           </div>
         )}
 
-        {!filterByUsername && (
+        {!filterByUsername && !hideFilters && (
           <GalleryFilters
             activeFilter={activeFilter}
             onFilterChange={setActiveFilter}
@@ -404,7 +405,7 @@ const PostGallery = memo(function PostGallery({
           />
         )}
 
-        {!filterByUsername && trendingPosts.length > 0 && !debouncedSearch.trim() && (
+        {!filterByUsername && !hideFilters && trendingPosts.length > 0 && !debouncedSearch.trim() && (
           <div className="trending-wrapper">
             <GallerySection
               title="Trending"
@@ -424,16 +425,16 @@ const PostGallery = memo(function PostGallery({
 
         {filteredPosts.length > 0 && (
           <GallerySection
-            title={filterByUsername ? "" : currentFilter.label}
-            emoji={filterByUsername ? "" : currentFilter.emoji}
+            title={filterByUsername || hideFilters ? "" : currentFilter.label}
+            emoji={filterByUsername || hideFilters ? "" : currentFilter.emoji}
             posts={filteredPosts}
             scrollRef={scrollRef}
             onScroll={scrollSection}
             renderCard={renderPostCard}
             sectionType={activeFilter}
             layoutMode="vertical"
-            allowToggle={true}
-            onRandomClick={handlePostClick}
+            allowToggle={!filterByUsername && !hideFilters}
+            onRandomClick={!filterByUsername && !hideFilters ? handlePostClick : undefined}
           />
         )}
 

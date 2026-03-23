@@ -22,10 +22,15 @@
 
 /* Shine sweep — translate3d keeps it on the GPU compositor */
 .image-card::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.08) 50%,
+    transparent 100%
+  );
   transform: translate3d(-100%, 0, 0);
   transition: none; /* instant reset on mouse-leave — no reverse sweep */
   pointer-events: none;
@@ -211,7 +216,7 @@
   padding: 8px 11px 9px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
   border-top: 1px solid var(--color-primary-22);
 }
 
@@ -398,7 +403,10 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: color 0.2s, background 0.2s, transform 0.2s;
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
   flex-shrink: 0;
 }
 
@@ -407,7 +415,6 @@
   background: var(--color-primary-8);
   transform: scale(1.12);
 }
-
 
 .reaction-more-btn-wrapper {
   position: relative;

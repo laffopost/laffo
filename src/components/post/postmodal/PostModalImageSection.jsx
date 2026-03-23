@@ -22,7 +22,8 @@ import PollRenderer from "../PollRenderer";
 import CountdownRenderer from "../CountdownRenderer";
 import QuizRenderer from "../QuizRenderer";
 import useRequireAuth from "../../../hooks/useRequireAuth";
-import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon } from "../../../utils/icons";
+import { ShareIcon, EmojiIcon, EditIcon, DeleteIcon, MessageIcon, UserProfileIcon, ChevronRightIcon, UsersIcon, BookmarkIcon } from "../../../utils/icons";
+import { useBookmarks } from "../../../hooks/useBookmarks";
 import FollowListModal from "../../profile/FollowListModal";
 import ReactorsModal from "../../common/ReactorsModal";
 
@@ -60,6 +61,7 @@ export default function PostModalImageSection({
   const { firebaseUser } = useAuth();
   const { createFollowNotification } = useNotifications();
   const { requireAuth } = useRequireAuth();
+  const { isBookmarked, toggleBookmark } = useBookmarks();
 
   // Follow state for the user tab
   const [isFollowing, setIsFollowing] = useState(false);
@@ -621,6 +623,18 @@ export default function PostModalImageSection({
                   </div>
                 )}
               </div>
+
+              <button
+                className={`reaction-bookmark-btn${isBookmarked(post.id) ? " bookmarked" : ""}`}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!requireAuth("bookmark a post")) return;
+                  toggleBookmark(post.id);
+                }}
+                title={isBookmarked(post.id) ? "Remove bookmark" : "Bookmark"}
+              >
+                <BookmarkIcon size={16} />
+              </button>
 
               <div className="reaction-share-container" ref={shareMenuRef}>
                 <button

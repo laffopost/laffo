@@ -768,13 +768,16 @@ export default function ProfilePage() {
           )}
           {profileTab === "posts" || !isOwnProfile ? (
             <PostGallery
+              key="posts"
               filterByUsername={usernameForFilter}
               showHeader={false}
               onPostDelete={handlePostDelete}
             />
           ) : (
             <PostGallery
+              key="saved"
               initialFilter="saved"
+              hideFilters
               showHeader={false}
               onPostDelete={handlePostDelete}
             />
