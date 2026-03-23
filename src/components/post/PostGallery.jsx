@@ -23,6 +23,7 @@ const PostGallery = memo(function PostGallery({
   filterByUsername = null,
   showHeader = false,
   onPostDelete,
+  initialFilter = "all",
 }) {
   const {
     posts,
@@ -46,7 +47,7 @@ const PostGallery = memo(function PostGallery({
   const [sharePost, setSharePost] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingPost, setEditingPost] = useState(null);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [postNotFound, setPostNotFound] = useState(false);

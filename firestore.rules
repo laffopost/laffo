@@ -60,15 +60,6 @@ service cloud.firestore {
                     && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions']);
     }
 
-    // ── App state ─────────────────────────────────────────────────────
-
-    match /app_state/mood_tracker {
-      allow read: if true;
-      allow write: if isSignedIn()
-                   && request.resource.data.keys().hasAll(['counts'])
-                   && request.resource.data.counts is map;
-    }
-
     // ── Posts ──────────────────────────────────────────────────────────
 
     match /posts/{postId} {

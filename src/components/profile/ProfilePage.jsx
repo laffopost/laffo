@@ -54,6 +54,7 @@ export default function ProfilePage() {
   const [followLoading, setFollowLoading] = useState(false);
   const [followersCount, setFollowersCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [profileTab, setProfileTab] = useState("posts"); // "posts" | "saved"
   const navigate = useNavigate();
   const { username: routeUsername } = useParams();
   const { createFollowNotification } = useNotifications();
@@ -749,11 +750,35 @@ export default function ProfilePage() {
         </div>
 
         <div className="profile-gallery-section">
-          <PostGallery
-            filterByUsername={usernameForFilter}
-            showHeader={false}
-            onPostDelete={handlePostDelete}
-          />
+          {isOwnProfile && (
+            <div className="profile-tabs">
+              <button
+                className={`profile-tab${profileTab === "posts" ? " active" : ""}`}
+                onClick={() => setProfileTab("posts")}
+              >
+                Posts
+              </button>
+              <button
+                className={`profile-tab${profileTab === "saved" ? " active" : ""}`}
+                onClick={() => setProfileTab("saved")}
+              >
+                Saved
+              </button>
+            </div>
+          )}
+          {profileTab === "posts" || !isOwnProfile ? (
+            <PostGallery
+              filterByUsername={usernameForFilter}
+              showHeader={false}
+              onPostDelete={handlePostDelete}
+            />
+          ) : (
+            <PostGallery
+              initialFilter="saved"
+              showHeader={false}
+              onPostDelete={handlePostDelete}
+            />
+          )}
         </div>
       </div>
 

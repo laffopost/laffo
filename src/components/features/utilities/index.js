@@ -1,4 +1,3 @@
-export { default as MoodTracker } from "./MoodTracker";
 export { default as DexScreenerEmbed } from "./DexScreenerEmbed";
 export { default as EmojiPicker } from "./EmojiPicker";
 export { default as NotificationBell } from "./NotificationBell";

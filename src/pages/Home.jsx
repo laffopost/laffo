@@ -15,11 +15,6 @@ const FirebaseChat = lazy(() =>
     default: m.FirebaseChat,
   })),
 );
-const MoodTracker = lazy(() =>
-  import("../components/features/utilities").then((m) => ({
-    default: m.MoodTracker,
-  })),
-);
 const CommunityStats = lazy(() =>
   import("../components/features/stats").then((m) => ({
     default: m.CommunityStats,
