@@ -151,8 +151,7 @@ service cloud.firestore {
                         // Any participant can add/remove reactions
                         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
                       );
-        allow delete: if isRealUser()
-                      && resource.data.senderId == request.auth.uid;
+        allow delete: if isRealUser() && isConvoParticipant();
       }
     }
 

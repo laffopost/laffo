@@ -463,9 +463,7 @@ const PostModalCommentsSection = memo(function PostModalCommentsSection({
             </span>
             {firebaseUser &&
               !firebaseUser.isAnonymous &&
-              (comment.userId === firebaseUser.uid ||
-                post.uploadedBy === firebaseUser.uid ||
-                post.userId === firebaseUser.uid) && (
+              comment.userId === firebaseUser.uid && (
                 <button
                   className="comment-delete-btn"
                   onClick={(e) => {

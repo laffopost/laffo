@@ -267,7 +267,7 @@ export default function ChatUI({
                 onClick={() =>
                   askConfirm(
                     "Delete Conversation?",
-                    "All messages will be permanently deleted. This cannot be undone.",
+                    "This will permanently delete all messages for both users. This cannot be undone.",
                     () => deleteConversation(activeConvo.id),
                   )
                 }

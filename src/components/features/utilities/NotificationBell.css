@@ -70,12 +70,10 @@
   right: 0;
   width: 350px;
   max-height: 420px;
-  background: var(--bg-overlay);
-  border: 2px solid var(--border-divider);
+  background: #1a1830;
+  border: 1px solid var(--border-divider);
   border-radius: 12px;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: 0 10px 40px var(--bg-dark-50);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
   z-index: 1000;
   overflow: hidden;
 }
@@ -86,7 +84,7 @@
   align-items: center;
   padding: 16px 20px;
   border-bottom: 1px solid var(--border-divider);
-  background: var(--bg-input);
+  background: #13122a;
 }
 
 .notification-header h3 {
@@ -224,7 +222,7 @@
 .notification-footer {
   padding: 12px 20px;
   border-top: 1px solid var(--border-divider);
-  background: var(--bg-input);
+  background: #13122a;
 }
 
 .view-all-btn {
