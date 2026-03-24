@@ -29,17 +29,16 @@ const MusicPlayer = lazy(() =>
 // Lazy load pages to reduce initial bundle
 const Home = lazy(() => import("./pages/Home"));
 const Sports = lazy(() => import("./pages/Sports"));
-const Stocks = lazy(() => import("./pages/Stocks"));
-const Weather = lazy(() => import("./pages/Weather"));
 const Trade = lazy(() => import("./pages/Trade"));
+const SupportPage = lazy(() => import("./pages/SupportPage"));
 const Profile = lazy(() => import("./components/profile/Profile"));
 const ProfilePage = lazy(() => import("./components/profile/ProfilePage"));
-const Sponsors = lazy(() => import("./pages/Sponsors"));
 const MessagesPage = lazy(() => import("./pages/Messages"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const GamesPage = lazy(() => import("./components/games/GamesPage"));
 const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
 const JokesPage = lazy(() => import("./pages/JokesPage"));
+const MemePage = lazy(() => import("./pages/MemePage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback
@@ -82,22 +81,6 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/stocks"
-          element={
-            <ErrorBoundary name="Stocks">
-              <Stocks />
-            </ErrorBoundary>
-          }
-        />
-        <Route
-          path="/weather"
-          element={
-            <ErrorBoundary name="Weather">
-              <Weather />
-            </ErrorBoundary>
-          }
-        />
-        <Route
           path="/profile"
           element={
             <ErrorBoundary name="Profile">
@@ -122,10 +105,10 @@ function AppRoutes() {
           }
         />
         <Route
-          path="/sponsors"
+          path="/support"
           element={
-            <ErrorBoundary name="Sponsors">
-              <Sponsors />
+            <ErrorBoundary name="Support">
+              <SupportPage />
             </ErrorBoundary>
           }
         />
@@ -174,6 +157,14 @@ function AppRoutes() {
           element={
             <ErrorBoundary name="Jokes">
               <JokesPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/memes"
+          element={
+            <ErrorBoundary name="Memes">
+              <MemePage />
             </ErrorBoundary>
           }
         />

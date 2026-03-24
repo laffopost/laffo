@@ -50,6 +50,8 @@ export default function Footer() {
           <h4>Explore</h4>
           <ul>
             <li><Link to="/">Home</Link></li>
+            <li><Link to="/jokes">Jokes</Link></li>
+            <li><Link to="/memes">Memes</Link></li>
             <li><Link to="/games">Games</Link></li>
             <li><Link to="/sports">Sports</Link></li>
             <li><Link to="/trade">Trade</Link></li>
@@ -61,7 +63,8 @@ export default function Footer() {
           <ul>
             <li><Link to="/messages">Messages</Link></li>
             <li><Link to="/notifications">Notifications</Link></li>
-            <li><Link to="/sponsors">Sponsors</Link></li>
+            <li><Link to="/memes">Meme Generator</Link></li>
+            <li><Link to="/support">Support Us ☕</Link></li>
           </ul>
         </div>
 

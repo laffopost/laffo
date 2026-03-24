@@ -11,13 +11,13 @@ import { auth, db } from "../../firebase/config";
 import { doc, setDoc } from "firebase/firestore";
 
 const MOTTOS = [
-  "Because laughter is the best investment.",
-  "HODL and laugh your way to the moon!",
-  "Where memes meet money.",
-  "The only coin that makes you smile.",
-  "Serious gains, hilarious community.",
-  "Laughing all the way to the bank.",
-  "Making crypto fun again!",
+  "The internet's funniest community.",
+  "Laugh now, think later.",
+  "Jokes, games & good vibes only.",
+  "Serious about being unserious.",
+  "Warning: highly addictive content.",
+  "Built on laughter, powered by vibes.",
+  "One laffo at a time.",
 ];
 
 const SOUND_KEY = "laughcoin_sound_on";
@@ -295,6 +295,14 @@ const Header = memo(function Header() {
             Games
           </Link>
           <Link
+            to="/memes"
+            className={`nav-link ${
+              location.pathname === "/memes" ? "active" : ""
+            }`}
+          >
+            Memes
+          </Link>
+          <Link
             to="/feedback"
             className={`nav-link ${
               location.pathname === "/feedback" ? "active" : ""
@@ -307,11 +315,9 @@ const Header = memo(function Header() {
           <Dropdown
             label="More"
             items={[
-              { label: "🌤 Weather", onClick: () => navigate("/weather") },
               { label: "⚽ Sports", onClick: () => navigate("/sports") },
-              { label: "📈 Stocks", onClick: () => navigate("/stocks") },
               { label: "📊 Trade / Chart", onClick: () => navigate("/trade") },
-              { label: "🤝 Sponsors", onClick: () => navigate("/sponsors") },
+              { label: "☕ Buy me a coffee", onClick: () => navigate("/support") },
             ]}
           />
           {/* --- User section at the end of nav --- */}
@@ -346,7 +352,7 @@ const Header = memo(function Header() {
           <span>Games</span>
         </Link>
         <button
-          className={`bottom-nav-item${["/feedback","/weather","/sports","/stocks","/trade","/sponsors"].includes(location.pathname) ? " active" : ""}`}
+          className={`bottom-nav-item${["/feedback","/memes","/sports","/trade","/support"].includes(location.pathname) ? " active" : ""}`}
           onClick={() => setMobileMenuOpen(v => !v)}
         >
           <GridIcon2 size={22} />
