@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, memo } from "react";
 import { createPortal } from "react-dom";
 import toast from "react-hot-toast";
 import {
-  collection, query, orderBy, limit, getDocs, doc, getDoc,
-  setDoc, addDoc, updateDoc, serverTimestamp, where, increment,
+  collection, query, orderBy, limit, getDocs, onSnapshot, doc, getDoc,
+  setDoc, addDoc, updateDoc, deleteDoc, serverTimestamp, where, increment,
 } from "firebase/firestore";
 import { db } from "../firebase/config";
-import { ShareIcon, ChatIcon, SendIcon, AddIcon, CloseIcon } from "../utils/icons";
+import { ShareIcon, ChatIcon, SendIcon, AddIcon, CloseIcon, DeleteIcon } from "../utils/icons";
 import { useAuth } from "../context/AuthContext";
 import { usePosts } from "../context/PostContext";
 import useRequireAuth from "../hooks/useRequireAuth";
@@ -546,11 +546,98 @@ function JokeShareMenu({ joke, onPostShare, onClose }) {
   );
 }
 
+// ── JokeComments ──────────────────────────────────────────────────
+function JokeComments({ jokeId, onCountChange }) {
+  const { firebaseUser, userProfile } = useAuth();
+  const uid = firebaseUser?.uid;
+  const isAnon = firebaseUser?.isAnonymous;
+  const [comments, setComments] = useState([]);
+  const [text, setText] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!jokeId) return;
+    const q = query(
+      collection(db, "jokes", jokeId, "comments"),
+      orderBy("createdAt", "asc")
+    );
+    const unsub = onSnapshot(q, (snap) => {
+      setComments(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      onCountChange?.(snap.docs.length);
+    });
+    return () => unsub();
+  }, [jokeId]);
+
+  const handleSend = async (e) => {
+    e.preventDefault();
+    if (!text.trim() || !uid || isAnon) return;
+    setSending(true);
+    try {
+      await addDoc(collection(db, "jokes", jokeId, "comments"), {
+        text: text.trim().slice(0, 500),
+        userId: uid,
+        username: userProfile?.username || firebaseUser?.displayName || "User",
+        avatar: userProfile?.avatar || null,
+        createdAt: serverTimestamp(),
+      });
+      setText("");
+    } catch {
+      toast.error("Failed to post comment");
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const handleDeleteComment = async (comment) => {
+    if (comment.userId !== uid) return;
+    try {
+      await deleteDoc(doc(db, "jokes", jokeId, "comments", comment.id));
+    } catch {
+      toast.error("Failed to delete comment");
+    }
+  };
+
+  return (
+    <div className="joke-comments">
+      {comments.map((c) => (
+        <div key={c.id} className="joke-comment">
+          {c.avatar && <img src={c.avatar} alt={c.username} className="joke-comment-avatar" />}
+          <div className="joke-comment-body">
+            <span className="joke-comment-author">@{c.username}</span>
+            <span className="joke-comment-text">{c.text}</span>
+          </div>
+          {c.userId === uid && (
+            <button className="joke-comment-delete" onClick={() => handleDeleteComment(c)} title="Delete">
+              <DeleteIcon size={11} />
+            </button>
+          )}
+        </div>
+      ))}
+      {uid && !isAnon ? (
+        <form className="joke-comment-form" onSubmit={handleSend}>
+          <input
+            className="joke-comment-input"
+            placeholder="Write a comment…"
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            maxLength={500}
+          />
+          <button className="joke-comment-send" type="submit" disabled={sending || !text.trim()}>↵</button>
+        </form>
+      ) : (
+        <p className="joke-comment-login">Log in to comment</p>
+      )}
+    </div>
+  );
+}
+
 // ── JokeCard ──────────────────────────────────────────────────────
-function JokeCard({ joke, index, onShareAsPost, onVote, communityMode }) {
+const JokeCard = memo(function JokeCard({ joke, index, onShareAsPost, onVote, communityMode, onDelete, currentUid }) {
   const [revealed, setRevealed] = useState(false);
   const [showShare, setShowShare] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const [localScore, setLocalScore] = useState(joke.score || 0);
+  const [commentCount, setCommentCount] = useState(0);
 
   // Reactions from localStorage
   const store = getReactionsStore();
@@ -604,24 +691,23 @@ function JokeCard({ joke, index, onShareAsPost, onVote, communityMode }) {
     <div className={`jokes-card${communityMode ? " jokes-card--community" : ""}`}>
       {communityMode ? (
         <div className="jokes-vote-col">
-          <button
-            className={`jokes-vote-btn up${voted === "up" ? " active" : ""}`}
-            onClick={() => handleCommunityVote("up")}
-            title="Upvote"
-          >▲</button>
+          <button className={`jokes-vote-btn up${voted === "up" ? " active" : ""}`} onClick={() => handleCommunityVote("up")} title="Upvote">▲</button>
           <span className="jokes-vote-score">{localScore}</span>
-          <button
-            className={`jokes-vote-btn down${voted === "down" ? " active" : ""}`}
-            onClick={() => handleCommunityVote("down")}
-            title="Downvote"
-          >▼</button>
+          <button className={`jokes-vote-btn down${voted === "down" ? " active" : ""}`} onClick={() => handleCommunityVote("down")} title="Downvote">▼</button>
         </div>
       ) : (
         <div className="jokes-card-num">#{index + 1}</div>
       )}
       <div className="jokes-card-body">
-        {communityMode && joke.authorName && (
-          <span className="jokes-card-author">@{joke.authorName}</span>
+        {communityMode && (
+          <div className="jokes-card-top">
+            {joke.authorName && <span className="jokes-card-author">@{joke.authorName}</span>}
+            {joke.authorUid === currentUid && (
+              <button className="jokes-card-delete" onClick={() => onDelete?.(joke)} title="Delete">
+                <DeleteIcon size={13} />
+              </button>
+            )}
+          </div>
         )}
         <p className="jokes-card-setup">{joke.setup}</p>
         {revealed ? (
@@ -648,28 +734,41 @@ function JokeCard({ joke, index, onShareAsPost, onVote, communityMode }) {
             Reveal punchline 👀
           </button>
         )}
-      </div>
-      <div className="jokes-card-actions">
-        <div style={{ position: "relative" }}>
-          <button
-            className="jokes-card-share"
-            onClick={() => setShowShare((v) => !v)}
-            title="Share"
-          >
-            <ShareIcon size={15} />
-          </button>
-          {showShare && (
-            <JokeShareMenu
-              joke={joke}
-              onPostShare={onShareAsPost}
-              onClose={() => setShowShare(false)}
-            />
+        <div className="jokes-card-footer">
+          {joke.id && (
+            <button
+              className={`jokes-footer-btn${showComments ? " active" : ""}`}
+              onClick={() => setShowComments((v) => !v)}
+              title="Comments"
+            >
+              <ChatIcon size={14} />
+              {commentCount > 0 && <span className="jokes-footer-count">{commentCount}</span>}
+            </button>
           )}
+          <div style={{ position: "relative" }}>
+            <button
+              className="jokes-footer-btn"
+              onClick={() => setShowShare((v) => !v)}
+              title="Share"
+            >
+              <ShareIcon size={14} />
+            </button>
+            {showShare && (
+              <JokeShareMenu
+                joke={joke}
+                onPostShare={onShareAsPost}
+                onClose={() => setShowShare(false)}
+              />
+            )}
+          </div>
         </div>
+        {showComments && joke.id && (
+          <JokeComments jokeId={joke.id} onCountChange={setCommentCount} />
+        )}
       </div>
     </div>
   );
-}
+});
 
 // ── Main page ─────────────────────────────────────────────────────
 export default function JokesPage() {
@@ -681,6 +780,17 @@ export default function JokesPage() {
   const [loading, setLoading] = useState(true);
   const [shareJoke, setShareJoke] = useState(null);
   const [showSubmit, setShowSubmit] = useState(false);
+
+  const handleDeleteJoke = useCallback(async (joke) => {
+    if (!window.confirm("Delete your joke?")) return;
+    try {
+      await deleteDoc(doc(db, "jokes", joke.id));
+      setJokes((prev) => prev.filter((j) => j.id !== joke.id));
+      toast.success("Joke deleted");
+    } catch {
+      toast.error("Failed to delete");
+    }
+  }, []);
 
   // Load jokes from API / Firestore / fallback
   const loadJokes = useCallback(async (cat, append = false) => {
@@ -831,6 +941,8 @@ export default function JokesPage() {
             onShareAsPost={(j) => setShareJoke(j)}
             onVote={handleVote}
             communityMode={isCommunity}
+            onDelete={handleDeleteJoke}
+            currentUid={firebaseUser?.uid}
           />
         ))}
 

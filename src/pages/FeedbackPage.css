@@ -188,7 +188,9 @@
 .feedback-card {
   display: flex;
   gap: 14px;
-  background: #16152b;
+  background: rgba(22, 21, 43, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(139, 92, 246, 0.15);
   border-radius: 13px;
   padding: 16px;
@@ -290,6 +292,41 @@
   gap: 6px;
 }
 
+.feedback-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.feedback-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: color 0.15s, background 0.15s;
+}
+
+.feedback-footer-btn:hover,
+.feedback-footer-btn.active {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.feedback-footer-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
 .feedback-meta-avatar {
   width: 18px;
   height: 18px;
@@ -307,4 +344,153 @@
 .feedback-meta-dot {
   color: var(--text-description);
   font-size: 0.75rem;
+}
+
+.feedback-delete-btn {
+  margin-left: auto;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  padding: 3px 5px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.feedback-delete-btn:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* ── Comments toggle ── */
+.feedback-comments-toggle,
+.feedback-share-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: var(--text-description);
+  font-size: 0.73rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 5px;
+  transition: color 0.15s, background 0.15s;
+  margin-left: 6px;
+}
+
+.feedback-comments-toggle:hover,
+.feedback-share-btn:hover {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.08);
+}
+
+/* ── Comments section ── */
+.feedback-comments {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.feedback-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.feedback-comment-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.feedback-comment-body {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.feedback-comment-author {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-right: 6px;
+}
+
+.feedback-comment-text {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.feedback-comment-delete {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.feedback-comment-delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.feedback-comment-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.feedback-comment-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.feedback-comment-input:focus {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.feedback-comment-send {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 8px;
+  color: #a78bfa;
+  font-size: 1rem;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.feedback-comment-send:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.28);
+}
+
+.feedback-comment-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }

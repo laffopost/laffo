@@ -394,6 +394,14 @@
   margin-bottom: 6px;
 }
 
+.jokes-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  min-height: 20px;
+}
+
 .jokes-empty {
   text-align: center;
   color: var(--text-description);
@@ -417,7 +425,9 @@
 
 /* ── Card ── */
 .jokes-card {
-  background: #16152b;
+  background: rgba(22, 21, 43, 0.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(139, 92, 246, 0.15);
   border-radius: 13px;
   padding: 18px;
@@ -511,6 +521,192 @@
 .jokes-card-share:hover {
   color: #a78bfa;
   background: rgba(139, 92, 246, 0.1);
+}
+
+.jokes-card-delete {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 4px 6px;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+  line-height: 1;
+}
+
+.jokes-card-delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.jokes-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.jokes-footer-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.45);
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  transition: color 0.15s, background 0.15s;
+}
+
+.jokes-footer-btn:hover,
+.jokes-footer-btn.active {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+.jokes-footer-count {
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.jokes-card-comments-btn {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: color 0.15s, background 0.15s;
+}
+
+.jokes-card-comments-btn:hover,
+.jokes-card-comments-btn.active {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.1);
+}
+
+/* ── Joke comments ── */
+.joke-comments {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.joke-comment {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.joke-comment-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.joke-comment-body {
+  flex: 1;
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 8px;
+  padding: 6px 10px;
+}
+
+.joke-comment-author {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #a78bfa;
+  margin-right: 6px;
+}
+
+.joke-comment-text {
+  font-size: 0.82rem;
+  color: var(--text-primary);
+  line-height: 1.4;
+}
+
+.joke-comment-delete {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.2);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.joke-comment-delete:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.joke-comment-form {
+  display: flex;
+  gap: 6px;
+}
+
+.joke-comment-input {
+  flex: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(139, 92, 246, 0.15);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-size: 0.82rem;
+  padding: 7px 12px;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.joke-comment-input:focus {
+  border-color: rgba(139, 92, 246, 0.4);
+}
+
+.joke-comment-send {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 8px;
+  color: #a78bfa;
+  font-size: 1rem;
+  padding: 0 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.joke-comment-send:hover:not(:disabled) {
+  background: rgba(139, 92, 246, 0.28);
+}
+
+.joke-comment-send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.joke-comment-login {
+  font-size: 0.78rem;
+  color: var(--text-description);
+  text-align: center;
+  padding: 6px 0;
+  margin: 0;
 }
 
 /* ── Reactions ── */

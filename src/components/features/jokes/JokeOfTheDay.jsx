@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Link } from "react-router-dom";
 import "./JokeOfTheDay.css";
 
@@ -65,10 +65,29 @@ export default function JokeOfTheDay() {
 
   const total = jokes.length;
   const joke = jokes[index] ?? null;
+  const totalRef = useRef(total);
+  totalRef.current = total;
 
-  const next = () => {
+  const intervalRef = useRef(null);
+
+  const startInterval = useCallback(() => {
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
+      setIndex((i) => (i + 1) % totalRef.current);
+      setRevealed(false);
+    }, 10000);
+  }, []);
+
+  useEffect(() => {
+    if (!total) return;
+    startInterval();
+    return () => clearInterval(intervalRef.current);
+  }, [total, startInterval]);
+
+  const handleNext = () => {
     setIndex((i) => (i + 1) % total);
     setRevealed(false);
+    startInterval(); // reset timer — no state change, no re-render
   };
 
   return (
@@ -111,9 +130,10 @@ export default function JokeOfTheDay() {
                 />
               ))}
             </div>
-            <button className="joke-next-btn" onClick={next}>
-              Next joke →
-            </button>
+            <div className="joke-footer-actions">
+              <Link to="/jokes" className="joke-next-btn">See all →</Link>
+              <button className="joke-next-btn" onClick={handleNext}>Next →</button>
+            </div>
           </div>
         </>
       )}
