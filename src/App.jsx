@@ -38,6 +38,8 @@ const Sponsors = lazy(() => import("./pages/Sponsors"));
 const MessagesPage = lazy(() => import("./pages/Messages"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const GamesPage = lazy(() => import("./components/games/GamesPage"));
+const FeedbackPage = lazy(() => import("./pages/FeedbackPage"));
+const JokesPage = lazy(() => import("./pages/JokesPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback
@@ -156,6 +158,22 @@ function AppRoutes() {
           element={
             <ErrorBoundary name="Games">
               <GamesPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/feedback"
+          element={
+            <ErrorBoundary name="Feedback">
+              <FeedbackPage />
+            </ErrorBoundary>
+          }
+        />
+        <Route
+          path="/jokes"
+          element={
+            <ErrorBoundary name="Jokes">
+              <JokesPage />
             </ErrorBoundary>
           }
         />

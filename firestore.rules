@@ -195,6 +195,47 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
+    // ── User-submitted jokes ─────────────────────────────────────────
+    match /jokes/{jokeId} {
+      allow read: if true;
+      allow create: if isRealUser()
+                    && request.resource.data.keys().hasAll(['setup', 'delivery', 'authorUid', 'authorName'])
+                    && request.resource.data.setup is string
+                    && request.resource.data.delivery is string
+                    && request.auth.uid == request.resource.data.authorUid;
+      // Anyone signed in can update score (upvote/downvote)
+      allow update: if isSignedIn()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['score', 'upvotes', 'downvotes']);
+      // Only author can delete
+      allow delete: if isRealUser() && resource.data.authorUid == request.auth.uid;
+    }
+
+    // ── Feedback & Ideas ──────────────────────────────────────────────
+    match /feedback/{feedbackId} {
+      allow read: if true;
+      allow create: if isRealUser()
+                    && request.resource.data.keys().hasAll(['title', 'category', 'userId', 'username', 'votes', 'voteCount', 'status', 'createdAt'])
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 120
+                    && request.auth.uid == request.resource.data.userId
+                    && request.resource.data.voteCount == 0
+                    && request.resource.data.status == 'open';
+      // Anyone signed in can vote (votes array + voteCount)
+      allow update: if isSignedIn()
+                    && request.resource.data.diff(resource.data).affectedKeys()
+                       .hasOnly(['votes', 'voteCount']);
+      // Only author can delete
+      allow delete: if isRealUser() && resource.data.userId == request.auth.uid;
+    }
+
+    // ── Joke votes (Best category) ───────────────────────────────────
+    match /jokeVotes/{voteId} {
+      allow read: if true;
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+    }
+
     // ── Default deny ──────────────────────────────────────────────────
 
     match /{document=**} {

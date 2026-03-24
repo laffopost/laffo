@@ -1,5 +1,6 @@
 import { lazy, Suspense } from "react";
 import PostGallery from "../components/post/PostGallery";
+import { JokeOfTheDay } from "../components/features/jokes";
 import "./Home.css";
 import logger from "../utils/logger";
 
@@ -55,15 +56,7 @@ export default function Home() {
     <div className="home">
       <div className="home-layout">
         <div className="left-column">
-{/*           <Suspense fallback={<WidgetFallback />}>
-            <MoodTracker />
-          </Suspense>
-          <Suspense fallback={<WidgetFallback />}>
-            <CompactWeather />
-          </Suspense>
-          <Suspense fallback={<WidgetFallback />}>
-            <TokenInfo data={TOKEN_DATA} />
-          </Suspense> */}
+          <JokeOfTheDay />
         </div>
         <div className="center-column">
           <PostGallery />

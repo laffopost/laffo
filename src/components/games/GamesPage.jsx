@@ -10,7 +10,6 @@ import WhackGame from "./games/WhackGame";
 import WordScrambleGame from "./games/WordScrambleGame";
 import NumberSequenceGame from "./games/NumberSequenceGame";
 import Leaderboard from "./Leaderboard";
-import FirebaseChat from "../features/chat/FirebaseChat";
 import AddPostModal from "../post/AddPostModal";
 import { usePostActions } from "../../context/PostContext";
 import { useAuth } from "../../context/AuthContext";
@@ -90,7 +89,6 @@ export default function GamesPage() {
 
         <div className="games-sidebar">
           <Leaderboard gameKey={selected} />
-          <FirebaseChat collection="games-chat" title="Games Chat 🎮" />
         </div>
       </div>
 

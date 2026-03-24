@@ -265,14 +265,6 @@ const Header = memo(function Header() {
             Home
           </Link>
           <Link
-            to="/games"
-            className={`nav-link ${
-              location.pathname === "/games" ? "active" : ""
-            }`}
-          >
-            Games
-          </Link>
-          <Link
             to="/messages"
             className={`nav-link ${
               location.pathname === "/messages" ? "active" : ""
@@ -287,29 +279,39 @@ const Header = memo(function Header() {
             )}
           </Link>
           <Link
-            to="/weather"
+            to="/jokes"
             className={`nav-link ${
-              location.pathname === "/weather" ? "active" : ""
+              location.pathname === "/jokes" ? "active" : ""
             }`}
           >
-            Weather
+            Jokes
           </Link>
           <Link
-            to="/sports"
+            to="/games"
             className={`nav-link ${
-              location.pathname === "/sports" ? "active" : ""
+              location.pathname === "/games" ? "active" : ""
             }`}
           >
-            Sports
+            Games
+          </Link>
+          <Link
+            to="/feedback"
+            className={`nav-link ${
+              location.pathname === "/feedback" ? "active" : ""
+            }`}
+          >
+            Feedback
           </Link>
 
           {/* Dropdown Menu */}
           <Dropdown
             label="More"
             items={[
-              { label: "Stocks", onClick: () => navigate("/stocks") },
-              { label: "Trade / Chart", onClick: () => navigate("/trade") },
-              { label: "Sponsors", onClick: () => navigate("/sponsors") },
+              { label: "🌤 Weather", onClick: () => navigate("/weather") },
+              { label: "⚽ Sports", onClick: () => navigate("/sports") },
+              { label: "📈 Stocks", onClick: () => navigate("/stocks") },
+              { label: "📊 Trade / Chart", onClick: () => navigate("/trade") },
+              { label: "🤝 Sponsors", onClick: () => navigate("/sponsors") },
             ]}
           />
           {/* --- User section at the end of nav --- */}
@@ -328,10 +330,6 @@ const Header = memo(function Header() {
           <HomeIcon size={22} />
           <span>Home</span>
         </Link>
-        <Link to="/games" className={`bottom-nav-item${location.pathname === "/games" ? " active" : ""}`}>
-          <GamesIcon size={22} />
-          <span>Games</span>
-        </Link>
         <Link to="/messages" className={`bottom-nav-item${location.pathname === "/messages" ? " active" : ""}`} style={{ position: "relative" }}>
           <MessageIcon size={22} />
           {unreadMessageCount > 0 && (
@@ -339,16 +337,16 @@ const Header = memo(function Header() {
           )}
           <span>Messages</span>
         </Link>
-        <Link to="/sports" className={`bottom-nav-item${location.pathname === "/sports" ? " active" : ""}`}>
-          <SportsIcon size={22} />
-          <span>Sports</span>
+        <Link to="/jokes" className={`bottom-nav-item${location.pathname === "/jokes" ? " active" : ""}`}>
+          <span style={{ fontSize: 20 }}>😂</span>
+          <span>Jokes</span>
         </Link>
-        <Link to="/weather" className={`bottom-nav-item${location.pathname === "/weather" ? " active" : ""}`}>
-          <WeatherIcon size={22} />
-          <span>Weather</span>
+        <Link to="/games" className={`bottom-nav-item${location.pathname === "/games" ? " active" : ""}`}>
+          <GamesIcon size={22} />
+          <span>Games</span>
         </Link>
         <button
-          className={`bottom-nav-item${["/stocks","/trade","/sponsors"].includes(location.pathname) ? " active" : ""}`}
+          className={`bottom-nav-item${["/feedback","/weather","/sports","/stocks","/trade","/sponsors"].includes(location.pathname) ? " active" : ""}`}
           onClick={() => setMobileMenuOpen(v => !v)}
         >
           <GridIcon2 size={22} />
